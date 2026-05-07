@@ -516,30 +516,76 @@ class PageStructureExtractor:
             styles.margin = '1em 0'
     
     def _identify_component_type(self, tag: str, attributes: Dict) -> ComponentType:
-        """识别组件类型"""
+        """识别组件类型 - 增强版"""
         class_attr = attributes.get('class', '')
         classes = class_attr.lower() if isinstance(class_attr, str) else ''
         
-        # 根据标签识别
-        if tag == 'button' or 'btn' in classes:
-            return ComponentType.BUTTON
-        elif tag == 'input':
-            input_type = attributes.get('type', 'text')
-            if input_type == 'checkbox':
-                return ComponentType.CHECKBOX
-            elif input_type == 'radio':
-                return ComponentType.RADIO
-            return ComponentType.INPUT
-        elif tag == 'select':
-            return ComponentType.SELECT
-        elif tag in ['nav', 'menu'] or 'nav' in classes:
-            return ComponentType.MENU
+        # 根据标签识别（优先级最高）
+        tag_mapping = {
+            'button': ComponentType.BUTTON,
+            'a': ComponentType.BUTTON,  # 链接通常也是按钮
+            'input': ComponentType.INPUT,
+            'textarea': ComponentType.INPUT,
+            'select': ComponentType.SELECT,
+            'nav': ComponentType.MENU,
+            'menu': ComponentType.MENU,
+            'form': ComponentType.UNKNOWN,  # 表单容器
+            'table': ComponentType.UNKNOWN,
+            'ul': ComponentType.UNKNOWN,
+            'ol': ComponentType.UNKNOWN,
+            'img': ComponentType.UNKNOWN,
+            'video': ComponentType.UNKNOWN,
+            'audio': ComponentType.UNKNOWN,
+            'iframe': ComponentType.UNKNOWN,
+        }
         
-        # 根据类名识别
-        for comp_type, patterns in self.COMPONENT_PATTERNS.items():
+        if tag in tag_mapping:
+            base_type = tag_mapping[tag]
+            # 对input进行细分
+            if tag == 'input':
+                input_type = attributes.get('type', 'text').lower()
+                if input_type == 'checkbox':
+                    return ComponentType.CHECKBOX
+                elif input_type == 'radio':
+                    return ComponentType.RADIO
+                elif input_type in ['submit', 'button', 'reset']:
+                    return ComponentType.BUTTON
+                return ComponentType.INPUT
+            return base_type
+        
+        # 根据类名识别（更全面的模式匹配）
+        class_patterns = {
+            ComponentType.BUTTON: ['button', 'btn', 'submit', 'clickable'],
+            ComponentType.INPUT: ['input', 'textfield', 'form-control', 'search-input'],
+            ComponentType.SELECT: ['select', 'dropdown', 'combobox', 'picker'],
+            ComponentType.MODAL: ['modal', 'dialog', 'popup', 'overlay', 'mask'],
+            ComponentType.TABS: ['tab', 'tabs', 'tabbar'],
+            ComponentType.MENU: ['menu', 'nav-menu', 'navbar', 'navigation'],
+            ComponentType.SEARCH: ['search', 'searchbox', 'search-input'],
+            ComponentType.PAGINATION: ['pagination', 'pager', 'page'],
+            ComponentType.CAROUSEL: ['carousel', 'slider', 'swiper'],
+            ComponentType.ALERT: ['alert', 'notice', 'message', 'toast'],
+        }
+        
+        for comp_type, patterns in class_patterns.items():
             for pattern in patterns:
                 if pattern in classes:
                     return comp_type
+        
+        # 根据role属性识别（ARIA角色）
+        role = attributes.get('role', '').lower()
+        role_mapping = {
+            'button': ComponentType.BUTTON,
+            'link': ComponentType.BUTTON,
+            'input': ComponentType.INPUT,
+            'searchbox': ComponentType.SEARCH,
+            'navigation': ComponentType.MENU,
+            'tab': ComponentType.TABS,
+            'dialog': ComponentType.MODAL,
+            'alert': ComponentType.ALERT,
+        }
+        if role in role_mapping:
+            return role_mapping[role]
         
         return ComponentType.UNKNOWN
     

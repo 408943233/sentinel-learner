@@ -325,7 +325,11 @@ class FinalBusinessLearningEngine:
             interactive = extractor.extract_interactive_elements()
             
             # 页面结构和样式提取
-            structure_extractor = PageStructureExtractor(str(snapshot_file))
+            resources_path = self.task_path / 'network' / 'resources'
+            structure_extractor = PageStructureExtractor(
+                str(snapshot_file),
+                str(resources_path) if resources_path.exists() else None
+            )
             page_structure = structure_extractor.extract()
             if page_structure:
                 page_structures.append(page_structure.to_dict())
