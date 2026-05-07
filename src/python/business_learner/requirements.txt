@@ -1,0 +1,25 @@
+# Business Learner 依赖
+
+# 视频处理
+opencv-python>=4.8.0
+scikit-image>=0.21.0
+numpy>=1.24.0
+
+# 数据解析
+pyyaml>=6.0
+
+# Web服务（服务器模式）
+fastapi>=0.100.0
+uvicorn>=0.23.0
+python-multipart>=0.0.6
+
+# 任务队列（服务器模式）
+redis>=4.6.0
+celery>=5.3.0
+
+# 工具
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+
+# 日志
+structlog>=23.0.0
