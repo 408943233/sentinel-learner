@@ -69,18 +69,22 @@ class UnifiedMemoryAdapter:
         运行skill命令
         
         使用相对路径和正确的工作目录，避免安全路径检查问题
+        注意：子命令必须在前，--graph/--schema 参数跟在后面
         
         Returns:
             (成功状态, 输出信息)
         """
-        # 构建命令：使用相对路径 --graph memory/ontology/graph.jsonl
+        # 构建命令：子命令在前，--graph 跟在后面
         # 工作目录设为 workspace_base，这样相对路径才能正确解析
-        cmd = [
-            "python3", 
-            str(self.script_path),
-            "--graph", "memory/ontology/graph.jsonl",
-            "--schema", "memory/ontology/schema.yaml"
-        ] + list(args)
+        cmd = ["python3", str(self.script_path)] + list(args)
+        
+        # 只在需要时添加 --graph 参数（跟在子命令后）
+        if "--graph" not in args:
+            cmd += ["--graph", "memory/ontology/graph.jsonl"]
+        
+        # --schema 只在 validate 命令中使用
+        if "--schema" not in args and "validate" in args:
+            cmd += ["--schema", "memory/ontology/schema.yaml"]
         
         try:
             result = subprocess.run(

@@ -629,6 +629,7 @@ class PageStructureExtractor:
     def _load_external_css_files(self) -> Dict[str, Dict[str, str]]:
         """
         加载外部CSS文件（动态加载的样式）
+        分批处理，实时报告进度，不丢弃任何文件
         
         Returns:
             CSS规则字典 {selector: {property: value}}
@@ -643,11 +644,18 @@ class PageStructureExtractor:
         css_files = list(self.resources_path.glob('*.css'))
         css_files.extend(self.resources_path.glob('*.css.css'))
         
-        print(f"[PageStructure] 找到 {len(css_files)} 个CSS文件")
+        total_files = len(css_files)
+        print(f"[PageStructure] 找到 {total_files} 个CSS文件，开始加载...")
         
         loaded_count = 0
-        for css_file in css_files:
+        batch_size = 10  # 每10个文件报告一次进度
+        
+        for i, css_file in enumerate(css_files):
             try:
+                # 每batch_size个文件报告一次进度
+                if (i + 1) % batch_size == 0 or i == 0:
+                    print(f"[PageStructure]   进度: {i+1}/{total_files} ({(i+1)/total_files*100:.1f}%) - 已加载 {len(all_rules)} 条规则")
+                
                 with open(css_file, 'r', encoding='utf-8', errors='ignore') as f:
                     css_content = f.read()
                 
@@ -655,13 +663,10 @@ class PageStructureExtractor:
                     rules = self._parse_css_rules(css_content)
                     all_rules.update(rules)
                     loaded_count += 1
-                    
-                    if loaded_count <= 3:
-                        print(f"[PageStructure]   加载: {css_file.name} ({len(rules)} 条规则)")
             except Exception as e:
                 print(f"[PageStructure]   加载失败: {css_file.name} - {e}")
         
-        print(f"[PageStructure] 成功加载 {loaded_count} 个CSS文件")
+        print(f"[PageStructure] 完成! 成功加载 {loaded_count}/{total_files} 个CSS文件，共 {len(all_rules)} 条规则")
         return all_rules
     
     def _extract_css_class_definitions(self, components: List[ComponentInfo]) -> Dict[str, List[CSSClassDefinition]]:
@@ -813,7 +818,7 @@ class PageStructureExtractor:
         return '\n'.join(css_content)
     
     def _parse_css_rules(self, css_text: str) -> Dict[str, Dict[str, str]]:
-        """解析CSS规则为字典"""
+        """解析CSS规则为字典，保留所有规则"""
         rules = {}
         
         if not css_text:
@@ -829,6 +834,10 @@ class PageStructureExtractor:
         for selector, declarations in matches:
             selector = selector.strip()
             if not selector:
+                continue
+            
+            # 跳过复杂选择器（如 @media, @keyframes）- 这些需要特殊处理
+            if selector.startswith('@'):
                 continue
             
             props = {}
