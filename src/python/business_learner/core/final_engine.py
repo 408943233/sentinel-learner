@@ -20,6 +20,7 @@ from ..extractors.manifest_analyzer import ManifestAnalyzer
 from ..extractors.api_traffic_analyzer import APITrafficAnalyzer
 from ..extractors.resources_analyzer import ResourcesAnalyzer
 from ..extractors.logs_analyzer import LogsAnalyzer
+from ..extractors.page_structure_extractor import PageStructureExtractor
 
 from ..fusion.visual_text_fusion import VisualTextFusionEngine, VisualAnalysisResult, TextAnalysisResult
 from ..fusion.conflict_resolver import ConflictResolver
@@ -302,7 +303,7 @@ class FinalBusinessLearningEngine:
         return self.api_extractor.extract_entities()
     
     def _analyze_dom(self) -> Dict:
-        """分析DOM结构"""
+        """分析DOM结构（包含页面结构和样式）"""
         if not self.dom_dir.exists():
             print("  ⚠️ DOM目录不存在")
             return {}
@@ -314,11 +315,22 @@ class FinalBusinessLearningEngine:
             return {}
         
         results = []
+        page_structures = []
+        
         for snapshot_file in snapshot_files:
+            # 基础DOM分析
             extractor = DOMExtractor(str(snapshot_file))
             page_info = extractor.extract_page_info()
             elements = extractor.extract_elements()
             interactive = extractor.extract_interactive_elements()
+            
+            # 页面结构和样式提取
+            structure_extractor = PageStructureExtractor(str(snapshot_file))
+            page_structure = structure_extractor.extract()
+            if page_structure:
+                page_structures.append(page_structure.to_dict())
+                # 保存页面结构
+                structure_extractor.save(self.output_dir)
             
             results.append({
                 'file': snapshot_file.name,
@@ -328,12 +340,14 @@ class FinalBusinessLearningEngine:
                     'page_type': page_info.page_type if page_info else 'unknown'
                 },
                 'element_count': len(elements),
-                'interactive_count': len(interactive)
+                'interactive_count': len(interactive),
+                'has_structure': page_structure is not None
             })
         
         return {
             'total_snapshots': len(results),
-            'snapshots': results
+            'snapshots': results,
+            'page_structures': page_structures
         }
     
     def _analyze_api_traffic(self) -> Dict:
@@ -617,9 +631,9 @@ class FinalBusinessLearningEngine:
         return "\n".join(parts)
     
     def _save_comprehensive_results(self, task: TaskUnderstanding):
-        """保存完整结果"""
+        """保存完整结果（包含原型Demo）"""
         result_file = self.output_dir / "final_comprehensive_analysis.json"
-        
+
         result_dict = {
             "task_id": task.task_id,
             "business_system": task.business_system,
@@ -658,12 +672,40 @@ class FinalBusinessLearningEngine:
             "key_findings": task.key_findings,
             "summary": task.summary
         }
-        
+
         with open(result_file, 'w', encoding='utf-8') as f:
             json.dump(result_dict, f, ensure_ascii=False, indent=2, default=str)
-        
+
         print(f"  ✅ 结果已保存: {result_file}")
-    
+
+        # 生成原型Demo
+        self._generate_prototype_demo(task)
+
+    def _generate_prototype_demo(self, task: TaskUnderstanding):
+        """生成原型Demo HTML"""
+        try:
+            from ..generators.prototype_generator import PrototypeGenerator
+
+            # 查找页面结构文件
+            structure_file = self.output_dir / 'page_structure.json'
+
+            if structure_file.exists():
+                generator = PrototypeGenerator(str(structure_file))
+                prototype_path = generator.generate(
+                    output_path=str(self.output_dir),
+                    title=task.pages[0].page_info.title if task.pages else 'Prototype Demo'
+                )
+
+                if prototype_path:
+                    print(f"  ✅ 原型Demo已生成: {prototype_path}")
+                else:
+                    print("  ⚠️ 原型Demo生成失败")
+            else:
+                print("  ⚠️ 未找到页面结构文件，跳过原型生成")
+
+        except Exception as e:
+            print(f"  ⚠️ 生成原型Demo时出错: {e}")
+
     def _store_to_memory(self, task: TaskUnderstanding):
         """存储到知识图谱"""
         try:
