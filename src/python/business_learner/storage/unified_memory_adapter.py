@@ -5,6 +5,7 @@
 """
 
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -21,6 +22,10 @@ class UnifiedMemoryAdapter:
     支持两种模式：
     - local: 本地开发，使用本地memory目录
     - server: 服务器部署，使用共享memory目录
+    
+    路径配置（可通过环境变量覆盖）：
+    - SENTINEL_WORKSPACE: 主图谱存储目录 (默认: ~/.openclaw/workspace)
+    - OPENCLAW_SKILL_PATH: skill脚本目录 (默认: ~/.openclaw/extensions/openclaw-memory-skill)
     """
     
     def __init__(self, mode: str = "local", server_memory_path: Optional[str] = None):
@@ -33,35 +38,49 @@ class UnifiedMemoryAdapter:
         """
         self.mode = mode
         
+        # 读取环境变量或使用默认值
+        self.workspace_base = Path(
+            os.environ.get("SENTINEL_WORKSPACE", Path.home() / ".openclaw" / "workspace")
+        )
+        self.script_base = Path(
+            os.environ.get("OPENCLAW_SKILL_PATH", Path.home() / ".openclaw" / "extensions" / "openclaw-memory-skill")
+        )
+        
         if mode == "server":
             if not server_memory_path:
                 raise ValueError("Server模式需要提供server_memory_path")
             self.memory_base_path = Path(server_memory_path)
         else:
-            # 本地模式：使用项目内的openclaw-memory-skill
-            self.memory_base_path = Path("/Users/gaoyiwei/Documents/trae_projects/openclaw/openclaw-memory-skill")
+            # 本地模式：写入主图谱（workspace）
+            self.memory_base_path = self.workspace_base
         
+        # 数据文件路径（在workspace中）
         self.graph_path = self.memory_base_path / "memory" / "ontology" / "graph.jsonl"
         self.schema_path = self.memory_base_path / "memory" / "ontology" / "schema.yaml"
-        self.script_path = self.memory_base_path / "scripts" / "ontology_optimized.py"
         
-        # 确保目录存在
+        # 脚本路径（在script_base中）
+        self.script_path = self.script_base / "scripts" / "ontology_optimized.py"
+        
+        # 确保数据目录存在
         self.graph_path.parent.mkdir(parents=True, exist_ok=True)
     
     def _run_skill_command(self, *args) -> tuple[bool, str]:
         """
         运行skill命令
         
+        使用相对路径和正确的工作目录，避免安全路径检查问题
+        
         Returns:
             (成功状态, 输出信息)
         """
-        # 构建环境变量，指定graph路径
-        env = {
-            "GRAPH_PATH": str(self.graph_path),
-            "SCHEMA_PATH": str(self.schema_path)
-        }
-        
-        cmd = ["python3", str(self.script_path)] + list(args)
+        # 构建命令：使用相对路径 --graph memory/ontology/graph.jsonl
+        # 工作目录设为 workspace_base，这样相对路径才能正确解析
+        cmd = [
+            "python3", 
+            str(self.script_path),
+            "--graph", "memory/ontology/graph.jsonl",
+            "--schema", "memory/ontology/schema.yaml"
+        ] + list(args)
         
         try:
             result = subprocess.run(
@@ -69,7 +88,8 @@ class UnifiedMemoryAdapter:
                 capture_output=True,
                 text=True,
                 timeout=30,
-                env={**subprocess.os.environ, **env}
+                cwd=str(self.memory_base_path),  # 设置工作目录为数据目录
+                env=subprocess.os.environ  # 继承当前环境变量
             )
             
             if result.returncode == 0:
