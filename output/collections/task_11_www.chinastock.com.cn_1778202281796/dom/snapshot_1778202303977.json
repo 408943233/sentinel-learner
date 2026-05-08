@@ -1,0 +1,42 @@
+{
+  "type": "incremental",
+  "timestamp": 1778202303977,
+  "url": "https://www.chinastock.com.cn/newsite/investor/stockInfo.html",
+  "title": "中国银河证券官方网站",
+  "rrwebEvent": {
+    "type": 3,
+    "data": {
+      "source": 0,
+      "adds": [],
+      "removes": [],
+      "texts": [],
+      "attributes": [
+        {
+          "id": 97,
+          "attributes": {
+            "style": "display: block;"
+          }
+        },
+        {
+          "id": 97,
+          "attributes": {
+            "style": "display: block;"
+          }
+        },
+        {
+          "id": 369,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 97,
+          "attributes": {
+            "style": "display: none;"
+          }
+        }
+      ]
+    },
+    "timestamp": 1778202312506
+  }
+}

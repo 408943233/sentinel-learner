@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>修改服务方式</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #e9e9e9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #f4f5f6;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #fefefe;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #fefefe;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 6px; }
+        .signal-bar:nth-child(3) { height: 8px; }
+        .signal-bar:nth-child(4) { height: 10px; }
+        .wifi-icon {
+            width: 18px;
+            height: 14px;
+        }
+        .battery-icon {
+            width: 28px;
+            height: 14px;
+            background: #fefefe;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 4px;
+            width: 2px;
+            height: 6px;
+            background: #fefefe;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-text {
+            position: absolute;
+            font-size: 9px;
+            font-weight: 600;
+            color: #000;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .back-btn {
+            position: absolute;
+            left: 8px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #fefefe;
+        }
+        .nav-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #fefefe;
+        }
+        /* Content Area */
+        .content-section {
+            position: absolute;
+            top: 91px;
+            height: 753px;
+            left: 0;
+            right: 0;
+            background: #f4f5f6;
+        }
+        .section-title {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #090a1a;
+        }
+        /* Service Item - WeChat */
+        .service-item-wechat {
+            position: absolute;
+            top: 56px;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: #fefefe;
+            padding: 16px;
+        }
+        .service-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .checkbox svg {
+            width: 14px;
+            height: 14px;
+            fill: #fefefe;
+        }
+        .checkbox.unchecked {
+            background: #e9e9e9;
+        }
+        .checkbox.unchecked svg {
+            display: none;
+        }
+        .service-name {
+            font-size: 17px;
+            font-weight: 500;
+            color: #090a1a;
+        }
+        .service-desc {
+            margin-left: 34px;
+            font-size: 14px;
+            color: #a3acbf;
+            line-height: 1.6;
+        }
+        /* Service Item - APP */
+        .service-item-app {
+            position: absolute;
+            top: 177px;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: #fefefe;
+            padding: 16px;
+            border-top: 0.5px solid #e9e9e9;
+        }
+        /* Service Item - SMS */
+        .service-item-sms {
+            position: absolute;
+            top: 298px;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: #fefefe;
+            padding: 16px;
+            border-top: 0.5px solid #e9e9e9;
+        }
+        .phone-number {
+            color: #090a1a;
+            font-weight: 500;
+        }
+        /* Bottom safe area */
+        .bottom-safe {
+            position: absolute;
+            top: 788px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #fefefe;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">14:54</span>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="wifi-icon" viewBox="0 0 24 24" fill="#fefefe">
+                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <div class="battery-icon">
+                    <div class="battery-level"></div>
+                    <span class="battery-text">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="nav-title">修改服务方式</span>
+        </div>
+        <!-- Content Section -->
+        <div class="content-section">
+            <div class="section-title">获取投资服务方式</div>
+            <!-- WeChat Push -->
+            <div class="service-item-wechat">
+                <div class="service-header">
+                    <div class="checkbox">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                    <span class="service-name">微信推送</span>
+                </div>
+                <div class="service-desc">
+                    关注微信服务号"中国银河证券"，并绑定账户,便于微信端接收投资服务信息。
+                </div>
+            </div>
+            <!-- APP Push -->
+            <div class="service-item-app">
+                <div class="service-header">
+                    <div class="checkbox">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                    <span class="service-name">APP 推送</span>
+                </div>
+                <div class="service-desc">
+                    确保 APP 的"设置-推送设置"是"打开"状态，以免影响接收投资服务消息
+                </div>
+            </div>
+            <!-- SMS Push -->
+            <div class="service-item-sms">
+                <div class="service-header">
+                    <div class="checkbox unchecked">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                    <span class="service-name">短信推送（默认勾选）</span>
+                </div>
+                <div class="service-desc">
+                    接收手机号 <span class="phone-number">18500318898</span>
+                </div>
+            </div>
+        </div>
+        <!-- Bottom Safe Area -->
+        <div class="bottom-safe"></div>
+    </div>
+</body>
+</html>

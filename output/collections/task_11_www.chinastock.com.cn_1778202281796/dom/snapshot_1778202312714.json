@@ -1,0 +1,17 @@
+{
+  "type": "incremental",
+  "timestamp": 1778202312714,
+  "url": "https://chinastock.zhiye.com/custom/campus",
+  "title": "中国银河证券股份有限公司",
+  "rrwebEvent": {
+    "type": 3,
+    "data": {
+      "source": 0,
+      "adds": [],
+      "removes": [],
+      "texts": [],
+      "attributes": []
+    },
+    "timestamp": 1778202312815
+  }
+}

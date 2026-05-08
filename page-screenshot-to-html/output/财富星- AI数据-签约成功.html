@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>财富星-AI数据</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f4f5f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #f4f5f6;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 7px; }
+        .signal-bar:nth-child(3) { height: 10px; }
+        .signal-bar:nth-child(4) { height: 14px; }
+        .wifi-icon {
+            width: 18px;
+            height: 14px;
+        }
+        .battery-icon {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .battery-body {
+            width: 27px;
+            height: 13px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-body::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 7px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-fill {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-text {
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 10px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        /* Main Content Card */
+        .main-card {
+            position: absolute;
+            top: 105px;
+            left: 12px;
+            right: 12px;
+            height: 560px;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        /* Success Illustration */
+        .illustration-area {
+            position: absolute;
+            top: 60px;
+            left: 0;
+            right: 0;
+            height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .astronaut-container {
+            position: relative;
+            width: 200px;
+            height: 220px;
+        }
+        /* Astronaut Body */
+        .astronaut-body {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 110px;
+        }
+        .astronaut-helmet {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 75px;
+            background: linear-gradient(180deg, #e8ecf4 0%, #d4dae8 100%);
+            border-radius: 50% 50% 45% 45%;
+            border: 3px solid #c5cde0;
+        }
+        .astronaut-face {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 52px;
+            height: 40px;
+            background: #f5d0c5;
+            border-radius: 50%;
+        }
+        .astronaut-eye-left {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 6px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+        }
+        .astronaut-eye-right {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            width: 10px;
+            height: 6px;
+            border: 2px solid #333;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            transform: rotate(-15deg);
+        }
+        .astronaut-mouth {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 10px;
+            background: #e85a5a;
+            border-radius: 0 0 16px 16px;
+        }
+        .astronaut-suit {
+            position: absolute;
+            top: 65px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 55px;
+            background: linear-gradient(180deg, #e8ecf4 0%, #d4dae8 100%);
+            border-radius: 20px 20px 15px 15px;
+            border: 2px solid #c5cde0;
+        }
+        .astronaut-arm-left {
+            position: absolute;
+            top: 75px;
+            left: 8px;
+            width: 22px;
+            height: 35px;
+            background: #e8ecf4;
+            border-radius: 15px;
+            border: 2px solid #c5cde0;
+            transform: rotate(30deg);
+        }
+        .astronaut-arm-right {
+            position: absolute;
+            top: 72px;
+            right: 6px;
+            width: 22px;
+            height: 35px;
+            background: #e8ecf4;
+            border-radius: 15px;
+            border: 2px solid #c5cde0;
+            transform: rotate(-20deg);
+        }
+        .astronaut-leg-left {
+            position: absolute;
+            bottom: 0;
+            left: 22px;
+            width: 20px;
+            height: 30px;
+            background: #e8ecf4;
+            border-radius: 0 0 10px 10px;
+            border: 2px solid #c5cde0;
+        }
+        .astronaut-leg-right {
+            position: absolute;
+            bottom: 0;
+            right: 20px;
+            width: 20px;
+            height: 30px;
+            background: #e8ecf4;
+            border-radius: 0 0 10px 10px;
+            border: 2px solid #c5cde0;
+        }
+        /* Check Circle */
+        .check-circle {
+            position: absolute;
+            bottom: 15px;
+            right: 25px;
+            width: 85px;
+            height: 85px;
+            background: linear-gradient(135deg, #f5d78e 0%, #e8b84d 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(232, 184, 77, 0.3);
+        }
+        .check-circle::before {
+            content: '';
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #f9e4a8 0%, #f0c96a 100%);
+            border-radius: 50%;
+        }
+        .check-mark {
+            position: relative;
+            z-index: 2;
+            width: 32px;
+            height: 20px;
+            border: 4px solid #ffffff;
+            border-top: none;
+            border-right: none;
+            transform: rotate(-45deg);
+            margin-top: -5px;
+        }
+        /* Sparkles */
+        .sparkle {
+            position: absolute;
+            background: #f5d78e;
+            border-radius: 50%;
+        }
+        .sparkle-1 {
+            width: 6px;
+            height: 6px;
+            top: 80px;
+            right: 15px;
+        }
+        .sparkle-2 {
+            width: 4px;
+            height: 4px;
+            top: 100px;
+            right: 5px;
+        }
+        .sparkle-3 {
+            width: 5px;
+            height: 5px;
+            top: 120px;
+            right: 10px;
+        }
+        /* Success Text */
+        .success-text-area {
+            position: absolute;
+            top: 320px;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .success-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #212f58;
+            letter-spacing: 4px;
+            font-style: italic;
+        }
+        .success-subtitle {
+            font-size: 15px;
+            color: #999999;
+            letter-spacing: 0.5px;
+        }
+        .wechat-link {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 15px;
+            color: #434dbf;
+            text-decoration: none;
+            margin-top: 4px;
+        }
+        .wechat-link svg {
+            width: 16px;
+            height: 16px;
+            fill: #434dbf;
+        }
+        /* Action Button */
+        .action-button {
+            position: absolute;
+            top: 700px;
+            left: 24px;
+            right: 24px;
+            height: 50px;
+            background: #434dbf;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+        /* Bottom safe area for iPhone */
+        .bottom-safe-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 34px;
+            background: #f4f5f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-time">14:54</div>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="wifi-icon" viewBox="0 0 24 24" fill="#ffffff">
+                    <path d="M12 3C7.46 3 3.34 4.78.29 7.67c-.18.18-.29.43-.29.71 0 .28.11.53.29.71l11 11c.39.39 1.02.39 1.41 0l11-11c.18-.18.29-.43.29-.71 0-.28-.11-.53-.29-.71C20.66 4.78 16.54 3 12 3zm0 2c3.62 0 6.94 1.36 9.47 3.59L12 18.59 2.53 8.59C5.06 6.36 8.38 5 12 5z"/>
+                </svg>
+                <div class="battery-icon">
+                    <div class="battery-body">
+                        <div class="battery-fill"></div>
+                    </div>
+                    <span class="battery-text">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <div class="nav-title">财富星-AI数据</div>
+        </div>
+        <!-- Main Content Card -->
+        <div class="main-card">
+            <!-- Illustration -->
+            <div class="illustration-area">
+                <div class="astronaut-container">
+                    <div class="astronaut-body">
+                        <div class="astronaut-helmet">
+                            <div class="astronaut-face">
+                                <div class="astronaut-eye-left"></div>
+                                <div class="astronaut-eye-right"></div>
+                                <div class="astronaut-mouth"></div>
+                            </div>
+                        </div>
+                        <div class="astronaut-suit"></div>
+                        <div class="astronaut-arm-left"></div>
+                        <div class="astronaut-arm-right"></div>
+                        <div class="astronaut-leg-left"></div>
+                        <div class="astronaut-leg-right"></div>
+                    </div>
+                    <div class="check-circle">
+                        <div class="check-mark"></div>
+                    </div>
+                    <div class="sparkle sparkle-1"></div>
+                    <div class="sparkle sparkle-2"></div>
+                    <div class="sparkle sparkle-3"></div>
+                </div>
+            </div>
+            <!-- Success Text -->
+            <div class="success-text-area">
+                <div class="success-title">签约成功</div>
+                <div class="success-subtitle">恭喜您已成功签约"财富星-AI数据"！</div>
+                <a href="#" class="wechat-link">
+                    开通微信订阅获取及时消息
+                    <svg viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <!-- Action Button -->
+        <div class="action-button">立即查看</div>
+        <!-- Bottom Safe Area -->
+        <div class="bottom-safe-area"></div>
+    </div>
+</body>
+</html>

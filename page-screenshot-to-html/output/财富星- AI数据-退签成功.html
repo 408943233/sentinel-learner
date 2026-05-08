@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>退签结果</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #e5e5e5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #f4f5f6;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 21px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .signal-icon {
+            width: 18px;
+            height: 12px;
+            display: flex;
+            align-items: flex-end;
+            gap: 1.5px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 0.5px;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 6px; }
+        .signal-bar:nth-child(3) { height: 8px; }
+        .signal-bar:nth-child(4) { height: 10px; }
+        .wifi-icon {
+            width: 16px;
+            height: 12px;
+        }
+        .battery-icon {
+            width: 27px;
+            height: 13px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 4px;
+            width: 1.5px;
+            height: 5px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-fill {
+            width: 80%;
+            height: 100%;
+            background: #34c659;
+            border-radius: 1px;
+        }
+        .battery-text {
+            position: absolute;
+            font-size: 9px;
+            color: #ffffff;
+            font-weight: 600;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .back-btn {
+            position: absolute;
+            left: 16px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+        /* Result Section */
+        .result-section {
+            position: absolute;
+            top: 91px;
+            height: 400px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .success-icon {
+            margin-top: 60px;
+            width: 56px;
+            height: 56px;
+            border: 2px solid #434dbf;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .success-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: #434dbf;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .success-title {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: 500;
+            color: #333333;
+        }
+        .success-desc {
+            margin-top: 40px;
+            padding: 0 40px;
+            text-align: center;
+        }
+        .success-desc p {
+            font-size: 15px;
+            color: #666666;
+            line-height: 1.8;
+        }
+        /* Action Section */
+        .action-section {
+            position: absolute;
+            top: 491px;
+            height: 353px;
+            left: 0;
+            right: 0;
+            background: #f4f5f6;
+            display: flex;
+            justify-content: center;
+            padding-top: 30px;
+        }
+        .action-btn {
+            width: 280px;
+            height: 48px;
+            background: #434dbf;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 500;
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">14:55</span>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="wifi-icon" viewBox="0 0 16 12" fill="none">
+                    <path d="M8 1.5c-2.5 0-4.7 1-6.3 2.6L.7 3.1C2.6 1.2 5.2 0 8 0s5.4 1.2 7.3 3.1l-1 1C12.7 2.5 10.5 1.5 8 1.5z" fill="#ffffff"/>
+                    <path d="M8 5c-1.5 0-2.8.6-3.8 1.5l-1-1C4.5 4.2 6.2 3.5 8 3.5s3.5.7 4.8 2l-1 1C10.8 5.6 9.5 5 8 5z" fill="#ffffff"/>
+                    <path d="M8 8.5c-.8 0-1.5.3-2 1l-1-1c.7-.7 1.7-1 2.5-1s1.8.3 2.5 1l-1 1c-.5-.7-1.2-1-2-1z" fill="#ffffff"/>
+                    <circle cx="8" cy="11" r="1" fill="#ffffff"/>
+                </svg>
+                <div class="battery-icon">
+                    <div class="battery-fill"></div>
+                    <span class="battery-text">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="nav-title">退签结果</span>
+        </div>
+        <!-- Result Section -->
+        <div class="result-section">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24">
+                    <polyline points="6 12 10 16 18 8"/>
+                </svg>
+            </div>
+            <span class="success-title">退签成功</span>
+            <div class="success-desc">
+                <p>感谢您对中国银河证券投顾产品"财富星-AI数据"的支持，</p>
+                <p>希望再次与您相遇！</p>
+            </div>
+        </div>
+        <!-- Action Section -->
+        <div class="action-section">
+            <button class="action-btn">去投顾首页逛逛</button>
+        </div>
+    </div>
+</body>
+</html>

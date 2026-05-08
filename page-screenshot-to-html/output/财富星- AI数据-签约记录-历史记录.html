@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>历史记录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f4f5f5;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #f4f5f5;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 5px; }
+        .signal-bar:nth-child(2) { height: 8px; }
+        .signal-bar:nth-child(3) { height: 11px; }
+        .signal-bar:nth-child(4) { height: 14px; }
+        .wifi-icon {
+            width: 18px;
+            height: 14px;
+        }
+        .battery-icon {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .battery-body {
+            width: 27px;
+            height: 13px;
+            border: 1.5px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-body::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            width: 2px;
+            height: 7px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            font-size: 17px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+        /* Content Area */
+        .content-area {
+            position: absolute;
+            top: 91px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        /* Record Card */
+        .record-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .record-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .record-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #090a1a;
+        }
+        .record-status {
+            font-size: 13px;
+            color: #656b7c;
+            background: #f4f5f5;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .record-item:last-child {
+            margin-bottom: 0;
+        }
+        .record-label {
+            font-size: 15px;
+            color: #656b7c;
+        }
+        .record-value {
+            font-size: 15px;
+            color: #090a1a;
+            font-weight: 400;
+        }
+        /* Bottom spacing */
+        .bottom-spacer {
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">14:56</span>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="wifi-icon" viewBox="0 0 24 24" fill="white">
+                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <div class="battery-icon">
+                    <div class="battery-body">
+                        <div class="battery-level"></div>
+                    </div>
+                    <span class="battery-text">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="nav-title">历史记录</span>
+        </div>
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Record 1 -->
+            <div class="record-card">
+                <div class="record-header">
+                    <span class="record-name">财富星-AI选股</span>
+                    <span class="record-status">已退签</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">收费方式</span>
+                    <span class="record-value">单笔交易固定收费8.800元</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">签约时间</span>
+                    <span class="record-value">2026-04-13 14:48:50</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">退签时间</span>
+                    <span class="record-value">2026-04-13 14:55:51</span>
+                </div>
+            </div>
+            <!-- Record 2 -->
+            <div class="record-card">
+                <div class="record-header">
+                    <span class="record-name">财富星-AI数据</span>
+                    <span class="record-status">已退签</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">收费方式</span>
+                    <span class="record-value">单笔交易固定收费8.800元</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">签约时间</span>
+                    <span class="record-value">2026-04-13 14:54:06</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">退签时间</span>
+                    <span class="record-value">2026-04-13 14:55:28</span>
+                </div>
+            </div>
+            <!-- Record 3 -->
+            <div class="record-card">
+                <div class="record-header">
+                    <span class="record-name">财富星-AI ETF</span>
+                    <span class="record-status">已退签</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">收费方式</span>
+                    <span class="record-value">单笔交易固定收费8.800元</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">签约时间</span>
+                    <span class="record-value">2026-04-01 15:00:05</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">退签时间</span>
+                    <span class="record-value">2026-04-02 14:44:02</span>
+                </div>
+            </div>
+            <!-- Record 4 -->
+            <div class="record-card">
+                <div class="record-header">
+                    <span class="record-name">财富星-AI ETF</span>
+                    <span class="record-status">已退签</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">收费方式</span>
+                    <span class="record-value">单笔交易固定收费8.800元</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">签约时间</span>
+                    <span class="record-value">2026-04-01 11:24:58</span>
+                </div>
+                <div class="record-item">
+                    <span class="record-label">退签时间</span>
+                    <span class="record-value">2026-04-01 14:52:59</span>
+                </div>
+            </div>
+            <div class="bottom-spacer"></div>
+        </div>
+    </div>
+</body>
+</html>

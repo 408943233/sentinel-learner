@@ -1,0 +1,50 @@
+{
+  "timestamp": 1778202327813,
+  "summary": {
+    "total": 3,
+    "byType": {
+      "console": 3
+    },
+    "recent": [
+      {
+        "type": "console",
+        "message": "[Webview Error] Uncaught ReferenceError: NVC_Opt is not defined",
+        "timestamp": 1778202316830,
+        "id": "err_1778202316830_zai4hutbw"
+      },
+      {
+        "type": "console",
+        "message": "[Webview Error] element参数传入值不合法，请确保element元素在页面中存在，且element参数和页面上的element元素的id选择器相匹配。",
+        "timestamp": 1778202319392,
+        "id": "err_1778202319392_9vq6fmi5u"
+      },
+      {
+        "type": "console",
+        "message": "[Webview Error] button参数传入值不合法，请确保button元素在页面中存在，且button参数和页面上的button元素的id选择器相匹配。",
+        "timestamp": 1778202319392,
+        "id": "err_1778202319393_reourm2hj"
+      }
+    ]
+  },
+  "errors": [
+    {
+      "type": "console",
+      "message": "[Webview Error] Uncaught ReferenceError: NVC_Opt is not defined",
+      "timestamp": 1778202316830,
+      "id": "err_1778202316830_zai4hutbw"
+    },
+    {
+      "type": "console",
+      "message": "[Webview Error] element参数传入值不合法，请确保element元素在页面中存在，且element参数和页面上的element元素的id选择器相匹配。",
+      "timestamp": 1778202319392,
+      "id": "err_1778202319392_9vq6fmi5u"
+    },
+    {
+      "type": "console",
+      "message": "[Webview Error] button参数传入值不合法，请确保button元素在页面中存在，且button参数和页面上的button元素的id选择器相匹配。",
+      "timestamp": 1778202319392,
+      "id": "err_1778202319393_reourm2hj"
+    }
+  ],
+  "uiErrors": []
+}

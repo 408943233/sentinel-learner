@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>白银有色</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #125431;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+            height: 14px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 5px; }
+        .signal-bar:nth-child(2) { height: 8px; }
+        .signal-bar:nth-child(3) { height: 11px; }
+        .signal-bar:nth-child(4) { height: 14px; }
+        .wifi-icon {
+            width: 18px;
+            height: 14px;
+        }
+        .wifi-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+        .battery-icon {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .battery-body {
+            width: 27px;
+            height: 13px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-cap {
+            width: 2px;
+            height: 7px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-text {
+            color: #4cd964;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 2px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #125431;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+        }
+        .nav-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ffffff;
+        }
+        .stock-name {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .stock-price-nav {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .stock-change-nav {
+            font-size: 16px;
+            color: #a8e6cf;
+        }
+        .nav-search {
+            width: 24px;
+            height: 24px;
+        }
+        .nav-search svg {
+            width: 24px;
+            height: 24px;
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2;
+        }
+        /* Chart Tabs */
+        .chart-tabs {
+            position: absolute;
+            top: 91px;
+            height: 40px;
+            left: 0;
+            right: 0;
+            background: #7d7d7d;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            z-index: 100;
+        }
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            color: #d0d0d0;
+            font-size: 15px;
+            padding: 8px 0;
+            position: relative;
+        }
+        .tab-item.active {
+            color: #434dbf;
+            font-weight: 600;
+        }
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: #434dbf;
+            border-radius: 2px;
+        }
+        .tab-settings {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tab-settings svg {
+            width: 22px;
+            height: 22px;
+            fill: #d0d0d0;
+        }
+        /* Chart Section */
+        .chart-section {
+            position: absolute;
+            top: 131px;
+            height: 300px;
+            left: 0;
+            right: 0;
+            background: #7d7d7d;
+            z-index: 50;
+        }
+        .chart-price-labels {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            justify-content: space-between;
+            color: #ffffff;
+            font-size: 13px;
+            z-index: 10;
+        }
+        .chart-candlestick {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            height: 200px;
+        }
+        /* Feature Buttons */
+        .feature-buttons {
+            position: absolute;
+            top: 431px;
+            height: 80px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 16px;
+            border-top: 1px solid #f0f0f0;
+            z-index: 100;
+        }
+        .feature-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feature-icon.purple {
+            background: #f0e6ff;
+        }
+        .feature-icon.orange {
+            background: #fff0e6;
+        }
+        .feature-icon.blue {
+            background: #e6f0ff;
+        }
+        .feature-icon.green {
+            background: #e6fff0;
+        }
+        .feature-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+        .feature-text {
+            font-size: 12px;
+            color: #333333;
+            font-weight: 500;
+        }
+        /* Modal Overlay */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 200;
+        }
+        /* Modal Content */
+        .modal-content {
+            position: absolute;
+            top: 240px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #ffffff;
+            border-radius: 16px 16px 0 0;
+            z-index: 201;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 16px 12px;
+            position: relative;
+        }
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0b0c1c;
+        }
+        .modal-close {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close svg {
+            width: 24px;
+            height: 24px;
+            stroke: #7d7d7d;
+            stroke-width: 2;
+            fill: none;
+        }
+        .modal-subtitle {
+            text-align: center;
+            color: #7d7d7d;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        .modal-desc {
+            padding: 0 16px;
+            color: #333333;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .modal-section-title {
+            padding: 0 16px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #0b0c1c;
+            margin-bottom: 12px;
+        }
+        .modal-case {
+            padding: 0 16px;
+            color: #333333;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+        .modal-case-chart {
+            margin: 0 16px 16px;
+            height: 200px;
+            background: #f8faff;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .case-chart-header {
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            font-size: 13px;
+            color: #7d7d7d;
+        }
+        .case-label {
+            position: absolute;
+            background: #434dbf;
+            color: #ffffff;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .case-label.entry {
+            left: 80px;
+            bottom: 40px;
+        }
+        .case-label.exit {
+            right: 80px;
+            top: 50px;
+        }
+        .case-label::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        .case-label.entry::after {
+            border-width: 6px 6px 0 6px;
+            border-color: #434dbf transparent transparent transparent;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .case-label.exit::after {
+            border-width: 0 6px 6px 6px;
+            border-color: transparent transparent #434dbf transparent;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .chart-grid-lines {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            right: 12px;
+            bottom: 20px;
+        }
+        .grid-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e8e8e8;
+        }
+        .chart-curve {
+            position: absolute;
+            bottom: 20px;
+            left: 40px;
+            right: 12px;
+            height: 120px;
+        }
+        .curve-path {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .modal-notice {
+            padding: 0 16px;
+            color: #7d7d7d;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .modal-info {
+            padding: 0 16px;
+            color: #7d7d7d;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        /* Bottom Actions */
+        .bottom-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 16px 20px;
+            z-index: 202;
+        }
+        .btn-outline {
+            flex: 1;
+            height: 48px;
+            border: 1px solid #434dbf;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #434dbf;
+            font-size: 16px;
+            font-weight: 500;
+            margin-right: 12px;
+            background: #ffffff;
+        }
+        .btn-primary {
+            flex: 1;
+            height: 48px;
+            background: #434dbf;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        /* Scrollable content area */
+        .modal-scroll {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 80px;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+        .y-axis-labels {
+            position: absolute;
+            left: 8px;
+            top: 30px;
+            bottom: 20px;
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #ff6b6b;
+        }
+        .y-axis-right {
+            position: absolute;
+            right: 8px;
+            top: 30px;
+            bottom: 20px;
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #ff6b6b;
+            text-align: right;
+        }
+        .highlight-box {
+            display: inline;
+            color: #434dbf;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-time">14:24</div>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <div class="wifi-icon">
+                    <svg viewBox="0 0 24 24" fill="white">
+                        <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                    </svg>
+                </div>
+                <div class="battery-icon">
+                    <div class="battery-body">
+                        <div class="battery-level"></div>
+                    </div>
+                    <div class="battery-cap"></div>
+                    <span class="battery-text">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <div class="nav-title">
+                <span class="stock-name">白银有色</span>
+                <span class="stock-price-nav">8.03</span>
+                <span class="stock-change-nav">-0.01 -0.12%</span>
+            </div>
+            <div class="nav-search">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" fill="none" stroke="white" stroke-width="2"/>
+                    <path d="M21 21l-4.35-4.35" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Chart Tabs -->
+        <div class="chart-tabs">
+            <div class="tab-item">分时</div>
+            <div class="tab-item">五日</div>
+            <div class="tab-item active">日K</div>
+            <div class="tab-item">周K</div>
+            <div class="tab-item">月K</div>
+            <div class="tab-item">其他</div>
+            <div class="tab-settings">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <div class="chart-price-labels">
+                <span>16.66</span>
+                <span>15.19</span>
+            </div>
+            <div class="chart-candlestick">
+                <!-- Candlestick representation -->
+                <svg width="100%" height="100%" viewBox="0 0 390 200">
+                    <!-- Grid lines -->
+                    <line x1="0" y1="50" x2="390" y2="50" stroke="#999" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="0" y1="100" x2="390" y2="100" stroke="#999" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="0" y1="150" x2="390" y2="150" stroke="#999" stroke-width="0.5" opacity="0.3"/>
+                    <!-- Red candlesticks (rising) -->
+                    <rect x="80" y="80" width="8" height="40" fill="#ff4757" rx="1"/>
+                    <line x1="84" y1="60" x2="84" y2="80" stroke="#ff4757" stroke-width="1"/>
+                    <line x1="84" y1="120" x2="84" y2="140" stroke="#ff4757" stroke-width="1"/>
+                    <rect x="100" y="70" width="8" height="50" fill="#ff4757" rx="1"/>
+                    <line x1="104" y1="50" x2="104" y2="70" stroke="#ff4757" stroke-width="1"/>
+                    <rect x="120" y="90" width="8" height="30" fill="#ff4757" rx="1"/>
+                    <line x1="124" y1="75" x2="124" y2="90" stroke="#ff4757" stroke-width="1"/>
+                    <!-- Green candlesticks (falling) -->
+                    <rect x="140" y="100" width="8" height="25" fill="#22c55e" rx="1"/>
+                    <line x1="144" y1="90" x2="144" y2="100" stroke="#22c55e" stroke-width="1"/>
+                    <line x1="144" y1="125" x2="144" y2="135" stroke="#22c55e" stroke-width="1"/>
+                    <rect x="280" y="110" width="8" height="20" fill="#22c55e" rx="1"/>
+                    <line x1="284" y1="100" x2="284" y2="110" stroke="#22c55e" stroke-width="1"/>
+                    <line x1="284" y1="130" x2="284" y2="140" stroke="#22c55e" stroke-width="1"/>
+                    <!-- More candles -->
+                    <rect x="300" y="105" width="8" height="15" fill="#ff4757" rx="1"/>
+                    <rect x="320" y="115" width="8" height="10" fill="#22c55e" rx="1"/>
+                    <rect x="340" y="108" width="8" height="12" fill="#ff4757" rx="1"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Feature Buttons -->
+        <div class="feature-buttons">
+            <div class="feature-btn">
+                <div class="feature-icon purple">
+                    <svg viewBox="0 0 24 24" fill="#7c3aed">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <span class="feature-text">主力密码</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-icon orange">
+                    <svg viewBox="0 0 24 24" fill="#f97316">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                    </svg>
+                </div>
+                <span class="feature-text">神奇电波</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-icon blue">
+                    <svg viewBox="0 0 24 24" fill="#3b82f6">
+                        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </svg>
+                </div>
+                <span class="feature-text">主力跟踪</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-icon green">
+                    <svg viewBox="0 0 24 24" fill="#22c55e">
+                        <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
+                    </svg>
+                </div>
+                <span class="feature-text">资金博弈</span>
+            </div>
+        </div>
+        <!-- Modal Overlay -->
+        <div class="modal-overlay"></div>
+        <!-- Modal Content -->
+        <div class="modal-content">
+            <div class="modal-scroll">
+                <div class="modal-header">
+                    <h2 class="modal-title">主力密码</h2>
+                    <div class="modal-close">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="modal-subtitle">洞悉主力，把握先机</div>
+                <div class="modal-desc">
+                    主力密码通过五大决策因子构建智能分析模型，对个股的历史逐笔成交数据做全量计算，并通过分析当天因子数据与历史回测结果的匹配度，判断主力的<span class="highlight-box">"进场"</span>、<span class="highlight-box">"加仓"</span>、<span class="highlight-box">"离场"</span>、<span class="highlight-box">"减仓"</span>行为
+                </div>
+                <div class="modal-section-title">实战案例</div>
+                <div class="modal-case">
+                    太***（6*****），2023年7月25日主力密码提示"进场"，随后股价上涨51.87%；自2023年8月2日起在高位连续提示"减仓"、"离场"，股价回落这波行情上涨结束。
+                </div>
+                <div class="modal-case-chart">
+                    <div class="case-chart-header">太***（6*****）| 日线 | 前复权</div>
+                    <div class="y-axis-labels">
+                        <span>5.00</span>
+                        <span>4.50</span>
+                        <span>4.00</span>
+                        <span>3.50</span>
+                        <span>3.00</span>
+                    </div>
+                    <div class="y-axis-right">
+                        <span>5.00</span>
+                        <span>4.50</span>
+                        <span>4.00</span>
+                        <span>3.50</span>
+                        <span>3.00</span>
+                    </div>
+                    <div class="chart-grid-lines">
+                        <div class="grid-line" style="top: 0%"></div>
+                        <div class="grid-line" style="top: 25%"></div>
+                        <div class="grid-line" style="top: 50%"></div>
+                        <div class="grid-line" style="top: 75%"></div>
+                        <div class="grid-line" style="top: 100%"></div>
+                    </div>
+                    <div class="chart-curve">
+                        <svg class="curve-path" viewBox="0 0 300 120" preserveAspectRatio="none">
+                            <!-- Price curve -->
+                            <path d="M0,100 Q30,98 50,95 T100,90 T150,85 T200,60 T250,50 T300,55" 
+                                  fill="none" stroke="#ff6b6b" stroke-width="1.5"/>
+                            <!-- MA lines -->
+                            <path d="M0,102 Q30,100 50,97 T100,92 T150,87 T200,65 T250,55 T300,58" 
+                                  fill="none" stroke="#f5a623" stroke-width="1" opacity="0.7"/>
+                            <path d="M0,105 Q30,103 50,100 T100,95 T150,90 T200,70 T250,62 T300,65" 
+                                  fill="none" stroke="#7ed321" stroke-width="1" opacity="0.7"/>
+                            <!-- Volume bars at bottom -->
+                            <rect x="20" y="110" width="4" height="8" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="30" y="112" width="4" height="6" fill="#22c55e" opacity="0.6"/>
+                            <rect x="40" y="108" width="4" height="10" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="50" y="111" width="4" height="7" fill="#22c55e" opacity="0.6"/>
+                            <rect x="60" y="105" width="4" height="13" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="70" y="109" width="4" height="9" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="80" y="103" width="4" height="15" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="90" y="100" width="4" height="18" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="100" y="95" width="4" height="23" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="110" y="90" width="4" height="28" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="120" y="85" width="4" height="33" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="130" y="88" width="4" height="30" fill="#22c55e" opacity="0.6"/>
+                            <rect x="140" y="92" width="4" height="26" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="150" y="87" width="4" height="31" fill="#22c55e" opacity="0.6"/>
+                            <rect x="160" y="90" width="4" height="28" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="170" y="93" width="4" height="25" fill="#22c55e" opacity="0.6"/>
+                            <rect x="180" y="95" width="4" height="23" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="190" y="97" width="4" height="21" fill="#22c55e" opacity="0.6"/>
+                            <rect x="200" y="98" width="4" height="20" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="210" y="100" width="4" height="18" fill="#22c55e" opacity="0.6"/>
+                            <rect x="220" y="102" width="4" height="16" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="230" y="103" width="4" height="15" fill="#22c55e" opacity="0.6"/>
+                            <rect x="240" y="104" width="4" height="14" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="250" y="105" width="4" height="13" fill="#22c55e" opacity="0.6"/>
+                            <rect x="260" y="106" width="4" height="12" fill="#ff6b6b" opacity="0.6"/>
+                            <rect x="270" y="107" width="4" height="11" fill="#22c55e" opacity="0.6"/>
+                        </svg>
+                    </div>
+                    <div class="case-label entry">进场</div>
+                    <div class="case-label exit">减仓</div>
+                </div>
+                <div class="modal-notice">
+                    注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。
+                </div>
+                <div class="modal-info">
+                    支持品种：沪深A股 (不适用基金、债券、指数等类别)<br />
+                    查看路径：个股详情页K线 (主图信号)
+                </div>
+            </div>
+            <!-- Bottom Actions -->
+            <div class="bottom-actions">
+                <div class="btn-outline">查看详情</div>
+                <div class="btn-primary">立即签约</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

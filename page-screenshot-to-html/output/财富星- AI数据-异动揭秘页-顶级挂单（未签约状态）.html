@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>异动揭秘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 2097px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon, .wifi-icon, .battery-icon {
+            width: 18px;
+            height: 12px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 500;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 209px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            overflow: hidden;
+        }
+        .hero-bg-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 80% 20%, rgba(88, 100, 225, 0.6) 0%, transparent 50%),
+                radial-gradient(ellipse at 20% 80%, rgba(81, 93, 221, 0.4) 0%, transparent 50%);
+        }
+        .hero-content {
+            position: relative;
+            padding: 20px 20px 0;
+        }
+        .hero-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .hero-subtitle {
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 16px;
+        }
+        .video-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+        .video-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: #ffffff;
+        }
+        .hero-illustration {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            width: 140px;
+            height: 140px;
+        }
+        .hero-illustration .shield {
+            position: absolute;
+            width: 80px;
+            height: 90px;
+            background: #4c58d9;
+            border-radius: 40px 40px 10px 10px;
+            right: 30px;
+            top: 20px;
+            transform: rotate(-10deg);
+        }
+        .hero-illustration .arrow {
+            position: absolute;
+            width: 60px;
+            height: 50px;
+            right: 15px;
+            top: 15px;
+        }
+        .hero-illustration .arrow::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 40px;
+            background: #ee3e3c;
+            border-radius: 4px;
+            transform: rotate(45deg);
+            right: 20px;
+            top: 0;
+        }
+        .hero-illustration .arrow::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 20px solid #ee3e3c;
+            right: 8px;
+            top: 0;
+            transform: rotate(45deg);
+        }
+        .hero-illustration .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #ffd700;
+            border-radius: 50%;
+            right: 5px;
+            bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        /* Info Card */
+        .info-card {
+            position: absolute;
+            top: 280px;
+            height: 120px;
+            left: 12px;
+            right: 12px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            z-index: 10;
+        }
+        .info-card-text {
+            font-size: 14px;
+            color: #333333;
+            line-height: 1.8;
+        }
+        .info-card-text .highlight {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        /* Feature Tabs */
+        .feature-tabs {
+            position: absolute;
+            top: 400px;
+            height: 50px;
+            left: 0;
+            right: 0;
+            background: #3240b5;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px;
+        }
+        .feature-tab {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            padding: 8px 12px;
+            white-space: nowrap;
+        }
+        .feature-tab.active {
+            color: #ffffff;
+            font-weight: 600;
+            position: relative;
+        }
+        .feature-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        /* Detail Section */
+        .detail-section {
+            position: absolute;
+            top: 450px;
+            height: auto;
+            left: 0;
+            right: 0;
+            background: #f6f6ff;
+            padding: 16px 12px;
+        }
+        .detail-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .detail-header-line {
+            width: 40px;
+            height: 1px;
+            background: #242fa3;
+        }
+        .detail-header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #242fa3;
+        }
+        .detail-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .detail-card-text {
+            font-size: 14px;
+            color: #333333;
+            line-height: 1.8;
+        }
+        .detail-card-text .case-label {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        /* Stock Card */
+        .stock-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .stock-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .stock-card-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stock-card-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stock-card-back svg {
+            width: 20px;
+            height: 20px;
+            fill: #666666;
+        }
+        .stock-tag {
+            font-size: 11px;
+            color: #666666;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+        .stock-time {
+            font-size: 12px;
+            color: #999999;
+        }
+        .stock-price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .stock-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ee3e3c;
+        }
+        .stock-change {
+            font-size: 14px;
+            color: #ee3e3c;
+        }
+        .stock-change-pct {
+            font-size: 14px;
+            color: #ee3e3c;
+            background: rgba(238, 62, 60, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .stock-info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .stock-info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .stock-info-label {
+            font-size: 11px;
+            color: #999999;
+        }
+        .stock-info-value {
+            font-size: 13px;
+            color: #333333;
+            font-weight: 500;
+        }
+        .stock-info-value.red {
+            color: #ee3e3c;
+        }
+        /* Chart Area */
+        .chart-area {
+            height: 200px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+        .chart-time-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        .chart-time-label {
+            color: #333333;
+            font-weight: 500;
+        }
+        .chart-time-value {
+            color: #ee3e3c;
+        }
+        .chart-time-value.gray {
+            color: #666666;
+        }
+        .chart-main {
+            height: 140px;
+            position: relative;
+            border-top: 1px solid #e5e5e5;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .chart-y-axis {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+        .chart-y-label {
+            font-size: 10px;
+            color: #ee3e3c;
+        }
+        .chart-y-label.green {
+            color: #22c55e;
+        }
+        .chart-canvas {
+            position: absolute;
+            left: 40px;
+            right: 80px;
+            top: 0;
+            bottom: 0;
+        }
+        .chart-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: #e5e5e5;
+        }
+        .chart-price-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 30%;
+            height: 2px;
+            background: #ee3e3c;
+        }
+        .chart-price-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #ee3e3c;
+            border-radius: 50%;
+            left: 40%;
+            top: 28%;
+        }
+        .chart-orders {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 4px 0;
+        }
+        .chart-order-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 10px;
+        }
+        .chart-order-label {
+            color: #999999;
+        }
+        .chart-order-value {
+            color: #333333;
+        }
+        .chart-x-axis {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 40px 0;
+            font-size: 10px;
+            color: #999999;
+        }
+        .chart-tooltip {
+            position: absolute;
+            left: 20px;
+            top: 60px;
+            right: 80px;
+            background: rgba(255,255,255,0.95);
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            line-height: 1.8;
+            color: #333333;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        .chart-note {
+            font-size: 11px;
+            color: #999999;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+        /* Explanation Sections */
+        .explanation-section {
+            background: #3240b5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .explanation-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .explanation-header-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .explanation-content {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .explanation-text {
+            font-size: 14px;
+            color: #333333;
+            line-height: 1.8;
+        }
+        .explanation-text .highlight-term {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        /* Risk Section */
+        .risk-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .risk-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+        .risk-text {
+            font-size: 12px;
+            color: #666666;
+            line-height: 1.8;
+        }
+        /* Login Button */
+        .login-btn {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            right: 20px;
+            height: 48px;
+            background: #f1a93a;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        /* Bottom Bar */
+        .bottom-bar {
+            position: absolute;
+            top: 2041px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #ffffff;
+            border-top: 1px solid #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 100;
+        }
+        .bottom-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .bottom-btn-icon {
+            width: 24px;
+            height: 24px;
+            background: #e5e5e5;
+            border-radius: 4px;
+        }
+        .bottom-btn-text {
+            font-size: 10px;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <div class="status-icons">
+                <div class="signal-icon"></div>
+                <div class="wifi-icon"></div>
+                <div class="battery-icon"></div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </div>
+            <span class="nav-title">异动揭秘</span>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-bg-pattern"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">异动揭秘</h1>
+                <p class="hero-subtitle">洞察主力成本，追踪吸筹轨迹</p>
+                <div class="video-btn">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <span>视频教程</span>
+                    <svg viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                </div>
+            </div>
+            <div class="hero-illustration">
+                <div class="shield"></div>
+                <div class="arrow"></div>
+                <div class="coin"></div>
+            </div>
+        </div>
+        <!-- Info Card -->
+        <div class="info-card">
+            <p class="info-card-text">
+                本策略由<span class="highlight">2</span>个Level 2指标和<span class="highlight">4</span>个Level 2异动监控池构成，其特色功能有主力跟踪、资金博弈、拖拉机单、主力撤单、顶级挂单和涨停承压。
+            </p>
+        </div>
+        <!-- Feature Tabs -->
+        <div class="feature-tabs">
+            <div class="feature-tab">资金博弈</div>
+            <div class="feature-tab">拖拉机单</div>
+            <div class="feature-tab active">顶级挂单</div>
+            <div class="feature-tab">主力撤单</div>
+            <div class="feature-tab">涨停</div>
+        </div>
+        <!-- Detail Section -->
+        <div class="detail-section" style="top: 450px; height: 1550px;">
+            <!-- Top Level Order Detail -->
+            <div class="detail-header">
+                <div class="detail-header-line"></div>
+                <span class="detail-header-title">顶级挂单</span>
+                <div class="detail-header-line"></div>
+            </div>
+            <div class="detail-card">
+                <p class="detail-card-text">
+                    根据盘后呈现的挂单量，找出委托挂单在9000手以上的挂单，通过分析从而发现大主力的踪迹以及意图，把握介入和撤退的时机。
+                </p>
+                <p class="detail-card-text" style="margin-top: 12px;">
+                    <span class="case-label">案例：</span>2023年7月13号,省***(0*****)临近收盘11点29分出现大量的超级买单，判断是多头主力发力了，随后盘中拉升触及涨停，最终封死在涨停板。
+                </p>
+            </div>
+            <!-- Stock Card -->
+            <div class="stock-card">
+                <div class="stock-card-header">
+                    <div class="stock-card-left">
+                        <div class="stock-card-back">
+                            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                        </div>
+                        <span class="stock-tag">深股通</span>
+                        <span class="stock-tag">融</span>
+                    </div>
+                    <span class="stock-time">07-13 15:00:03</span>
+                </div>
+                <div class="stock-price-row">
+                    <span class="stock-price">5.13</span>
+                    <span class="stock-change">0.47</span>
+                    <span class="stock-change-pct">10.09%</span>
+                </div>
+                <div class="stock-info-grid">
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">今开</span>
+                        <span class="stock-info-value red">4.69</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">最高</span>
+                        <span class="stock-info-value red">5.13</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">成交量</span>
+                        <span class="stock-info-value">63.73万</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">换手</span>
+                        <span class="stock-info-value">3.78%</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">最低</span>
+                        <span class="stock-info-value red">4.68</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">成交额</span>
+                        <span class="stock-info-value">3.16亿</span>
+                    </div>
+                </div>
+                <!-- Chart -->
+                <div class="chart-time-row">
+                    <span class="chart-time-label">11:29</span>
+                    <span>价 <span class="chart-time-value">4.82</span></span>
+                    <span class="gray">均 <span class="chart-time-value gray">4.76</span></span>
+                    <span>幅 <span class="chart-time-value">3.43%</span></span>
+                    <span>量 <span class="chart-time-value">4.01万</span></span>
+                </div>
+                <div class="chart-area">
+                    <div class="chart-main">
+                        <div class="chart-y-axis">
+                            <span class="chart-y-label">5.13</span>
+                            <span class="chart-y-label green">4.82</span>
+                            <span class="chart-y-label green">4.66</span>
+                        </div>
+                        <div class="chart-canvas">
+                            <div class="chart-line"></div>
+                            <div class="chart-price-line"></div>
+                            <div class="chart-price-dot"></div>
+                        </div>
+                        <div class="chart-orders">
+                            <div class="chart-order-row">
+                                <span class="chart-order-label">卖5</span>
+                                <span class="chart-order-value">--</span>
+                                <span>0</span>
+                            </div>
+                            <div class="chart-order-row">
+                                <span class="chart-order-label">卖4</span>
+                                <span class="chart-order-value">--</span>
+                                <span>0</span>
+                            </div>
+                            <div class="chart-order-row">
+                                <span class="chart-order-label">卖3</span>
+                                <span class="chart-order-value">--</span>
+                                <span>0</span>
+                            </div>
+                            <div class="chart-order-row">
+                                <span class="chart-order-label">卖2</span>
+                                <span class="chart-order-value">--</span>
+                                <span>0</span>
+                            </div>
+                            <div class="chart-order-row">
+                                <span class="chart-order-label">卖1</span>
+                                <span class="chart-order-value">--</span>
+                                <span>0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-x-axis">
+                        <span>09:30</span>
+                        <span style="background: #242fa3; color: #fff; padding: 2px 8px; border-radius: 4px;">11:29</span>
+                        <span>15:00</span>
+                    </div>
+                </div>
+                <div class="chart-tooltip">
+                    省***（0*****），2023年7月13日临近收盘11点29分出现了10000手的买单，挂单总额达到483万，随后股票价格向上拉升并涨停。
+                </div>
+                <p class="chart-note">
+                    注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。
+                </p>
+            </div>
+            <!-- What is Top Level Order -->
+            <div class="explanation-section">
+                <div class="explanation-header">
+                    <div class="detail-header-line" style="background: rgba(255,255,255,0.3);"></div>
+                    <span class="explanation-header-title">什么是顶级挂单</span>
+                    <div class="detail-header-line" style="background: rgba(255,255,255,0.3);"></div>
+                </div>
+                <div class="explanation-content">
+                    <p class="explanation-text">
+                        <span class="highlight-term">顶级挂单</span>是指在9000手以上的挂单，通过跟踪这些挂单的委托买入、委托卖出、撤销委托的行为，发现主力的踪迹以及意图，把握介入和撤退的时机。
+                    </p>
+                </div>
+            </div>
+            <!-- How to Analyze -->
+            <div class="explanation-section">
+                <div class="explanation-header">
+                    <div class="detail-header-line" style="background: rgba(255,255,255,0.3);"></div>
+                    <span class="explanation-header-title">如何分析顶级挂单</span>
+                    <div class="detail-header-line" style="background: rgba(255,255,255,0.3);"></div>
+                </div>
+                <div class="explanation-content">
+                    <p class="explanation-text">
+                        <span class="highlight-term">顶级挂单</span>为投资者提示每只股票最新一笔顶级挂单的挂单方向、挂单价格、挂单手数、挂单总量、挂单总额及挂单时间。投资者结可以合这些挂单的委托买入、委托卖出情况，发现大主力的踪迹以及意图，把握介入和撤退的时机。
+                    </p>
+                </div>
+            </div>
+            <!-- Risk Warning -->
+            <div class="risk-section">
+                <p class="risk-title">风险提示：</p>
+                <p class="risk-text">
+                    本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。
+                </p>
+                <p class="risk-text" style="margin-top: 8px;">
+                    固有风险：阶段行情不同会影响指标及异动信号的释放和入选，长期缺乏信号会导致算法模型缺少训练数据，有一定概率出现预测不精准的情况。
+                </p>
+                <p class="risk-text" style="margin-top: 8px;">
+                    使用风险：L2数据信息量大、更新频率高，对使用者有一定知识储备和经验要求。历史入选不代表后期股票表现，投资者应该独立自主承担决策风险。
+                </p>
+                <p class="risk-text" style="margin-top: 8px;">
+                    数据信息来源：沪深交易所
+                </p>
+            </div>
+        </div>
+        <!-- Login Button -->
+        <div class="login-btn">登录查看</div>
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="bottom-btn">
+                <div class="bottom-btn-icon"></div>
+                <span class="bottom-btn-text">下单</span>
+            </div>
+            <div class="bottom-btn">
+                <div class="bottom-btn-icon"></div>
+                <span class="bottom-btn-text">条件下单</span>
+            </div>
+            <div class="bottom-btn">
+                <div class="bottom-btn-icon"></div>
+                <span class="bottom-btn-text">盯盘助手</span>
+            </div>
+            <div class="bottom-btn">
+                <div class="bottom-btn-icon"></div>
+                <span class="bottom-btn-text">删自选</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

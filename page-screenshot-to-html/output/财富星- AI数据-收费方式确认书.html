@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>中国银河证券收费方式确认书</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            background: #f2f2f2;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #c8161d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 1.5px;
+            height: 14px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 0.5px;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 6px; }
+        .signal-bar:nth-child(3) { height: 8px; }
+        .signal-bar:nth-child(4) { height: 10px; opacity: 0.4; }
+        .wifi-icon {
+            width: 16px;
+            height: 12px;
+        }
+        .battery-icon {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .battery-body {
+            width: 25px;
+            height: 12px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1px;
+        }
+        .battery-body::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1.5px;
+            height: 5px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-fill {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-text {
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #c8161d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+        }
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .font-size-btn {
+            font-size: 18px;
+            color: #ffffff;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .font-size-btn .small-a {
+            font-size: 14px;
+        }
+        .lang-btn {
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        /* Content Area */
+        .content-area {
+            position: absolute;
+            top: 91px;
+            bottom: 56px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        .document-content {
+            padding: 20px 24px;
+            padding-bottom: 80px;
+        }
+        .doc-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #4a4a4a;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .doc-subtitle {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4a4a4a;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .doc-section-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #4a4a4a;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .doc-paragraph {
+            font-size: 17px;
+            color: #4a4a4a;
+            line-height: 1.8;
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+        .doc-paragraph .indent {
+            text-indent: 2em;
+            display: inline-block;
+        }
+        /* Checkbox Section */
+        .checkbox-section {
+            position: absolute;
+            bottom: 56px;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #f7f7f7;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-top: 1px solid #ededed;
+        }
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #c8161d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .checkbox.checked {
+            background: #c8161d;
+        }
+        .checkbox.checked::after {
+            content: '';
+            width: 6px;
+            height: 10px;
+            border: solid #ffffff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg) translate(-1px, -1px);
+        }
+        .checkbox-text {
+            font-size: 16px;
+            color: #4a4a4a;
+        }
+        /* Bottom Bar */
+        .bottom-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #c8161d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .accept-btn {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 500;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        /* Scrollbar hide */
+        .content-area::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">14:48</span>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="wifi-icon" viewBox="0 0 24 24" fill="#ffffff">
+                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <div class="battery-icon">
+                    <div class="battery-body">
+                        <div class="battery-fill"></div>
+                    </div>
+                    <span class="battery-text">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="nav-title">中国银河证券股份有限公司"财富星-AI...</span>
+            <div class="nav-right">
+                <span class="font-size-btn"><span class="small-a">A</span>A</span>
+                <span class="lang-btn">-中</span>
+            </div>
+        </div>
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="document-content">
+                <div class="doc-title">中国银河证券股份有限公司"财富星-AI投顾"</div>
+                <div class="doc-subtitle">证券投资顾问业务收费方式确认书</div>
+                <div class="doc-section-title">鉴于：</div>
+                <div class="doc-paragraph">
+                    甲方（姓名：高一为，客户号：10100223890）与乙方（中国银河证券股份有限公司）已签署《中国银河证券股份有限公司"财富星-AI投顾"证券投资顾问业务服务协议》(以下简称投顾服务协议)，甲方已阅读并签署《中国银河证券股份有限公司证券投资顾问业务风险揭示书》（以下简称"风险揭示书")。
+                </div>
+                <div class="doc-paragraph">
+                    一、经甲方主动申请，自本确认书生效之日起，甲方的收费方式为单笔交易固定收费。
+                </div>
+                <div class="doc-paragraph">
+                    二、除收费方式外，在本"财富星-AI投顾"业务下甲乙双方已签署的投顾服务协议及风险揭示书的其他条款不变。
+                </div>
+                <div class="doc-paragraph">
+                    三、本确认书与《中国银河证券股份有限公司"财富星-AI投顾"证券投资顾问业务服务协议》、原《中国银河证券股份有限公司"财富星-AI投顾"证券投资顾问业务收费方式确认书》（如有）不一致的，以本确认书为准；本确认书未约定的，适用投顾服务协议及风险揭示书的约定。
+                </div>
+            </div>
+        </div>
+        <!-- Checkbox Section -->
+        <div class="checkbox-section">
+            <div class="checkbox-wrapper">
+                <div class="checkbox checked"></div>
+                <span class="checkbox-text">本人已认真阅读并理解上述内容</span>
+            </div>
+        </div>
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <button class="accept-btn">我接受</button>
+        </div>
+    </div>
+</body>
+</html>

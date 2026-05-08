@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>白银有色 601212</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f1f1f3;
+            display: flex;
+            justify-content: center;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 1992px;
+            background: #fefefe;
+            overflow: visible;
+            margin: 0 auto;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+        }
+        .status-time {
+            font-size: 15px;
+            font-weight: 600;
+            color: #000;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+        }
+        .nav-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-title .stock-code {
+            font-size: 15px;
+            color: #666;
+            font-weight: 400;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #999;
+        }
+        .nav-tag {
+            font-size: 11px;
+            padding: 2px 6px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            color: #666;
+        }
+        .nav-tag.rong {
+            background: #24a861;
+            color: #fff;
+            border-color: #24a861;
+        }
+        /* Stock Header */
+        .stock-header {
+            position: absolute;
+            top: 91px;
+            height: 60px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+        }
+        .stock-price-main {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .price-big {
+            font-size: 36px;
+            font-weight: 700;
+            color: #24a861;
+        }
+        .price-change {
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+            color: #24a861;
+        }
+        .stock-header-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #24a861;
+        }
+        .header-arrow {
+            width: 16px;
+            height: 16px;
+        }
+        /* Stock Info */
+        .stock-info {
+            position: absolute;
+            top: 151px;
+            height: 80px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 12px;
+        }
+        .info-item {
+            width: 33.33%;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            height: 40px;
+        }
+        .info-label {
+            color: #666;
+        }
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+        .info-value.up {
+            color: #ff4757;
+        }
+        .info-value.down {
+            color: #24a861;
+        }
+        /* Chart Section */
+        .chart-section {
+            position: absolute;
+            top: 231px;
+            height: 520px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+        }
+        .chart-tabs {
+            display: flex;
+            align-items: center;
+            height: 36px;
+            padding: 0 12px;
+            gap: 20px;
+            border-bottom: 1px solid #f1f1f3;
+        }
+        .chart-tab {
+            font-size: 14px;
+            color: #666;
+            position: relative;
+            padding-bottom: 8px;
+        }
+        .chart-tab.active {
+            color: #333;
+            font-weight: 600;
+        }
+        .chart-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #333;
+        }
+        .chart-settings {
+            margin-left: auto;
+            width: 24px;
+            height: 24px;
+        }
+        .chart-indicator-bar {
+            display: flex;
+            align-items: center;
+            height: 28px;
+            padding: 0 12px;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        .indicator-select {
+            padding: 2px 8px;
+            background: #f1f1f3;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .indicator-value {
+            color: #ff9500;
+        }
+        .indicator-value.blue {
+            color: #007aff;
+        }
+        .right-select {
+            margin-left: auto;
+            padding: 2px 8px;
+            background: #f1f1f3;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .chart-main {
+            height: 220px;
+            position: relative;
+            padding: 0 12px;
+        }
+        .chart-y-labels {
+            position: absolute;
+            left: 12px;
+            top: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 180px;
+            font-size: 11px;
+            color: #666;
+            z-index: 2;
+        }
+        .chart-y-right {
+            position: absolute;
+            right: 12px;
+            top: 8px;
+            font-size: 11px;
+            color: #666;
+            z-index: 2;
+        }
+        .chart-canvas-area {
+            position: absolute;
+            left: 50px;
+            right: 50px;
+            top: 8px;
+            height: 180px;
+        }
+        .chart-k-line {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        /* K线蜡烛图模拟 */
+        .k-candle {
+            position: absolute;
+            width: 4px;
+            background: #ff4757;
+        }
+        .k-candle.green {
+            background: #24a861;
+        }
+        .k-line {
+            position: absolute;
+            height: 1px;
+            background: #ff4757;
+        }
+        .k-line.green {
+            background: #24a861;
+        }
+        .expma-line {
+            position: absolute;
+            height: 1px;
+            background: #ff9500;
+            left: 0;
+            right: 0;
+        }
+        .expma-line.blue {
+            background: #007aff;
+        }
+        .chart-x-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .chart-macd {
+            height: 100px;
+            padding: 0 12px;
+            position: relative;
+        }
+        .macd-header {
+            display: flex;
+            align-items: center;
+            height: 24px;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        .macd-value {
+            color: #ff4757;
+        }
+        .macd-value.blue {
+            color: #007aff;
+        }
+        .macd-chart {
+            height: 70px;
+            position: relative;
+        }
+        .chart-volume {
+            height: 100px;
+            padding: 0 12px;
+            position: relative;
+        }
+        .volume-header {
+            display: flex;
+            align-items: center;
+            height: 24px;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        .volume-value {
+            color: #ff4757;
+        }
+        .volume-value.blue {
+            color: #007aff;
+        }
+        .volume-chart {
+            height: 70px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 1px;
+        }
+        .volume-bar {
+            flex: 1;
+            background: #ff4757;
+            min-height: 2px;
+        }
+        .volume-bar.green {
+            background: #24a861;
+        }
+        /* Feature Buttons */
+        .feature-buttons {
+            position: absolute;
+            top: 751px;
+            height: 50px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px;
+            gap: 8px;
+        }
+        .feature-btn {
+            flex: 1;
+            height: 36px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #333;
+            background: #fff;
+        }
+        .feature-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        /* Detail Section */
+        .detail-section {
+            position: absolute;
+            top: 801px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+        }
+        .detail-tabs {
+            display: flex;
+            height: 40px;
+            border-bottom: 1px solid #f1f1f3;
+        }
+        .detail-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+            position: relative;
+        }
+        .detail-tab.active {
+            color: #007aff;
+            font-weight: 600;
+        }
+        .detail-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: #007aff;
+        }
+        .detail-list {
+            padding: 0 12px;
+        }
+        .detail-row {
+            display: flex;
+            align-items: center;
+            height: 44px;
+            border-bottom: 1px solid #f9f9fb;
+            font-size: 14px;
+        }
+        .detail-time {
+            width: 50px;
+            color: #333;
+        }
+        .detail-price {
+            flex: 1;
+            text-align: center;
+            color: #24a861;
+            font-weight: 500;
+        }
+        .detail-type {
+            width: 60px;
+            text-align: center;
+        }
+        .detail-type.buy {
+            color: #ff4757;
+        }
+        .detail-type.sell {
+            color: #24a861;
+        }
+        .detail-vol {
+            width: 50px;
+            text-align: right;
+            color: #333;
+        }
+        .fund-link {
+            display: flex;
+            align-items: center;
+            height: 44px;
+            padding: 0 12px;
+            font-size: 14px;
+            color: #333;
+            border-top: 8px solid #f9f9fb;
+        }
+        .fund-link span {
+            color: #666;
+            margin-left: 8px;
+        }
+        .fund-link .arrow {
+            margin-left: auto;
+            color: #999;
+        }
+        /* Daily Section */
+        .daily-section {
+            position: absolute;
+            top: 1081px;
+            height: 80px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 8px solid #f9f9fb;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .daily-tag {
+            background: #ff4757;
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .daily-info {
+            flex: 1;
+        }
+        .daily-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        .daily-desc {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .daily-close {
+            width: 24px;
+            height: 24px;
+            color: #999;
+        }
+        /* Feature Grid */
+        .feature-grid {
+            position: absolute;
+            top: 1161px;
+            height: 100px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 12px;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .grid-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f0f7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .grid-icon svg {
+            width: 24px;
+            height: 24px;
+            color: #007aff;
+        }
+        .grid-text {
+            font-size: 12px;
+            color: #333;
+        }
+        /* Tab Bar */
+        .tab-bar {
+            position: absolute;
+            top: 1261px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-bottom: 1px solid #f1f1f3;
+        }
+        .tab-item {
+            font-size: 15px;
+            color: #666;
+            padding: 0 8px;
+        }
+        .tab-item.active {
+            color: #007aff;
+            font-weight: 600;
+        }
+        /* Sub Tabs */
+        .sub-tabs {
+            position: absolute;
+            top: 1305px;
+            height: 40px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            padding: 0 12px;
+            gap: 12px;
+            align-items: center;
+        }
+        .sub-tab {
+            font-size: 14px;
+            color: #666;
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+        .sub-tab.active {
+            color: #007aff;
+            background: #f0f7ff;
+        }
+        /* Promo Banner */
+        .promo-banner {
+            position: absolute;
+            top: 1345px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #fdf5e6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-size: 13px;
+            color: #666;
+        }
+        .promo-btn {
+            background: #007aff;
+            color: #fff;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+        /* Content Text */
+        .content-text {
+            position: absolute;
+            top: 1389px;
+            height: 200px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 12px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+        }
+        .content-text h4 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        /* Case Section */
+        .case-section {
+            position: absolute;
+            top: 1589px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 8px solid #f9f9fb;
+            padding: 12px;
+        }
+        .case-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .case-stock {
+            background: #ff4757;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .case-stock .price {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .case-info {
+            flex: 1;
+            font-size: 12px;
+            color: #666;
+        }
+        .case-chart {
+            height: 120px;
+            background: #f9f9fb;
+            border-radius: 4px;
+            margin: 12px 0;
+            position: relative;
+        }
+        .case-note {
+            font-size: 12px;
+            color: #999;
+            line-height: 1.6;
+        }
+        /* Index Bar */
+        .index-bar {
+            position: absolute;
+            top: 1869px;
+            height: 36px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-top: 1px solid #f1f1f3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-size: 13px;
+        }
+        .index-name {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #333;
+        }
+        .index-value {
+            color: #ff4757;
+        }
+        .index-change {
+            color: #ff4757;
+        }
+        .index-volume {
+            color: #666;
+        }
+        /* Bottom Bar */
+        .bottom-bar {
+            position: absolute;
+            top: 1936px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #ffffff;
+            display: flex;
+            border-top: 1px solid #e0e0e0;
+        }
+        .bottom-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .bottom-btn.primary {
+            background: #ff4757;
+            color: #fff;
+        }
+        .bottom-btn.secondary {
+            background: #007aff;
+            color: #fff;
+        }
+        .bottom-btn.normal {
+            color: #333;
+            font-size: 14px;
+            font-weight: 400;
+        }
+        .bottom-btn.delete {
+            color: #666;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* SVG Icons */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        .icon-small {
+            width: 16px;
+            height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">14:29</span>
+            <div class="status-icons">
+                <svg class="icon" viewBox="0 0 24 24" fill="#000"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <svg class="icon" viewBox="0 0 24 24" fill="#000"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg class="icon" viewBox="0 0 24 24" fill="#333"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </div>
+            <div class="nav-title">
+                白银有色
+                <span class="stock-code">601212</span>
+            </div>
+            <div class="nav-right">
+                <span>04-13 14:29:46</span>
+                <svg class="icon" viewBox="0 0 24 24" fill="#666"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            </div>
+        </div>
+        <!-- Stock Header -->
+        <div class="stock-header">
+            <div class="stock-price-main">
+                <span class="price-big">8.03</span>
+                <div class="price-change">
+                    <span>-0.01</span>
+                    <span>-0.12%</span>
+                </div>
+            </div>
+            <div class="stock-header-right">
+                <span class="nav-tag">联</span>
+                <span>工业金属</span>
+                <svg class="header-arrow" viewBox="0 0 24 24" fill="#24a861"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
+        </div>
+        <!-- Stock Info -->
+        <div class="stock-info">
+            <div class="info-item">
+                <span class="info-label">今开</span>
+                <span class="info-value down">7.94</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">最高</span>
+                <span class="info-value up">8.09</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">成交量</span>
+                <span class="info-value">77.23万</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">换手</span>
+                <span class="info-value">1.04%</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">最低</span>
+                <span class="info-value down">7.91</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">成交额</span>
+                <span class="info-value">6.18亿</span>
+            </div>
+        </div>
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <div class="chart-tabs">
+                <div class="chart-tab">分时</div>
+                <div class="chart-tab">五日</div>
+                <div class="chart-tab active">日K</div>
+                <div class="chart-tab">周K</div>
+                <div class="chart-tab">月K</div>
+                <div class="chart-tab">其他</div>
+                <div class="chart-settings">
+                    <svg class="icon" viewBox="0 0 24 24" fill="#666"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                </div>
+            </div>
+            <div class="chart-indicator-bar">
+                <span class="indicator-select">EXPMA ▼</span>
+                <span>EXPMA <span class="indicator-value">12=8.14</span> <span class="indicator-value blue">50=8.58</span></span>
+                <span class="right-select">前复权 ▼</span>
+            </div>
+            <div class="chart-main">
+                <div class="chart-y-labels">
+                    <span>16.66</span>
+                    <span>15.19</span>
+                    <span>10.24</span>
+                    <span>5.74</span>
+                    <span>3.82</span>
+                </div>
+                <div class="chart-y-right">15.19</div>
+                <div class="chart-canvas-area">
+                    <div class="chart-k-line">
+                        <!-- 模拟K线图 -->
+                        <div class="expma-line" style="top: 30%;"></div>
+                        <div class="expma-line blue" style="top: 50%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-x-labels">
+                <span>2026-01-07</span>
+                <span>2026-04-13</span>
+            </div>
+            <div class="chart-macd">
+                <div class="macd-header">
+                    <span class="indicator-select">MACD ▼</span>
+                    <span>MACD(12,26,9) <span class="macd-value">DIF=-0.35</span> <span class="macd-value blue">DEA=-0.41</span> <span class="macd-value">MACD=0.12</span></span>
+                </div>
+                <div class="macd-chart">
+                    <div class="chart-y-labels" style="height: 50px;">
+                        <span>2.09</span>
+                        <span>-0.92</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-volume">
+                <div class="volume-header">
+                    <span class="indicator-select">成交量 ▼</span>
+                    <span><span class="volume-value">VOLUME=77.23万</span> <span class="volume-value blue">MA5=137.51万</span> <span class="volume-value blue">MA10=125.53万</span></span>
+                </div>
+                <div class="volume-chart">
+                    <!-- 模拟成交量柱状图 -->
+                    <div class="volume-bar" style="height: 60%;"></div>
+                    <div class="volume-bar green" style="height: 40%;"></div>
+                    <div class="volume-bar" style="height: 80%;"></div>
+                    <div class="volume-bar green" style="height: 30%;"></div>
+                    <div class="volume-bar" style="height: 50%;"></div>
+                    <div class="volume-bar green" style="height: 20%;"></div>
+                    <div class="volume-bar" style="height: 70%;"></div>
+                    <div class="volume-bar green" style="height: 35%;"></div>
+                    <div class="volume-bar" style="height: 45%;"></div>
+                    <div class="volume-bar green" style="height: 25%;"></div>
+                    <div class="volume-bar" style="height: 55%;"></div>
+                    <div class="volume-bar green" style="height: 15%;"></div>
+                    <div class="volume-bar" style="height: 40%;"></div>
+                    <div class="volume-bar green" style="height: 30%;"></div>
+                    <div class="volume-bar" style="height: 65%;"></div>
+                    <div class="volume-bar green" style="height: 20%;"></div>
+                    <div class="volume-bar" style="height: 50%;"></div>
+                    <div class="volume-bar green" style="height: 35%;"></div>
+                    <div class="volume-bar" style="height: 45%;"></div>
+                    <div class="volume-bar green" style="height: 25%;"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Feature Buttons -->
+        <div class="feature-buttons">
+            <div class="feature-btn">
+                <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                <span>主力密码</span>
+            </div>
+            <div class="feature-btn">
+                <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span>神奇电波</span>
+            </div>
+            <div class="feature-btn">
+                <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                <span>主力跟踪</span>
+            </div>
+            <div class="feature-btn">
+                <svg class="icon-small" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+                <span>资金博弈</span>
+            </div>
+        </div>
+        <!-- Detail Section -->
+        <div class="detail-section">
+            <div class="detail-tabs">
+                <div class="detail-tab active">明细</div>
+                <div class="detail-tab">队列</div>
+                <div class="detail-tab">量价</div>
+                <div class="detail-tab">逐笔委托</div>
+                <div class="detail-tab">逐笔还原</div>
+            </div>
+            <div class="detail-list">
+                <div class="detail-row">
+                    <span class="detail-time">14:29</span>
+                    <span class="detail-price">8.03</span>
+                    <span class="detail-type buy">18 买</span>
+                    <span class="detail-vol">4</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-time">14:29</span>
+                    <span class="detail-price">8.02</span>
+                    <span class="detail-type sell">26 卖</span>
+                    <span class="detail-vol">3</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-time">14:29</span>
+                    <span class="detail-price">8.02</span>
+                    <span class="detail-type sell">220 卖</span>
+                    <span class="detail-vol">17</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-time">14:29</span>
+                    <span class="detail-price">8.03</span>
+                    <span class="detail-type buy">25 买</span>
+                    <span class="detail-vol">5</span>
+                </div>
+            </div>
+            <div class="fund-link">
+                重仓TA的基金
+                <span>场内 2 场外 2</span>
+                <span class="arrow">></span>
+            </div>
+        </div>
+        <!-- Daily Section -->
+        <div class="daily-section">
+            <span class="daily-tag">每日</span>
+            <div class="daily-info">
+                <div class="daily-title">资金观察</div>
+                <div class="daily-desc">银小河带您观察资金动向</div>
+            </div>
+            <svg class="daily-close icon" viewBox="0 0 24 24" fill="#999"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </div>
+        <!-- Feature Grid -->
+        <div class="feature-grid">
+            <div class="grid-item">
+                <div class="grid-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="#007aff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <span class="grid-text">AI投顾</span>
+            </div>
+            <div class="grid-item">
+                <div class="grid-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="#007aff"><circle cx="12" cy="12" r="3"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="12" cy="18" r="2"/></svg>
+                </div>
+                <span class="grid-text">筹码分布</span>
+            </div>
+            <div class="grid-item">
+                <div class="grid-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="#007aff"><path d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2zm4 4h2v14h-2zm4-2h2v16h-2z"/></svg>
+                </div>
+                <span class="grid-text">DK信号</span>
+            </div>
+            <div class="grid-item">
+                <div class="grid-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="#007aff"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <span class="grid-text">异动资讯</span>
+            </div>
+            <div class="grid-item">
+                <div class="grid-icon">
+                    <svg class="icon" viewBox="0 0 24 24" fill="#007aff"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                </div>
+                <span class="grid-text">交易记录</span>
+            </div>
+        </div>
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <div class="tab-item">要闻</div>
+            <div class="tab-item">资金</div>
+            <div class="tab-item">F10</div>
+            <div class="tab-item">两融</div>
+            <div class="tab-item active">揭秘</div>
+            <div class="tab-item">诊股</div>
+        </div>
+        <!-- Sub Tabs -->
+        <div class="sub-tabs">
+            <div class="sub-tab active">拖拉机单</div>
+            <div class="sub-tab">顶级挂单</div>
+            <div class="sub-tab">主力撤单</div>
+            <div class="sub-tab">涨停承压</div>
+        </div>
+        <!-- Promo Banner -->
+        <div class="promo-banner">
+            <span>签约超值套餐解锁「异动揭秘」等多项权益</span>
+            <span class="promo-btn">立即签约</span>
+        </div>
+        <!-- Content Text -->
+        <div class="content-text">
+            <p>拖拉机单是指多笔数目相同的委买或委卖，主力可以将大单拆成数笔同样的小单来隐藏踪迹。通过对盘口买卖单的观察，可以帮助投资者抓住主力成交和撤单情况。</p>
+            <h4>实战案例：</h4>
+            <p>林***（0*****），2023年7月13日于早盘09:36出现拖拉机单买信号，主力介入明显，说明拖拉机单提示主力在择机吸筹，有主力资金介入的迹象。</p>
+        </div>
+        <!-- Case Section -->
+        <div class="case-section">
+            <div class="case-header">
+                <div class="case-stock">
+                    <div class="price">5.34</div>
+                    <div>0.49 10.10%</div>
+                </div>
+                <div class="case-info">
+                    <div>领涨 凯格精机-注 11.84%</div>
+                    <div>专用设备</div>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                今开 5.13 最高 5.34 成交量 154.34万<br />
+                换手 27.04% 最低 5.02 成交额 8.08亿
+            </div>
+            <div class="case-chart">
+                <!-- 模拟分时图 -->
+            </div>
+            <div class="case-note">
+                注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。<br />
+                支持品种：沪深A股（不适用基金、债券、指数等类别）
+            </div>
+        </div>
+        <!-- Index Bar -->
+        <div class="index-bar">
+            <div class="index-name">
+                <svg class="icon-small" viewBox="0 0 24 24" fill="#ff4757"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2" fill="none" stroke="#fff" stroke-width="2"/></svg>
+                上证指数
+                <span class="index-value">3987.66</span>
+                <span class="index-change">0.04%</span>
+            </div>
+            <div class="index-volume">成交额 8163.30亿</div>
+        </div>
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="bottom-btn primary">下单</div>
+            <div class="bottom-btn secondary">条件下单</div>
+            <div class="bottom-btn normal">盯盘助手</div>
+            <div class="bottom-btn delete">
+                <svg class="icon-small" viewBox="0 0 24 24" fill="#666"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                删自选
+            </div>
+        </div>
+    </div>
+</body>
+</html>

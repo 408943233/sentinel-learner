@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>财富星-AI数据</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #f4f5f6;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-left: 8px;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 6px; }
+        .signal-bar:nth-child(3) { height: 8px; }
+        .signal-bar:nth-child(4) { height: 10px; }
+        .wifi-icon {
+            width: 16px;
+            height: 12px;
+        }
+        .battery-icon {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .battery-body {
+            width: 25px;
+            height: 12px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-body::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-text {
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+        /* Content Area */
+        .content-section {
+            position: absolute;
+            top: 91px;
+            height: 753px;
+            left: 0;
+            right: 0;
+            background: #f4f5f6;
+            overflow: hidden;
+        }
+        .section-title {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+        /* Card 1 - 大家爱选 */
+        .card-1 {
+            position: absolute;
+            top: 56px;
+            left: 12px;
+            right: 12px;
+            height: 280px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .card-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .tag-indicator {
+            width: 4px;
+            height: 18px;
+            background: #434dbf;
+            border-radius: 2px;
+        }
+        .tag-text {
+            font-size: 17px;
+            font-weight: 600;
+            color: #434dbf;
+        }
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .price-label {
+            font-size: 15px;
+            color: #333333;
+        }
+        .price-value {
+            font-size: 42px;
+            font-weight: 700;
+            color: #d94c4c;
+            line-height: 1;
+        }
+        .price-unit {
+            font-size: 15px;
+            color: #d94c4c;
+        }
+        .desc-box {
+            background: #f8f9fc;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .desc-text {
+            font-size: 13px;
+            color: #656b7c;
+            line-height: 1.6;
+        }
+        .detail-link {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #434dbf;
+        }
+        .detail-link svg {
+            width: 16px;
+            height: 16px;
+            fill: #434dbf;
+        }
+        .check-icon {
+            position: absolute;
+            right: 16px;
+            bottom: 16px;
+            width: 28px;
+            height: 28px;
+            background: #a3acbf;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .check-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: #ffffff;
+        }
+        /* Card 2 - 约定周期固定收费 */
+        .card-2 {
+            position: absolute;
+            top: 352px;
+            left: 12px;
+            right: 12px;
+            height: 280px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .price-row-2 {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .price-label-2 {
+            font-size: 15px;
+            color: #333333;
+        }
+        .price-value-2 {
+            font-size: 42px;
+            font-weight: 700;
+            color: #d94c4c;
+            line-height: 1;
+        }
+        .price-unit-2 {
+            font-size: 15px;
+            color: #d94c4c;
+        }
+        /* Bottom Button */
+        .bottom-button {
+            position: absolute;
+            bottom: 34px;
+            left: 16px;
+            right: 16px;
+            height: 50px;
+            background: #a3acbf;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-time">14:53</div>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="wifi-icon" viewBox="0 0 24 24" fill="#ffffff">
+                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <div class="battery-icon">
+                    <div class="battery-body">
+                        <div class="battery-level"></div>
+                    </div>
+                    <span class="battery-text">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <div class="nav-title">财富星-AI数据</div>
+        </div>
+        <!-- Content Section -->
+        <div class="content-section">
+            <div class="section-title">到期后收费方式</div>
+            <!-- Card 1 -->
+            <div class="card-1">
+                <div class="card-tag">
+                    <div class="tag-indicator"></div>
+                    <span class="tag-text">大家爱选</span>
+                </div>
+                <div class="price-row">
+                    <span class="price-label">单笔交易固定收费</span>
+                    <span class="price-value">8.80</span>
+                    <span class="price-unit">元/笔</span>
+                </div>
+                <div class="desc-box">
+                    <p class="desc-text">自签约生效日起，您使用在本公司开立的证券账户（含信用账户）进行所有A股等投资品种交易时，无论是否为…</p>
+                </div>
+                <div class="detail-link">
+                    <span>查看详情</span>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+                <div class="check-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+            <!-- Card 2 -->
+            <div class="card-2">
+                <div class="card-tag">
+                    <div class="tag-indicator"></div>
+                    <span class="tag-text">约定周期固定收费</span>
+                </div>
+                <div class="price-row-2">
+                    <span class="price-label-2">约定周期固定收费30天</span>
+                    <span class="price-value-2">3888</span>
+                    <span class="price-unit-2">元</span>
+                </div>
+                <div class="desc-box">
+                    <p class="desc-text">自签约生效日起，本公司将按照证券投资顾问业务服务协议约定一次性冻结在扣费周期内应缴纳的投资顾问费，…</p>
+                </div>
+                <div class="detail-link">
+                    <span>查看详情</span>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+                <div class="check-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+            <!-- Bottom Button -->
+            <div class="bottom-button">确定</div>
+        </div>
+    </div>
+</body>
+</html>

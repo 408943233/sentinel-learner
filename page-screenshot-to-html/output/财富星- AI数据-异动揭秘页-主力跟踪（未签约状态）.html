@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>异动揭秘 - 主力跟踪</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 2319px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #242fa3;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-icon {
+            width: 16px;
+            height: 16px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-title {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 500;
+        }
+        .nav-more {
+            position: absolute;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 200px;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #5864e1 0%, #515ddd 100%);
+            padding: 20px 16px;
+            overflow: hidden;
+        }
+        .hero-title {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .hero-subtitle {
+            color: rgba(255,255,255,0.85);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .hero-video-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 16px;
+            padding: 6px 14px;
+            color: #ffffff;
+            font-size: 13px;
+        }
+        .hero-video-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        .hero-illustration {
+            position: absolute;
+            right: 16px;
+            top: 20px;
+            width: 140px;
+            height: 140px;
+        }
+        .hero-shield {
+            position: absolute;
+            right: 30px;
+            top: 30px;
+            width: 100px;
+            height: 120px;
+        }
+        .hero-arrow {
+            position: absolute;
+            right: 50px;
+            top: 20px;
+            width: 60px;
+            height: 80px;
+        }
+        /* Info Card */
+        .info-card {
+            position: absolute;
+            top: 260px;
+            height: 120px;
+            left: 16px;
+            right: 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            z-index: 10;
+        }
+        .info-card-text {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .info-highlight {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        /* Feature Tabs */
+        .feature-tabs {
+            position: absolute;
+            top: 400px;
+            height: 50px;
+            left: 0;
+            right: 0;
+            background: #3441b7;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 24px;
+        }
+        .feature-tab {
+            color: rgba(255,255,255,0.6);
+            font-size: 15px;
+            font-weight: 500;
+            padding-bottom: 4px;
+            position: relative;
+        }
+        .feature-tab.active {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .feature-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        /* Main Content Card */
+        .main-content {
+            position: absolute;
+            top: 450px;
+            height: 860px;
+            left: 16px;
+            right: 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .content-header {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .content-header-title {
+            color: #242fa3;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .content-header-line {
+            position: absolute;
+            width: 40px;
+            height: 2px;
+            background: #242fa3;
+            bottom: 12px;
+        }
+        .content-header-line.left {
+            left: 120px;
+        }
+        .content-header-line.right {
+            right: 120px;
+        }
+        .content-desc {
+            padding: 16px;
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .content-case {
+            padding: 0 16px 16px;
+        }
+        .case-label {
+            color: #242fa3;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .case-text {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        /* Stock Card */
+        .stock-card {
+            margin: 0 16px 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .stock-card-header {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            background: #f9f9fc;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .stock-card-back {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stock-card-time {
+            flex: 1;
+            text-align: center;
+            color: #999999;
+            font-size: 12px;
+        }
+        .stock-card-search {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stock-price-bar {
+            height: 56px;
+            background: #ff4757;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            color: #ffffff;
+        }
+        .stock-current-price {
+            font-size: 32px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .stock-change {
+            display: flex;
+            flex-direction: column;
+            margin-right: auto;
+        }
+        .stock-change-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .stock-change-percent {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .stock-tag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .stock-tag-arrow {
+            width: 14px;
+            height: 14px;
+        }
+        .stock-info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 12px;
+            gap: 8px 0;
+        }
+        .stock-info-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+        .stock-info-label {
+            color: #999999;
+        }
+        .stock-info-value {
+            color: #333333;
+            font-weight: 500;
+        }
+        .stock-info-value.up {
+            color: #ff4757;
+        }
+        .stock-tabs {
+            display: flex;
+            padding: 0 12px;
+            gap: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .stock-tab {
+            padding: 8px 0;
+            font-size: 14px;
+            color: #666666;
+            position: relative;
+        }
+        .stock-tab.active {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        .stock-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #242fa3;
+        }
+        .stock-ma {
+            display: flex;
+            padding: 8px 12px;
+            gap: 12px;
+            font-size: 11px;
+            color: #999999;
+        }
+        .stock-ma-item {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .stock-ma-color {
+            width: 8px;
+            height: 2px;
+            border-radius: 1px;
+        }
+        /* Chart Area */
+        .chart-area {
+            height: 200px;
+            position: relative;
+            padding: 0 12px;
+        }
+        .chart-main {
+            height: 140px;
+            position: relative;
+        }
+        .chart-price-labels {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #999999;
+        }
+        .chart-canvas {
+            position: absolute;
+            left: 32px;
+            right: 0;
+            top: 0;
+            bottom: 0;
+        }
+        .chart-kline {
+            width: 100%;
+            height: 100%;
+        }
+        .chart-sub {
+            height: 60px;
+            position: relative;
+            border-top: 1px solid #f0f0f0;
+        }
+        .chart-sub-labels {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #999999;
+            padding: 4px 0;
+        }
+        .chart-annotation {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid #ff4757;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #ff4757;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .chart-annotation.buy {
+            left: 80px;
+            top: 20px;
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+        .chart-annotation.sell {
+            right: 60px;
+            top: 10px;
+            border-color: #ff4757;
+            color: #ff4757;
+        }
+        .chart-zone-label {
+            position: absolute;
+            bottom: 4px;
+            font-size: 11px;
+            color: #242fa3;
+            background: rgba(36, 47, 163, 0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .chart-zone-label.bottom {
+            left: 120px;
+        }
+        .chart-zone-label.top {
+            right: 40px;
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+        }
+        /* Chart Feature Buttons */
+        .chart-feature-btns {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .chart-feature-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .chart-feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #f4f6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-feature-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+        .chart-feature-text {
+            font-size: 12px;
+            color: #333333;
+        }
+        .chart-note {
+            padding: 12px;
+            font-size: 12px;
+            color: #999999;
+            line-height: 1.6;
+        }
+        /* Section Cards */
+        .section-card {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .section-card-header {
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: #f4f6ff;
+        }
+        .section-card-title {
+            color: #242fa3;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .section-card-line {
+            position: absolute;
+            width: 40px;
+            height: 2px;
+            background: #242fa3;
+            bottom: 12px;
+        }
+        .section-card-line.left {
+            left: 100px;
+        }
+        .section-card-line.right {
+            right: 100px;
+        }
+        .section-card-body {
+            padding: 16px;
+        }
+        /* What is Section */
+        .what-is-section {
+            top: 1330px;
+            height: 200px;
+        }
+        .what-is-text {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        /* How to Use Section */
+        .how-to-section {
+            top: 1560px;
+            height: 420px;
+        }
+        .how-to-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .how-to-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .how-to-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #242fa3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .how-to-check svg {
+            width: 12px;
+            height: 12px;
+        }
+        .how-to-text {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .how-to-text strong {
+            color: #242fa3;
+        }
+        .signal-title {
+            color: #242fa3;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 16px 0 12px;
+        }
+        .signal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .signal-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #333333;
+        }
+        .signal-dot {
+            width: 12px;
+            height: 3px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .signal-dot.red {
+            background: #ff4757;
+        }
+        .signal-dot.blue {
+            background: #242fa3;
+        }
+        .signal-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff9500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+        /* Risk Section */
+        .risk-section {
+            position: absolute;
+            top: 2010px;
+            height: 200px;
+            left: 16px;
+            right: 16px;
+        }
+        .risk-title {
+            color: #242fa3;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .risk-text {
+            color: #666666;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        /* Login Button */
+        .login-btn {
+            position: absolute;
+            top: 2230px;
+            height: 48px;
+            left: 16px;
+            right: 16px;
+            background: #242fa3;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        /* SVG Styles */
+        .icon-white {
+            fill: #ffffff;
+        }
+        .icon-dark {
+            fill: #333333;
+        }
+        .icon-primary {
+            fill: #242fa3;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <div class="status-icons">
+                <svg class="status-icon" viewBox="0 0 24 24">
+                    <path class="icon-white" d="M12 3C7.46 3 3.34 4.78.29 7.67c-.18.18-.29.43-.29.71 0 .28.11.53.29.71l11 11c.39.39 1.02.39 1.41 0l11-11c.18-.18.29-.43.29-.71 0-.28-.11-.53-.29-.71C20.66 4.78 16.54 3 12 3z"/>
+                </svg>
+                <svg class="status-icon" viewBox="0 0 24 24">
+                    <path class="icon-white" d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <svg class="status-icon" viewBox="0 0 24 24">
+                    <path class="icon-white" d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path class="icon-white" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="nav-title">异动揭秘</span>
+            <div class="nav-more">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path class="icon-white" d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">异动揭秘</h1>
+            <p class="hero-subtitle">洞察主力成本，追踪吸筹轨迹</p>
+            <div class="hero-video-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <span>视频教程</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                </svg>
+            </div>
+            <!-- Shield and arrow illustration -->
+            <svg class="hero-shield" viewBox="0 0 100 120" style="position:absolute; right:30px; top:20px;">
+                <defs>
+                    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea"/>
+                        <stop offset="100%" style="stop-color:#764ba2"/>
+                    </linearGradient>
+                </defs>
+                <path d="M50 5 L90 20 L85 70 Q80 95 50 110 Q20 95 15 70 L10 20 Z" fill="url(#shieldGrad)" opacity="0.9"/>
+                <path d="M50 25 L50 75 M35 50 L50 65 L65 50" stroke="white" stroke-width="4" fill="none" stroke-linecap="round"/>
+            </svg>
+            <svg class="hero-arrow" viewBox="0 0 60 80" style="position:absolute; right:60px; top:10px;">
+                <path d="M30 70 L30 10 M15 25 L30 10 L45 25" stroke="#ff4757" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <!-- Info Card -->
+        <div class="info-card">
+            <p class="info-card-text">
+                本策略由<span class="info-highlight">2个</span>Level 2指标和<span class="info-highlight">4个</span>Level 2异动监控池构成，其特色功能有主力跟踪、资金博弈、拖拉机单、主力撤单、顶级挂单和涨停承压。
+            </p>
+        </div>
+        <!-- Feature Tabs -->
+        <div class="feature-tabs">
+            <div class="feature-tab active">主力跟踪</div>
+            <div class="feature-tab">资金博弈</div>
+            <div class="feature-tab">拖拉机单</div>
+            <div class="feature-tab">顶级挂单</div>
+        </div>
+        <!-- Main Content Card -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="content-header">
+                <div class="content-header-line left"></div>
+                <span class="content-header-title">主力跟踪指标</span>
+                <div class="content-header-line right"></div>
+            </div>
+            <!-- Description -->
+            <div class="content-desc">
+                主力跟踪按照股价的形态分析，计算主力运行轨迹，并且依据资金流入流出判断主力操盘阶段：吸筹、建仓、拉高、出货。
+            </div>
+            <!-- Case -->
+            <div class="content-case">
+                <div class="case-label">案例：</div>
+                <p class="case-text">
+                    2023年5月16日至2023年6月19日期间，林***(0*****)股票处于上涨趋势，主力跟踪指标根据股价计算主力运动轨迹，捕捉到主力吸筹区和主力出货区，提示投资者买卖机会。
+                </p>
+            </div>
+            <!-- Stock Card -->
+            <div class="stock-card">
+                <!-- Card Header -->
+                <div class="stock-card-header">
+                    <div class="stock-card-back">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path fill="#999" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                        </svg>
+                    </div>
+                    <span class="stock-card-time">07-13 15:00:03</span>
+                    <div class="stock-card-search">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                            <path fill="#999" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </div>
+                </div>
+                <!-- Price Bar -->
+                <div class="stock-price-bar">
+                    <span class="stock-current-price">5.34</span>
+                    <div class="stock-change">
+                        <span class="stock-change-value">0.49</span>
+                        <span class="stock-change-percent">10.10%</span>
+                    </div>
+                    <div class="stock-tag">
+                        <span>联</span>
+                        <span>专用设备</span>
+                        <svg class="stock-tag-arrow" viewBox="0 0 24 24" fill="white">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </div>
+                </div>
+                <!-- Info Grid -->
+                <div class="stock-info-grid">
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">今开</span>
+                        <span class="stock-info-value up">5.13</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">最高</span>
+                        <span class="stock-info-value up">5.34</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">成交量</span>
+                        <span class="stock-info-value">154.34万</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label"></span>
+                        <span class="stock-info-value"></span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">换手</span>
+                        <span class="stock-info-value">27.04%</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">最低</span>
+                        <span class="stock-info-value up">5.02</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label">成交额</span>
+                        <span class="stock-info-value">8.08亿</span>
+                    </div>
+                    <div class="stock-info-item">
+                        <span class="stock-info-label"></span>
+                        <span class="stock-info-value">
+                            <svg width="16" height="16" viewBox="0 0 24 24">
+                                <path fill="#999" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+                <!-- Tabs -->
+                <div class="stock-tabs">
+                    <div class="stock-tab">分时</div>
+                    <div class="stock-tab">五日</div>
+                    <div class="stock-tab active">日K</div>
+                    <div class="stock-tab">周K</div>
+                    <div class="stock-tab">月K</div>
+                    <div class="stock-tab">其他</div>
+                    <div style="margin-left:auto; display:flex; align-items:center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path fill="#999" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L5.09 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                        </svg>
+                    </div>
+                </div>
+                <!-- MA -->
+                <div class="stock-ma">
+                    <div class="stock-ma-item">
+                        <span>前复权</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24">
+                            <path fill="#999" d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </div>
+                    <div class="stock-ma-item">
+                        <div class="stock-ma-color" style="background:#ff9500;"></div>
+                        <span>MA 5=3.26</span>
+                    </div>
+                    <div class="stock-ma-item">
+                        <div class="stock-ma-color" style="background:#242fa3;"></div>
+                        <span>10=3.19</span>
+                    </div>
+                    <div class="stock-ma-item">
+                        <div class="stock-ma-color" style="background:#22c55e;"></div>
+                        <span>30=3.05</span>
+                    </div>
+                </div>
+                <!-- Chart -->
+                <div class="chart-area">
+                    <div class="chart-main">
+                        <div class="chart-price-labels">
+                            <span>3.96</span>
+                            <span></span>
+                            <span></span>
+                            <span>2.34</span>
+                        </div>
+                        <div class="chart-canvas">
+                            <svg class="chart-kline" viewBox="0 0 300 140" preserveAspectRatio="none">
+                                <!-- Grid lines -->
+                                <line x1="0" y1="35" x2="300" y2="35" stroke="#f0f0f0" stroke-width="1"/>
+                                <line x1="0" y1="70" x2="300" y2="70" stroke="#f0f0f0" stroke-width="1"/>
+                                <line x1="0" y1="105" x2="300" y2="105" stroke="#f0f0f0" stroke-width="1"/>
+                                <!-- MA lines -->
+                                <polyline points="0,80 30,75 60,70 90,72 120,68 150,65 180,60 210,55 240,50 270,45 300,40" fill="none" stroke="#ff9500" stroke-width="1.5"/>
+                                <polyline points="0,85 30,82 60,78 90,80 120,76 150,74 180,72 210,68 240,65 270,62 300,58" fill="none" stroke="#242fa3" stroke-width="1.5"/>
+                                <polyline points="0,90 30,88 60,86 90,87 120,85 150,84 180,83 210,81 240,80 270,78 300,76" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+                                <!-- K-line candles -->
+                                <rect x="20" y="60" width="6" height="15" fill="#ff4757" rx="1"/>
+                                <line x1="23" y1="55" x2="23" y2="80" stroke="#ff4757" stroke-width="1"/>
+                                <rect x="40" y="65" width="6" height="10" fill="#22c55e" rx="1"/>
+                                <line x1="43" y1="58" x2="43" y2="78" stroke="#22c55e" stroke-width="1"/>
+                                <rect x="60" y="55" width="6" height="20" fill="#ff4757" rx="1"/>
+                                <line x1="63" y1="48" x2="63" y2="78" stroke="#ff4757" stroke-width="1"/>
+                                <rect x="80" y="62" width="6" height="12" fill="#22c55e" rx="1"/>
+                                <line x1="83" y1="55" x2="83" y2="75" stroke="#22c55e" stroke-width="1"/>
+                                <rect x="100" y="70" width="6" height="8" fill="#22c55e" rx="1"/>
+                                <line x1="103" y1="65" x2="103" y2="82" stroke="#22c55e" stroke-width="1"/>
+                                <rect x="120" y="75" width="6" height="6" fill="#22c55e" rx="1"/>
+                                <line x1="123" y1="70" x2="123" y2="85" stroke="#22c55e" stroke-width="1"/>
+                                <rect x="140" y="80" width="6" height="5" fill="#22c55e" rx="1"/>
+                                <line x1="143" y1="75" x2="143" y2="88" stroke="#22c55e" stroke-width="1"/>
+                                <!-- Big drop candle -->
+                                <rect x="160" y="85" width="6" height="25" fill="#22c55e" rx="1"/>
+                                <line x1="163" y1="75" x2="163" y2="115" stroke="#22c55e" stroke-width="1"/>
+                                <rect x="180" y="78" width="6" height="10" fill="#ff4757" rx="1"/>
+                                <line x1="183" y1="72" x2="183" y2="92" stroke="#ff4757" stroke-width="1"/>
+                                <rect x="200" y="72" width="6" height="8" fill="#ff4757" rx="1"/>
+                                <line x1="203" y1="68" x2="203" y2="84" stroke="#ff4757" stroke-width="1"/>
+                                <rect x="220" y="68" width="6" height="6" fill="#ff4757" rx="1"/>
+                                <line x1="223" y1="64" x2="223" y2="76" stroke="#ff4757" stroke-width="1"/>
+                                <rect x="240" y="62" width="6" height="8" fill="#ff4757" rx="1"/>
+                                <line x1="243" y1="55" x2="243" y2="74" stroke="#ff4757" stroke-width="1"/>
+                                <!-- Big rise candle -->
+                                <rect x="260" y="35" width="6" height="30" fill="#ff4757" rx="1"/>
+                                <line x1="263" y1="25" x2="263" y2="70" stroke="#ff4757" stroke-width="1"/>
+                                <rect x="280" y="40" width="6" height="15" fill="#22c55e" rx="1"/>
+                                <line x1="283" y1="32" x2="283" y2="60" stroke="#22c55e" stroke-width="1"/>
+                                <!-- Highlight area -->
+                                <rect x="140" y="20" width="40" height="100" fill="rgba(255,149,0,0.08)"/>
+                                <rect x="250" y="20" width="40" height="100" fill="rgba(255,149,0,0.08)"/>
+                            </svg>
+                            <!-- Annotations -->
+                            <div class="chart-annotation buy">
+                                <div>释放买入信号，</div>
+                                <div>可酌情买入进场</div>
+                            </div>
+                            <div class="chart-annotation sell">
+                                <div>释放逃跑信号，</div>
+                                <div>"$"标注准备出场</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sub chart -->
+                    <div class="chart-sub">
+                        <div class="chart-sub-labels">
+                            <span>80.00</span>
+                            <span>40.00</span>
+                        </div>
+                        <div class="chart-canvas" style="left:32px;">
+                            <svg width="100%" height="100%" viewBox="0 0 300 60" preserveAspectRatio="none">
+                                <!-- Main tracking line -->
+                                <polyline points="0,45 30,42 60,40 90,38 120,35 150,32 180,30 210,28 240,25 270,22 300,20" fill="none" stroke="#ff9500" stroke-width="2"/>
+                                <!-- Area fill -->
+                                <polygon points="0,45 30,42 60,40 90,38 120,35 150,32 180,30 210,28 240,25 270,22 300,20 300,60 0,60" fill="rgba(255,149,0,0.1)"/>
+                                <!-- Dollar signs -->
+                                <circle cx="60" cy="40" r="8" fill="#ff9500"/>
+                                <text x="60" y="44" text-anchor="middle" fill="white" font-size="10">$</text>
+                                <circle cx="240" cy="25" r="8" fill="#ff4757"/>
+                                <text x="240" y="29" text-anchor="middle" fill="white" font-size="10">$</text>
+                            </svg>
+                            <div class="chart-zone-label bottom">底部吸筹区</div>
+                            <div class="chart-zone-label top">主力出货区</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Chart Feature Buttons -->
+                <div class="chart-feature-btns">
+                    <div class="chart-feature-btn">
+                        <div class="chart-feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path class="icon-primary" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <span class="chart-feature-text">主力密码</span>
+                    </div>
+                    <div class="chart-feature-btn">
+                        <div class="chart-feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path class="icon-primary" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <span class="chart-feature-text">神奇电波</span>
+                    </div>
+                    <div class="chart-feature-btn">
+                        <div class="chart-feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path class="icon-primary" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <span class="chart-feature-text">主力跟踪</span>
+                    </div>
+                    <div class="chart-feature-btn">
+                        <div class="chart-feature-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path class="icon-primary" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                        </div>
+                        <span class="chart-feature-text">资金博弈</span>
+                    </div>
+                </div>
+                <!-- Note -->
+                <div class="chart-note">
+                    注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。
+                </div>
+            </div>
+        </div>
+        <!-- What is Section -->
+        <div class="section-card what-is-section">
+            <div class="section-card-header">
+                <div class="section-card-line left"></div>
+                <span class="section-card-title">什么是主力跟踪</span>
+                <div class="section-card-line right"></div>
+            </div>
+            <div class="section-card-body">
+                <p class="what-is-text">
+                    主力跟踪按照股价的形态分析，计算主力运行轨迹，并且依据资金流入流出判断主力操盘阶段：吸筹、建仓、拉高、出货。
+                </p>
+            </div>
+        </div>
+        <!-- How to Use Section -->
+        <div class="section-card how-to-section">
+            <div class="section-card-header">
+                <div class="section-card-line left"></div>
+                <span class="section-card-title">如何使用主力跟踪指标</span>
+                <div class="section-card-line right"></div>
+            </div>
+            <div class="section-card-body">
+                <div class="how-to-list">
+                    <div class="how-to-item">
+                        <div class="how-to-check">
+                            <svg viewBox="0 0 24 24">
+                                <path class="icon-primary" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span class="how-to-text">当主力线位于底部吸筹区，可<strong>酌情买入进场</strong>；</span>
+                    </div>
+                    <div class="how-to-item">
+                        <div class="how-to-check">
+                            <svg viewBox="0 0 24 24">
+                                <path class="icon-primary" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span class="how-to-text">当主力线位于主力建仓区，可<strong>适当加码</strong>；</span>
+                    </div>
+                    <div class="how-to-item">
+                        <div class="how-to-check">
+                            <svg viewBox="0 0 24 24">
+                                <path class="icon-primary" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span class="how-to-text">当主力线位于主力拉高区，可<strong>适当减码</strong>；</span>
+                    </div>
+                    <div class="how-to-item">
+                        <div class="how-to-check">
+                            <svg viewBox="0 0 24 24">
+                                <path class="icon-primary" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span class="how-to-text">当主力线位于主力出货区，<strong>随时准备出场</strong>；</span>
+                    </div>
+                </div>
+                <div class="signal-title">信号释放：</div>
+                <div class="signal-list">
+                    <div class="signal-item">
+                        <div class="signal-dot red"></div>
+                        <span>在底部吸筹区出现时，提示买入；</span>
+                    </div>
+                    <div class="signal-item">
+                        <div class="signal-dot blue"></div>
+                        <span>在底部吸筹区出现时，提示抄底加码；</span>
+                    </div>
+                    <div class="signal-item">
+                        <div class="signal-dot red"></div>
+                        <span>在主力出货区出现时，提示顶部随时准备出场；</span>
+                    </div>
+                    <div class="signal-item">
+                        <div class="signal-icon">$</div>
+                        <span>主力线上出现逃跑信号时提示坚决出场。</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Risk Section -->
+        <div class="risk-section">
+            <div class="risk-title">风险提示：</div>
+            <p class="risk-text">
+                本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。
+            </p>
+            <p class="risk-text" style="margin-top:8px;">
+                固有风险：阶段行情不同会影响指标及异动信号的释放和入选，长期缺乏信号会导致算法模型缺少训练数据，有一定概率出现预测不精准的情况。
+            </p>
+            <p class="risk-text" style="margin-top:8px;">
+                使用风险：L2数据信息量大、更新频率高，对使用者有一定知识储备和经验要求。历史入选不代表后期股票表现，投资者应该独立自主承担决策风险。
+            </p>
+            <p class="risk-text" style="margin-top:8px;">
+                数据信息来源：沪深交易所
+            </p>
+        </div>
+        <!-- Login Button -->
+        <div class="login-btn">登录查看</div>
+    </div>
+</body>
+</html>

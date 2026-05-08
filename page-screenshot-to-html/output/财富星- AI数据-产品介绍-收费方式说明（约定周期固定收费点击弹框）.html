@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" / / />
+    <meta name="viewport" c / / />
+    <title>财富星-AI数据</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+        .page-container {
+            width: 390px;
+            min-height: auto;
+            overflow: visible;
+            background: #fff;
+            position: relative;
+        }
+        /* 顶部蓝色区域 */
+        .header-section {
+            background: #1a237e;
+            padding: 40px 16px 20px;
+            position: relative;
+        }
+        .header-title {
+            color: #ffd700;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .header-subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+        }
+        /* 服务内容区域 */
+        .service-section {
+            background: #fff;
+            margin: -10px 12px 0;
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 16px;
+        }
+        .service-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 0;
+        }
+        .service-item {
+            width: 33.33%;
+            text-align: center;
+        }
+        .service-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .service-icon.gold {
+            background: #fff8e1;
+            color: #ff8f00;
+        }
+        .service-icon.blue {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .service-icon.purple {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        .service-icon.green {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        .service-icon.red {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+        .service-name {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        .service-desc {
+            font-size: 11px;
+            color: #999;
+            line-height: 1.3;
+        }
+        /* 产品亮点 */
+        .highlight-section {
+            background: #fff;
+            margin: 12px;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .highlight-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 0;
+        }
+        .highlight-item {
+            width: 50%;
+            padding: 0 8px;
+        }
+        .highlight-label {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .highlight-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff6b35;
+            display: inline-block;
+        }
+        .highlight-desc {
+            font-size: 12px;
+            color: #999;
+            line-height: 1.5;
+        }
+        .highlight-center {
+            width: 100%;
+            text-align: center;
+            margin: 12px 0;
+        }
+        .highlight-center-text {
+            display: inline-block;
+            background: #e8eaf6;
+            color: #3f51b5;
+            padding: 6px 20px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        /* 功能详情区域 */
+        .feature-detail {
+            background: #fff;
+            margin: 0 12px 12px;
+            border-radius: 8px;
+            padding: 20px 16px;
+        }
+        .feature-detail-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .feature-detail-subtitle {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .feature-detail-subtitle .arrow {
+            color: #3f51b5;
+            margin-left: 4px;
+        }
+        .feature-list {
+            list-style: none;
+            margin-bottom: 16px;
+        }
+        .feature-list li {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.8;
+            padding-left: 16px;
+            position: relative;
+        }
+        .feature-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #3f51b5;
+        }
+        .feature-list li strong {
+            color: #1a237e;
+        }
+        /* 流程图 */
+        .flow-chart {
+            background: #f5f7fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .flow-step:last-child {
+            margin-bottom: 0;
+        }
+        .flow-badge {
+            background: #3f51b5;
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+            margin-right: 12px;
+        }
+        .flow-text {
+            font-size: 12px;
+            color: #333;
+        }
+        .flow-arrow {
+            text-align: center;
+            color: #3f51b5;
+            font-size: 16px;
+            margin: 8px 0;
+        }
+        /* 实战案例 */
+        .case-section {
+            margin-bottom: 16px;
+        }
+        .case-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .case-desc {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        .case-chart {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 12px;
+            height: 200px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+        .case-chart-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 12px;
+        }
+        .case-tag {
+            position: absolute;
+            background: #3f51b5;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .case-tag.entry {
+            left: 20%;
+            bottom: 30%;
+        }
+        .case-tag.exit {
+            right: 25%;
+            top: 20%;
+        }
+        .case-tag.reduce {
+            right: 15%;
+            top: 35%;
+        }
+        .case-info {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        .case-note {
+            font-size: 11px;
+            color: #999;
+            line-height: 1.6;
+        }
+        /* 功能标签 */
+        .feature-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .feature-tag-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #333;
+            width: 45%;
+        }
+        .feature-tag-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #e8eaf6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feature-tag-icon svg {
+            width: 12px;
+            height: 12px;
+            fill: #3f51b5;
+        }
+        /* VIP快讯表格 */
+        .vip-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 11px;
+        }
+        .vip-table th {
+            background: #f5f5f5;
+            color: #666;
+            font-weight: normal;
+            padding: 8px 4px;
+            text-align: center;
+        }
+        .vip-table td {
+            padding: 10px 4px;
+            border-bottom: 1px solid #f0f0f0;
+            text-align: center;
+            color: #333;
+            vertical-align: top;
+        }
+        .vip-table .time {
+            color: #666;
+            font-size: 10px;
+        }
+        .vip-table .content {
+            text-align: left;
+            line-height: 1.6;
+            color: #333;
+        }
+        .vip-table .highlight {
+            color: #d32f2f;
+        }
+        /* 收费方式 */
+        .price-section {
+            background: #fff;
+            margin: 0 12px 12px;
+            border-radius: 8px;
+            padding: 20px 16px;
+        }
+        .price-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .price-tab {
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .price-tab.active {
+            background: #ff6b35;
+            color: #fff;
+        }
+        .price-tab.inactive {
+            background: #f5f5f5;
+            color: #666;
+        }
+        .price-options {
+            display: flex;
+            gap: 12px;
+        }
+        .price-option {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .price-option.highlighted {
+            border-color: #ff6b35;
+            background: #fff5f0;
+        }
+        .price-option-title {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .price-option-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+        .price-option-unit {
+            font-size: 13px;
+            color: #ff6b35;
+        }
+        .price-option-desc {
+            font-size: 11px;
+            color: #999;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        /* 底部说明弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: #fff;
+            width: 390px;
+            border-radius: 16px 16px 0 0;
+            padding: 20px 16px;
+            overflow: visible;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .modal-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            flex: 1;
+            text-align: center;
+        }
+        .modal-close {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 18px;
+        }
+        .modal-body {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .modal-body strong {
+            color: #333;
+        }
+        .modal-btn {
+            width: 100%;
+            padding: 14px;
+            background: #5c6bc0;
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        /* 列表样式 */
+        .bullet-list {
+            list-style: none;
+            padding: 0;
+        }
+        .bullet-list li {
+            position: relative;
+            padding-left: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .bullet-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #5c6bc0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- 顶部蓝色区域 -->
+        <div class="header-section">
+            <div class="header-title">财富星-AI数据</div>
+            <div class="header-subtitle">大数据共享，掌握资金动向</div>
+        </div>
+        <!-- 服务内容 -->
+        <div class="service-section">
+            <div class="section-title">服务内容</div>
+            <div class="service-grid">
+                <div class="service-item">
+                    <div class="service-icon gold">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+                    </div>
+                    <div class="service-name">陆港淘金</div>
+                    <div class="service-desc">一江之隔，价差几何</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon blue">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                    </div>
+                    <div class="service-name">融资追击</div>
+                    <div class="service-desc">透视融资数据</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon purple">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    </div>
+                    <div class="service-name">主力密码</div>
+                    <div class="service-desc">洞悉主力动向</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon green">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    </div>
+                    <div class="service-name">异动揭秘</div>
+                    <div class="service-desc">识别大单异动</div>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon red">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
+                    <div class="service-name">VIP快讯</div>
+                    <div class="service-desc">实时推送市场重要快讯</div>
+                </div>
+            </div>
+        </div>
+        <!-- 产品亮点 -->
+        <div class="highlight-section">
+            <div class="section-title">产品亮点</div>
+            <div class="highlight-grid">
+                <div class="highlight-item">
+                    <div class="highlight-label">
+                        <span class="highlight-dot"></span>
+                        看融资
+                    </div>
+                    <div class="highlight-desc">透视融资数据，获悉多空力量</div>
+                </div>
+                <div class="highlight-item">
+                    <div class="highlight-label">
+                        <span class="highlight-dot"></span>
+                        盯主力
+                    </div>
+                    <div class="highlight-desc">五大因子监控主力资金，捕获大概率上涨股票池</div>
+                </div>
+                <div class="highlight-center">
+                    <span class="highlight-center-text">揭秘市场底牌</span>
+                </div>
+                <div class="highlight-item">
+                    <div class="highlight-label">
+                        <span class="highlight-dot"></span>
+                        淘价差
+                    </div>
+                    <div class="highlight-desc">一江之隔，价差几何</div>
+                </div>
+                <div class="highlight-item">
+                    <div class="highlight-label">
+                        <span class="highlight-dot"></span>
+                        VIP快讯
+                    </div>
+                    <div class="highlight-desc">海量信息源+行业专家分析</div>
+                </div>
+            </div>
+        </div>
+        <!-- 陆港淘金 -->
+        <div class="feature-detail">
+            <div class="feature-detail-title">陆港淘金</div>
+            <div class="feature-detail-subtitle">
+                一江之隔，价差几何
+                <span class="arrow">></span>
+            </div>
+            <ul class="feature-list">
+                <li>【协整分析】发现同时在A股和港股上市的标的，具有长期均衡关系。</li>
+                <li>用【蒙特卡洛模拟】捕捉上涨概率较大的标的。</li>
+                <li>甄别出有【均值回归】特性的标的。</li>
+                <li>经过两轮筛选后，选取AH折价率前10的票池。</li>
+            </ul>
+            <div class="flow-chart">
+                <div class="flow-step">
+                    <span class="flow-badge">第一步</span>
+                    <span class="flow-text">A股、港股市场关联性验证</span>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                    <span class="flow-badge">第二步</span>
+                    <span class="flow-text">蒙特卡洛模拟走势</span>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                    <span class="flow-badge">第三步</span>
+                    <span class="flow-text">价值回归特征识别</span>
+                </div>
+                <div class="flow-arrow">↓</div>
+                <div class="flow-step">
+                    <span class="flow-badge">第四步</span>
+                    <span class="flow-text">AH折价率排序</span>
+                </div>
+            </div>
+        </div>
+        <!-- 融资追击 -->
+        <div class="feature-detail">
+            <div class="feature-detail-title">融资追击</div>
+            <div class="feature-detail-subtitle">
+                透视融资数据，获悉多空力量
+                <span class="arrow">></span>
+            </div>
+            <div class="case-desc">
+                融资融券是表现市场多空力量的重要信号，融资追击通过分析两融数据，获得标的在当前时间的短期和最佳持股策略。
+            </div>
+            <div class="case-section">
+                <div class="case-title">实战案例</div>
+                <div class="case-desc">
+                    2023年7月13日，大名城入选市场最佳持股策略，历史测算持股41天左右获利概率达80.99%，按照策略买入并持有17天后该股获利20.38%。
+                </div>
+                <div class="case-info">大***（6****）| 日线 | 前复权</div>
+                <div class="case-chart">
+                    <div class="case-chart-placeholder">[K线图区域]</div>
+                </div>
+                <div class="case-note">
+                    注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。
+                </div>
+            </div>
+        </div>
+        <!-- 主力密码 -->
+        <div class="feature-detail">
+            <div class="feature-detail-title">主力密码</div>
+            <div class="feature-detail-subtitle">
+                洞悉主力，把握先机
+                <span class="arrow">></span>
+            </div>
+            <div class="case-desc">
+                主力密码通过五大决策因子构建智能分析模型，对个股的历史逐笔成交数据做全量计算，并通过分析当天因子数据与历史回测结果的匹配度，判断主力的"进场"、"加仓"、"离场"、"减仓"行为。
+            </div>
+            <div class="case-section">
+                <div class="case-title">实战案例</div>
+                <div class="case-desc">
+                    太**（6****），2023年7月25日主力密码提示"进场"，随后股价上涨51.87%；自2023年8月2日起在高位连续提示"减仓"、"离场"，股价回落这波行情上涨结束。
+                </div>
+                <div class="case-info">太***（6****）| 日线 | 前复权</div>
+                <div class="case-chart">
+                    <span class="case-tag entry">进场</span>
+                    <span class="case-tag exit">减仓</span>
+                    <span class="case-tag reduce">离场</span>
+                    <div class="case-chart-placeholder">[K线图区域]</div>
+                </div>
+                <div class="case-note">
+                    注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。
+                </div>
+            </div>
+        </div>
+        <!-- 异动揭秘 -->
+        <div class="feature-detail">
+            <div class="feature-detail-title">异动揭秘</div>
+            <div class="feature-detail-subtitle">
+                洞察主力成本，追踪吸筹轨迹
+                <span class="arrow">></span>
+            </div>
+            <div class="feature-tags">
+                <div class="feature-tag-item">
+                    <span class="feature-tag-icon">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </span>
+                    主力跟踪
+                </div>
+                <div class="feature-tag-item">
+                    <span class="feature-tag-icon">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </span>
+                    资金博弈
+                </div>
+                <div class="feature-tag-item">
+                    <span class="feature-tag-icon">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </span>
+                    拖拉机单
+                </div>
+                <div class="feature-tag-item">
+                    <span class="feature-tag-icon">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </span>
+                    顶级挂单
+                </div>
+                <div class="feature-tag-item">
+                    <span class="feature-tag-icon">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </span>
+                    主力撤单
+                </div>
+                <div class="feature-tag-item">
+                    <span class="feature-tag-icon">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </span>
+                    涨停承压
+                </div>
+            </div>
+        </div>
+        <!-- VIP快讯 -->
+        <div class="feature-detail">
+            <div class="feature-detail-title">VIP快讯</div>
+            <div class="feature-detail-subtitle">海量信息源 + 行业专家分析</div>
+            <div class="case-title">实时推送市场重要快讯。</div>
+            <div style="background: #f5f7fa; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                <div style="font-size: 13px; color: #1a237e; font-weight: 500; margin-bottom: 8px;">| 2026年第一季度案例</div>
+                <table class="vip-table">
+                    <thead>
+                        <tr>
+                            <th>VIP快讯<br / / />时点</th>
+                            <th>普通快讯<br / / />时点</th>
+                            <th>个股</th>
+                            <th>截止普通<br / / />快讯时点<br / / />涨幅</th>
+                            <th>VIP快讯原文</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div>2月10日</div>
+                                <div class="time">11:23</div>
+                            </td>
+                            <td>
+                                <div>2月12日</div>
+                                <div class="time">13:58</div>
+                            </td>
+                            <td>***</td>
+                            <td class="highlight">涨超15%</td>
+                            <td class="content">近日宣布投入千万美金专项资金全面加码海外AI短剧赛道，同步启动"百万美金-剧启AI"DramaWaveAI短剧创作扶持计划。</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div>2月3日</div>
+                                <div class="time">13:04</div>
+                            </td>
+                            <td>
+                                <div>2月3日</div>
+                                <div class="time">13:08</div>
+                            </td>
+                            <td>***</td>
+                            <td class="highlight">涨幅4%</td>
+                            <td class="content">参股企业宜确半导体在国内低轨卫星通信核心器件领域取得重要突破，其自主研发的相控阵芯片元器件已成功打破海外巨头长期技术垄断。</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div>1月29日</div>
+                                <div class="time">09:04</div>
+                            </td>
+                            <td>
+                                <div>1月29日</div>
+                                <div class="time">09:46</div>
+                            </td>
+                            <td>***</td>
+                            <td class="highlight">61.81%</td>
+                            <td class="content">公司与京东签署深度战略合作协议，将围绕信维全系消费级存储产品展开全面协作，从产品推广到营销创新深度融合，共同应对AI技术普及带来的市场变革。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="case-note">
+                注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。
+            </div>
+        </div>
+        <!-- 收费方式 -->
+        <div class="price-section">
+            <div class="section-title">收费方式</div>
+            <div class="price-tabs">
+                <span class="price-tab active">大家爱选</span>
+            </div>
+            <div class="price-options">
+                <div class="price-option">
+                    <div class="price-option-title">单笔交易固定收费</div>
+                    <div>
+                        <span class="price-option-value">8.8</span>
+                        <span class="price-option-unit">元/笔</span>
+                    </div>
+                    <div class="price-option-desc">
+                        自签约生效日起，您使用在本公司开立...
+                    </div>
+                </div>
+                <div class="price-option highlighted">
+                    <div class="price-option-title">约定周期固定收费</div>
+                    <div>
+                        <span class="price-option-value">3888</span>
+                        <span class="price-option-unit">元/30天</span>
+                    </div>
+                    <div class="price-option-desc">
+                        自签约生效日起，本公司将按照证券投...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 底部弹窗 -->
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div></div>
+                <div class="modal-title">收费说明</div>
+                <div class="modal-close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+            </div>
+            <div class="modal-body">
+                <ul class="bullet-list">
+                    <li>自签约生效日起，本公司将按照证券投资顾问业务服务协议约定一次性冻结在扣费周期内应缴纳的投资顾问费，若在签约日，您账户中的资金少于应冻结的投资顾问费，则您的签约无法生效。签约生效后，本公司将自签约生效日起于每日从您的账户的冻结款项中扣除每日投资顾问费（每日投资顾问费等于应缴纳投资顾问费除以约定的扣费周期）。</li>
+                </ul>
+            </div>
+            <button class="modal-btn">确定</button>
+        </div>
+    </div>
+</body>
+</html>

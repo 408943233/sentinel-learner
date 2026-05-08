@@ -1,0 +1,79 @@
+{
+  "timestamp": 1778202327813,
+  "url": "file:///Users/gaoyiwei/Documents/trae_projects/openclaw/sentinel-browser/src/renderer/index.html",
+  "title": "Sentinel Browser 2.0",
+  "localStorage": {},
+  "sessionStorage": {},
+  "cookies": [
+    {
+      "name": "aliyungf_tc",
+      "value": "a6bd67fcc209924f89b6ed7311bb39a8ca0aafbc84a22644f12abb7f571258af",
+      "domain": "www.chinastock.com.cn",
+      "hostOnly": true,
+      "path": "/",
+      "secure": false,
+      "httpOnly": true,
+      "session": true,
+      "sameSite": "unspecified"
+    },
+    {
+      "name": "acw_tc",
+      "value": "2f63149917782022834633497e007c7f6139dca10edb2a7b839410ec1a658c",
+      "domain": "www.chinastock.com.cn",
+      "hostOnly": true,
+      "path": "/",
+      "secure": false,
+      "httpOnly": true,
+      "session": false,
+      "expirationDate": 1778204083.568168,
+      "sameSite": "unspecified"
+    },
+    {
+      "name": "sajssdk_2015_cross_new_user",
+      "value": "1",
+      "domain": ".chinastock.com.cn",
+      "hostOnly": false,
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "session": false,
+      "expirationDate": 1778255999,
+      "sameSite": "unspecified"
+    },
+    {
+      "name": "JSESSIONID",
+      "value": "a6bd67fcc209924f89b6ed7311bb39a8ca0aafbc84a22644f12abb7f571258af",
+      "domain": "www.chinastock.com.cn",
+      "hostOnly": true,
+      "path": "/",
+      "secure": true,
+      "httpOnly": true,
+      "session": true,
+      "sameSite": "unspecified"
+    },
+    {
+      "name": "sensorsdata2015jssdkcross",
+      "value": "%7B%22distinct_id%22%3A%2219e051d9c60560-08af6717a90e858-53770a65-2073600-19e051d9c611a25%22%2C%22first_id%22%3A%22%22%2C%22props%22%3A%7B%22%24latest_traffic_source_type%22%3A%22%E7%9B%B4%E6%8E%A5%E6%B5%81%E9%87%8F%22%2C%22%24latest_search_keyword%22%3A%22%E6%9C%AA%E5%8F%96%E5%88%B0%E5%80%BC_%E7%9B%B4%E6%8E%A5%E6%89%93%E5%BC%80%22%2C%22%24latest_referrer%22%3A%22%22%7D%2C%22%24device_id%22%3A%2219e051d9c60560-08af6717a90e858-53770a65-2073600-19e051d9c611a25%22%2C%22identities%22%3A%22eyIkaWRlbnRpdHlfY29va2llX2lkIjoiMTllMDUxZTExMmExNTg1LTAyY2U5MmM5OTFiYmRmYy01Mzc3MGE2NS0yMDczNjAwLTE5ZTA1MWUxMTJiMWFiNyJ9%22%2C%22history_login_id%22%3A%7B%22name%22%3A%22%22%2C%22value%22%3A%22%22%7D%7D",
+      "domain": ".chinastock.com.cn",
+      "hostOnly": false,
+      "path": "/",
+      "secure": false,
+      "httpOnly": false,
+      "session": false,
+      "expirationDate": 1809306317,
+      "sameSite": "unspecified"
+    },
+    {
+      "name": "SESSION",
+      "value": "2aa7ddbc-cf9b-4e77-a060-37b783bf565f",
+      "domain": "mall.chinastock.com.cn",
+      "hostOnly": true,
+      "path": "/",
+      "secure": false,
+      "httpOnly": true,
+      "session": true,
+      "sameSite": "unspecified"
+    }
+  ],
+  "indexedDB": {}
+}

@@ -1,0 +1,31 @@
+# 核心依赖
+Pillow>=10.0.0
+numpy>=1.24.0
+opencv-python>=4.8.0
+pytesseract>=0.3.10
+paddleocr>=2.7.0
+paddlepaddle>=2.5.0
+
+# API客户端
+anthropic>=0.8.0
+openai>=1.0.0
+requests>=2.31.0
+urllib3>=2.0.0
+
+# 配置管理
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# 性能监控和重试
+tenacity>=8.2.0
+
+# 图像处理
+scikit-image>=0.21.0
+scipy>=1.11.0
+
+# 工具
+python-dotenv>=1.0.0
+
+# WebDriver（用于验证）
+selenium>=4.15.0
+webdriver-manager>=4.0.0

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>融资追击</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #000;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: hidden;
+            background: #2a2f6f;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #393e73;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            width: 18px;
+            height: 12px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #fff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 6px; }
+        .signal-bar:nth-child(3) { height: 8px; }
+        .signal-bar:nth-child(4) { height: 10px; }
+        .wifi-icon {
+            width: 16px;
+            height: 12px;
+        }
+        .wifi-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #fff;
+        }
+        .battery-icon {
+            width: 27px;
+            height: 13px;
+            border: 1px solid #fff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 5px;
+            background: #fff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 72%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-text {
+            position: absolute;
+            font-size: 9px;
+            color: #fff;
+            font-weight: 600;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #292f6e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+        }
+        .nav-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+        .nav-title {
+            font-size: 17px;
+            color: #fff;
+            font-weight: 500;
+        }
+        .nav-share {
+            font-size: 15px;
+            color: #fff;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 209px;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #292f6e 0%, #2a2f6f 50%, #2a306f 100%);
+            padding: 20px 24px;
+            overflow: hidden;
+        }
+        .hero-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #c5c8e0;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+        }
+        .hero-subtitle {
+            font-size: 15px;
+            color: #8a8db5;
+            letter-spacing: 1px;
+        }
+        .hero-illustration {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 160px;
+            height: 160px;
+        }
+        .hero-illustration::before {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 80px;
+            background: rgba(100, 150, 255, 0.15);
+            border-radius: 8px;
+            top: 30px;
+            left: 30px;
+        }
+        .hero-illustration::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 50px;
+            background: rgba(255, 150, 100, 0.3);
+            border-radius: 50%;
+            top: 20px;
+            right: 20px;
+        }
+        /* Info Card */
+        .info-card {
+            position: absolute;
+            top: 300px;
+            height: 220px;
+            left: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            z-index: 10;
+        }
+        .info-card::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid rgba(255, 255, 255, 0.95);
+        }
+        .info-row {
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+        }
+        .info-label {
+            color: #888;
+        }
+        .info-highlight {
+            color: #333;
+            font-weight: 600;
+        }
+        /* Ranking Section */
+        .ranking-section {
+            position: absolute;
+            top: 540px;
+            height: 304px;
+            left: 0;
+            right: 0;
+            background: #161d55;
+            padding: 20px 16px;
+        }
+        .ranking-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .ranking-line {
+            width: 40px;
+            height: 1px;
+            background: #5a6ab5;
+        }
+        .ranking-title {
+            font-size: 20px;
+            color: #c5a86c;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        .ranking-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px 16px;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+        }
+        .rank-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .rank-medal {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            position: relative;
+        }
+        .rank-medal.gold {
+            background: linear-gradient(135deg, #f5d76e, #d4a843);
+            color: #8b6914;
+        }
+        .rank-medal.silver {
+            background: linear-gradient(135deg, #c8c8c8, #a0a0a0);
+            color: #666;
+        }
+        .rank-medal.bronze {
+            background: linear-gradient(135deg, #e8a87c, #c4845c);
+            color: #8b5a2b;
+        }
+        .rank-medal::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            width: 20px;
+            height: 8px;
+            background: inherit;
+            border-radius: 0 0 10px 10px;
+        }
+        .rank-name {
+            font-size: 18px;
+            color: #fff;
+            margin-top: 8px;
+        }
+        .rank-stars {
+            font-size: 12px;
+            color: #888;
+            letter-spacing: 2px;
+        }
+        /* Share Sheet */
+        .share-sheet {
+            position: absolute;
+            top: 650px;
+            height: 194px;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 16px 16px 0 0;
+            z-index: 200;
+        }
+        .share-title {
+            text-align: center;
+            font-size: 16px;
+            color: #333;
+            padding: 20px 0;
+            font-weight: 500;
+        }
+        .share-options {
+            display: flex;
+            justify-content: space-around;
+            padding: 0 40px;
+        }
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .share-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .share-icon.wechat {
+            background: #07c160;
+        }
+        .share-icon.moment {
+            background: #07c160;
+        }
+        .share-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: #fff;
+        }
+        .share-label {
+            font-size: 14px;
+            color: #333;
+        }
+        .share-cancel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #333;
+            border-top: 1px solid #e8e8e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">13:53</span>
+            <div class="status-right">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <div class="wifi-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                    </svg>
+                </div>
+                <div class="battery-icon">
+                    <div class="battery-level"></div>
+                    <span class="battery-text">72</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <div class="nav-title"></div>
+            <div class="nav-share">分享</div>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-title">融资追击</div>
+            <div class="hero-subtitle">透视融资数据，获悉多空力量</div>
+            <div class="hero-illustration"></div>
+        </div>
+        <!-- Info Card -->
+        <div class="info-card">
+            <div class="info-row">
+                <span class="info-label">适用人群：</span>
+                <span class="info-highlight">短线、中线</span>
+            </div>
+            <div class="info-row">
+                适用于<span class="info-highlight">小白用户</span>，按策略提示持股周期和收益进行买卖
+            </div>
+            <div class="info-row">
+                适用于<span class="info-highlight">有经验用户</span>，策略提示持股周期用以辅助判断
+            </div>
+        </div>
+        <!-- Ranking Section -->
+        <div class="ranking-section">
+            <div class="ranking-header">
+                <div class="ranking-line"></div>
+                <div class="ranking-title">明星牛股榜</div>
+                <div class="ranking-line"></div>
+            </div>
+            <div class="ranking-card">
+                <div class="rank-item">
+                    <div class="rank-medal gold">1</div>
+                    <div class="rank-name">顺***</div>
+                    <div class="rank-stars">******</div>
+                </div>
+                <div class="rank-item">
+                    <div class="rank-medal silver">2</div>
+                    <div class="rank-name">德***</div>
+                    <div class="rank-stars">******</div>
+                </div>
+                <div class="rank-item">
+                    <div class="rank-medal bronze">3</div>
+                    <div class="rank-name">晓***</div>
+                    <div class="rank-stars">******</div>
+                </div>
+            </div>
+        </div>
+        <!-- Share Sheet -->
+        <div class="share-sheet">
+            <div class="share-title">分享至</div>
+            <div class="share-options">
+                <div class="share-option">
+                    <div class="share-icon wechat">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.27-.027-.407-.03zm-2.53 3.274c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982z"/>
+                        </svg>
+                    </div>
+                    <span class="share-label">微信好友</span>
+                </div>
+                <div class="share-option">
+                    <div class="share-icon moment">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                        </svg>
+                    </div>
+                    <span class="share-label">微信朋友圈</span>
+                </div>
+            </div>
+            <div class="share-cancel">取消</div>
+        </div>
+    </div>
+</body>
+</html>

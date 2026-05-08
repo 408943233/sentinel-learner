@@ -1,0 +1,121 @@
+{
+  "summary": {
+    "total_components": 621,
+    "total_layout_sections": 66,
+    "total_breakpoints": 0,
+    "components_with_bounding_box": 251,
+    "components_without_bounding_box": 370
+  },
+  "issues": {
+    "layout_sections_zero": false,
+    "components_zero": false,
+    "bounding_box_empty": false,
+    "breakpoints_zero": true,
+    "typography_empty": false
+  },
+  "details": {
+    "component_types": {
+      "unknown": 395,
+      "button": 141,
+      "menu": 30,
+      "carousel": 18,
+      "pagination": 4,
+      "select": 12,
+      "modal": 6,
+      "alert": 15
+    },
+    "typography": {
+      "font_sizes": [
+        "var(--van-image-loading-icon-size)",
+        "var(--van-button-small-font-size)",
+        "80px",
+        "45px !important",
+        "31px !important",
+        "40px",
+        "var(--van-field-icon-size)",
+        "var(--skin-css-var-fs2,14px)",
+        "40px !important",
+        "var(--van-cell-font-size)",
+        "86px",
+        "48px",
+        "1.5em",
+        ".67rem",
+        "var(--font-size)",
+        "var(--skin-css-var-fs3n1,14px)",
+        "1.8em",
+        ".13rem",
+        "var(--van-badge-font-size)",
+        "0",
+        "26px !important",
+        "20px",
+        "28px",
+        "32px",
+        "24px",
+        ".14rem",
+        "10px",
+        "16px"
+      ],
+      "font_families": [
+        "WenQuanYi Micro Hei",
+        "微软雅黑",
+        "Tahoma)",
+        "FounderYouhei-Regular",
+        "neituiicon!important",
+        "Tahoma",
+        "FounderYouhei-Medium, PingFangSC-Medium",
+        "\"FounderYouhei-Medium\"",
+        "PingFangSC-Regular, FounderYouhei-Regular",
+        "PingFangSC-Regular",
+        "Microsoft Sans Serif",
+        "Apple Color Emoji",
+        "STHeitiSC",
+        "Helvetica Neue",
+        "PingFangSC-Medium",
+        "PingFangSC-Semibold",
+        "黑体",
+        "sans-serif"
+      ],
+      "heading_sizes": {
+        "h1": "86px",
+        "h2": "80px",
+        "h3": "40px",
+        "h4": "32px",
+        "h5": "24px",
+        "h6": "20px"
+      }
+    },
+    "breakpoints": [],
+    "sample_components_without_bbox": [
+      {
+        "id": "comp_4",
+        "type": "unknown",
+        "tag": "head",
+        "text": ".video-js { width: 300px; height: 150px; } .vjs-fl"
+      },
+      {
+        "id": "comp_5",
+        "type": "unknown",
+        "tag": "style",
+        "text": ".video-js { width: 300px; height: 150px; } .vjs-fl"
+      },
+      {
+        "id": "comp_7",
+        "type": "unknown",
+        "tag": "style",
+        "text": ".my-video-dimensions { width: 633px; height: 356px"
+      },
+      {
+        "id": "comp_10",
+        "type": "unknown",
+        "tag": "meta",
+        "text": ""
+      },
+      {
+        "id": "comp_12",
+        "type": "unknown",
+        "tag": "meta",
+        "text": ""
+      }
+    ]
+  }
+}

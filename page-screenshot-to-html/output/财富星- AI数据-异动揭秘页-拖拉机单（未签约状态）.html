@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>异动揭秘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 2209px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #e5e5e5;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+        }
+        .nav-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .nav-right {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-right svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 200px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            padding: 0 20px;
+            overflow: hidden;
+        }
+        .hero-title {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 800;
+            margin-top: 8px;
+            letter-spacing: 2px;
+        }
+        .hero-subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .hero-video-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+        .hero-video-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: #ffffff;
+        }
+        .hero-illustration {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 140px;
+            height: 140px;
+        }
+        .hero-chart-icon {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .chart-screen {
+            position: absolute;
+            width: 100px;
+            height: 80px;
+            background: #4c58d9;
+            border-radius: 8px;
+            top: 20px;
+            right: 0;
+            transform: perspective(100px) rotateY(-15deg);
+        }
+        .chart-arrow {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            top: 0;
+            right: 10px;
+        }
+        .chart-arrow::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 40px solid #ff6b6b;
+            transform: rotate(30deg);
+            top: 10px;
+            right: 0;
+        }
+        .chart-coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #ffd700;
+            border-radius: 50%;
+            bottom: 20px;
+            right: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        /* Info Card */
+        .info-card {
+            position: absolute;
+            top: 260px;
+            height: 120px;
+            left: 16px;
+            right: 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            z-index: 10;
+        }
+        .info-card-text {
+            color: #666666;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .info-card-text span {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        /* Feature Tabs */
+        .feature-tabs {
+            position: absolute;
+            top: 380px;
+            height: 50px;
+            left: 0;
+            right: 0;
+            background: #303eb0;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            overflow-x: auto;
+        }
+        .feature-tab {
+            flex: 1;
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            padding: 12px 4px;
+            white-space: nowrap;
+        }
+        .feature-tab.active {
+            color: #ffffff;
+            font-weight: 600;
+            position: relative;
+        }
+        .feature-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        /* Section Title */
+        .section-title-bar {
+            position: absolute;
+            top: 430px;
+            height: 50px;
+            left: 0;
+            right: 0;
+            background: #2e3cac;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .section-title {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .title-line {
+            width: 40px;
+            height: 1px;
+            background: rgba(255,255,255,0.4);
+        }
+        /* Description Section */
+        .desc-section {
+            position: absolute;
+            top: 480px;
+            height: 200px;
+            left: 0;
+            right: 0;
+            background: #4c58d9;
+            padding: 20px 16px;
+        }
+        .desc-text {
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .desc-text .highlight {
+            color: #ffd700;
+            font-weight: 600;
+        }
+        .case-label {
+            color: #ffd700;
+            font-weight: 600;
+            margin-top: 12px;
+            display: inline-block;
+        }
+        /* Stock Card */
+        .stock-card {
+            position: absolute;
+            top: 640px;
+            height: 320px;
+            left: 12px;
+            right: 12px;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        .stock-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .stock-card-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stock-card-back svg {
+            width: 20px;
+            height: 20px;
+            fill: #666666;
+        }
+        .stock-card-time {
+            color: #999999;
+            font-size: 13px;
+        }
+        .stock-card-search {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stock-card-search svg {
+            width: 20px;
+            height: 20px;
+            fill: #666666;
+        }
+        .stock-price-bar {
+            background: #ff4757;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stock-price-main {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .stock-price-big {
+            color: #ffffff;
+            font-size: 36px;
+            font-weight: 700;
+        }
+        .stock-price-change {
+            color: #ffffff;
+            font-size: 14px;
+        }
+        .stock-price-change .up {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .stock-price-right {
+            text-align: right;
+        }
+        .stock-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .stock-lead {
+            color: #ffffff;
+            font-size: 12px;
+        }
+        .stock-lead .highlight {
+            font-weight: 600;
+        }
+        .stock-info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 12px 16px;
+            gap: 8px;
+        }
+        .stock-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .stock-info-label {
+            color: #999999;
+            font-size: 12px;
+        }
+        .stock-info-value {
+            color: #333333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .stock-info-value.red {
+            color: #ff4757;
+        }
+        .stock-mini-chart {
+            height: 80px;
+            position: relative;
+            margin: 0 16px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 8px;
+        }
+        .mini-chart-time {
+            display: flex;
+            justify-content: space-between;
+            color: #999999;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+        .mini-chart-area {
+            height: 50px;
+            position: relative;
+            background: #fafafa;
+        }
+        .mini-chart-line {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ff4757;
+        }
+        .mini-chart-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to top, rgba(255,71,87,0.1), transparent);
+        }
+        /* Tooltip */
+        .stock-tooltip {
+            position: absolute;
+            top: 160px;
+            left: 40px;
+            right: 40px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            z-index: 20;
+        }
+        .tooltip-text {
+            color: #333333;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        /* Chart Note */
+        .chart-note {
+            position: absolute;
+            top: 960px;
+            height: 40px;
+            left: 0;
+            right: 0;
+            background: #f6f6ff;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+        }
+        .chart-note-text {
+            color: #999999;
+            font-size: 12px;
+        }
+        /* What Section */
+        .what-section {
+            position: absolute;
+            top: 1000px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #4c58d9;
+            padding: 0 16px;
+        }
+        .what-title-bar {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .what-title {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .what-content {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
+        }
+        .what-text {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .what-text .term {
+            color: #242fa3;
+            font-weight: 700;
+        }
+        /* How Section */
+        .how-section {
+            position: absolute;
+            top: 1280px;
+            height: 400px;
+            left: 0;
+            right: 0;
+            background: #4c58d9;
+            padding: 0 16px;
+        }
+        .how-title-bar {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .how-title {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .how-content {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
+        }
+        .how-item {
+            margin-bottom: 16px;
+        }
+        .how-item-label {
+            color: #242fa3;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .how-item-text {
+            color: #666666;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        /* Risk Section */
+        .risk-section {
+            position: absolute;
+            top: 1680px;
+            height: 420px;
+            left: 0;
+            right: 0;
+            background: #4c58d9;
+            padding: 20px 16px;
+        }
+        .risk-title {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .risk-text {
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        /* Login Button */
+        .login-btn {
+            position: absolute;
+            top: 2100px;
+            height: 48px;
+            left: 20px;
+            right: 20px;
+            background: #f5a623;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <div class="status-icons">
+                <div class="status-icon" style="width: 18px; height: 12px; border-radius: 2px; background: #ffffff;"></div>
+                <div class="status-icon" style="width: 16px; height: 12px; border-radius: 2px; background: #ffffff;"></div>
+                <div class="status-icon" style="width: 24px; height: 12px; border-radius: 3px; border: 1px solid #ffffff; background: transparent; position: relative;">
+                    <div style="position: absolute; left: 2px; top: 2px; bottom: 2px; width: 60%; background: #ffffff;"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </div>
+            <span class="nav-title">异动揭秘</span>
+            <div class="nav-right">
+                <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </div>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">异动揭秘</h1>
+            <p class="hero-subtitle">洞察主力成本，追踪吸筹轨迹</p>
+            <div class="hero-video-btn">
+                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>视频教程</span>
+                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
+            <div class="hero-illustration">
+                <div class="hero-chart-icon">
+                    <div class="chart-screen"></div>
+                    <div class="chart-arrow"></div>
+                    <div class="chart-coin"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Info Card -->
+        <div class="info-card">
+            <p class="info-card-text">
+                本策略由<span>2</span>个Level 2指标和<span>4</span>个Level 2异动监控池构成，其特色功能有主力跟踪、资金博弈、拖拉机单、主力撤单、顶级挂单和涨停承压。
+            </p>
+        </div>
+        <!-- Feature Tabs -->
+        <div class="feature-tabs">
+            <div class="feature-tab">主力跟踪</div>
+            <div class="feature-tab">资金博弈</div>
+            <div class="feature-tab active">拖拉机单</div>
+            <div class="feature-tab">顶级挂单</div>
+            <div class="feature-tab">主力撤单</div>
+        </div>
+        <!-- Section Title -->
+        <div class="section-title-bar">
+            <div class="section-title">
+                <span class="title-line"></span>
+                <span>拖拉机单</span>
+                <span class="title-line"></span>
+            </div>
+        </div>
+        <!-- Description Section -->
+        <div class="desc-section">
+            <p class="desc-text">
+                拖拉机单通过对盘口买卖单的观察，抓住主力成交和撤单情况，判断是主力介入还是主力出货，提示投资者择机介入或者保持警惕。
+            </p>
+            <span class="case-label">案例：</span>
+            <p class="desc-text" style="margin-top: 4px;">
+                7月13日，林***(0*****)于早盘09:36，出现拖拉机单买信号，主力介入明显，说明拖拉机单提示主力在择机吸筹，有主力资金介入的迹象。
+            </p>
+        </div>
+        <!-- Stock Card -->
+        <div class="stock-card">
+            <div class="stock-card-header">
+                <div class="stock-card-back">
+                    <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </div>
+                <span class="stock-card-time">07-13 15:00:03</span>
+                <div class="stock-card-search">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                </div>
+            </div>
+            <div class="stock-price-bar">
+                <div class="stock-price-main">
+                    <span class="stock-price-big">5.34</span>
+                    <div class="stock-price-change">
+                        <div class="up">0.49</div>
+                        <div>10.10%</div>
+                    </div>
+                </div>
+                <div class="stock-price-right">
+                    <div class="stock-tag">
+                        <span>联</span>
+                        <span>专用设备</span>
+                        <svg viewBox="0 0 24 24" style="width: 12px; height: 12px; fill: #ffffff;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                    </div>
+                    <div class="stock-lead">
+                        领涨 凯格精机-注 <span class="highlight">11.84%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stock-info-grid">
+                <div class="stock-info-item">
+                    <span class="stock-info-label">今开</span>
+                    <span class="stock-info-value red">5.13</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">最高</span>
+                    <span class="stock-info-value red">5.34</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">成交量</span>
+                    <span class="stock-info-value">154.34万</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">换手</span>
+                    <span class="stock-info-value">27.04%</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">最低</span>
+                    <span class="stock-info-value red">5.02</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">成交额</span>
+                    <span class="stock-info-value">8.08亿</span>
+                </div>
+            </div>
+            <div class="stock-mini-chart">
+                <div class="mini-chart-time">
+                    <span>09:36 价 5.13 均 5.13 幅 5.77% 量 5.73万</span>
+                </div>
+                <div class="mini-chart-area">
+                    <div class="mini-chart-line"></div>
+                    <div class="mini-chart-fill"></div>
+                    <div style="position: absolute; left: 0; bottom: 20px; color: #ff4757; font-size: 11px; font-weight: 600;">5.34</div>
+                    <div style="position: absolute; right: 0; top: 4px; color: #ff4757; font-size: 11px;">10.10%</div>
+                </div>
+            </div>
+            <div class="stock-tooltip">
+                <p class="tooltip-text">
+                    林***（0*****）,2023年7月13日早盘开盘时并没有涨停，9点36分，出现大笔挂单总计2080手，挂单总额107万，随后股价一路上涨，直至涨停。
+                </p>
+            </div>
+        </div>
+        <!-- Chart Note -->
+        <div class="chart-note">
+            <span class="chart-note-text">注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。</span>
+        </div>
+        <!-- What Section -->
+        <div class="what-section">
+            <div class="what-title-bar">
+                <div class="what-title">
+                    <span class="title-line"></span>
+                    <span>什么是拖拉机单</span>
+                    <span class="title-line"></span>
+                </div>
+            </div>
+            <div class="what-content">
+                <p class="what-text">
+                    <span class="term">拖拉机单</span>是指多笔数目相同的委买或委卖，主力可以将大单拆成数笔同样的小单来隐藏踪迹。通过对盘口买卖单的观察，可以帮助投资者抓住主力成交和撤单情况。
+                </p>
+            </div>
+        </div>
+        <!-- How Section -->
+        <div class="how-section">
+            <div class="how-title-bar">
+                <div class="how-title">
+                    <span class="title-line"></span>
+                    <span>如何分析拖拉机单</span>
+                    <span class="title-line"></span>
+                </div>
+            </div>
+            <div class="how-content">
+                <div class="how-item">
+                    <div class="how-item-label">主力出货：</div>
+                    <p class="how-item-text">
+                        对于多笔相同数目的买单频繁出现的个股，可以留意一下主力成交和撤单的实际情况，如果主力撤单的情况也很频繁，同时内盘成交很活跃，那很有可能是主力出货，投资者应该警惕；相反就很有可能是主力准备拉升股价，投资者可以择机介入；
+                    </p>
+                </div>
+                <div class="how-item">
+                    <div class="how-item-label">主力吸筹：</div>
+                    <p class="how-item-text">
+                        对于多笔相同数目的卖单频繁出现的个股，可以留意一下主力成交和撤单的实际情况，如果主力撤单的情况也很频繁，同时外盘成交很活跃，那很有可能是主力吸筹，投资者可以择机介入；相反就很有可能是主力准备砸盘出货，投资者应该警惕。
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- Risk Section -->
+        <div class="risk-section">
+            <div class="risk-title">风险提示：</div>
+            <p class="risk-text">
+                本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。
+            </p>
+            <p class="risk-text">
+                固有风险：阶段行情不同会影响指标及异动信号的释放和入选，长期缺乏信号会导致算法模型缺少训练数据，有一定概率出现预测不精准的情况。
+            </p>
+            <p class="risk-text">
+                使用风险：L2数据信息量大、更新频率高，对使用者有一定知识储备和经验要求。历史入选不代表后期股票表现，投资者应该独立自主承担决策风险。
+            </p>
+            <p class="risk-text">
+                数据信息来源：沪深交易所
+            </p>
+        </div>
+        <!-- Login Button -->
+        <div class="login-btn">登录查看</div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>陆港淘金</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: hidden;
+            background: #2a2f6f;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #393e73;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 14px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 7px; }
+        .signal-bar:nth-child(3) { height: 10px; }
+        .signal-bar:nth-child(4) { height: 14px; }
+        .wifi-icon {
+            width: 16px;
+            height: 12px;
+            position: relative;
+        }
+        .wifi-icon::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            background: #ffffff;
+            border-radius: 50%;
+        }
+        .wifi-icon::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 10px;
+            border: 2px solid #ffffff;
+            border-radius: 16px 16px 0 0;
+            border-bottom: none;
+        }
+        .battery-icon {
+            width: 27px;
+            height: 13px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1px;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 7px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 72%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #393e73;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+        }
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 500;
+        }
+        .share-btn {
+            color: #ffffff;
+            font-size: 15px;
+            padding: 4px 8px;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 209px;
+            left: 0;
+            right: 0;
+            background: #292f6e;
+            overflow: hidden;
+        }
+        .hero-content {
+            position: relative;
+            padding: 20px 24px;
+            z-index: 2;
+        }
+        .hero-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #c5b8a8;
+            letter-spacing: 4px;
+            line-height: 1.2;
+        }
+        .hero-subtitle {
+            font-size: 16px;
+            color: #9a8f7e;
+            margin-top: 8px;
+            letter-spacing: 6px;
+        }
+        .hero-illustration {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            height: 140px;
+        }
+        .monitor-base {
+            position: absolute;
+            bottom: 0;
+            right: 30px;
+            width: 80px;
+            height: 20px;
+            background: #4a5a8a;
+            border-radius: 10px;
+        }
+        .monitor-stand {
+            position: absolute;
+            bottom: 15px;
+            right: 55px;
+            width: 30px;
+            height: 25px;
+            background: #5a6a9a;
+            border-radius: 4px;
+        }
+        .monitor-screen {
+            position: absolute;
+            bottom: 35px;
+            right: 10px;
+            width: 120px;
+            height: 85px;
+            background: #6a7aaa;
+            border-radius: 8px;
+            border: 3px solid #8a9aba;
+            overflow: hidden;
+        }
+        .screen-content {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            height: 40px;
+        }
+        .chart-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+        }
+        .chart-line::before {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #ff6b6b;
+            transform: skewY(-5deg);
+        }
+        .floating-coin {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #d4a574;
+            border-radius: 50%;
+            border: 2px solid #e8c9a0;
+        }
+        .coin-1 {
+            top: 20px;
+            right: 40px;
+            animation: none;
+        }
+        .coin-2 {
+            bottom: 60px;
+            right: 5px;
+            width: 18px;
+            height: 18px;
+        }
+        .coin-3 {
+            top: 50px;
+            right: 80px;
+            width: 14px;
+            height: 14px;
+            background: #c49464;
+        }
+        .clipboard {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 35px;
+            height: 45px;
+            background: #c44444;
+            border-radius: 4px;
+            border: 2px solid #e06666;
+        }
+        .clipboard::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 10px;
+            background: #e8e8e8;
+            border-radius: 3px;
+        }
+        /* Info Card */
+        .info-card {
+            position: absolute;
+            top: 300px;
+            height: 120px;
+            left: 16px;
+            right: 16px;
+            background: #7a7a7e;
+            border-radius: 12px;
+            padding: 16px 20px;
+            z-index: 10;
+        }
+        .info-card::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid #7a7a7e;
+        }
+        .info-label {
+            font-size: 15px;
+            color: #4a4a4e;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .info-text {
+            font-size: 14px;
+            color: #5a5a5e;
+            line-height: 1.6;
+        }
+        .magnifier-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border: 3px solid #8a8a8e;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        .magnifier-icon::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: -8px;
+            width: 20px;
+            height: 4px;
+            background: #8a8a8e;
+            border-radius: 2px;
+            transform: rotate(45deg);
+        }
+        /* Strategy Section */
+        .strategy-section {
+            position: absolute;
+            top: 440px;
+            height: 404px;
+            left: 0;
+            right: 0;
+            background: #191f5a;
+        }
+        .strategy-header {
+            position: absolute;
+            top: 0;
+            height: 60px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .strategy-line {
+            width: 60px;
+            height: 1px;
+            background: #5a6090;
+            position: relative;
+        }
+        .strategy-line::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: -2px;
+            width: 6px;
+            height: 6px;
+            border-right: 1px solid #5a6090;
+            border-bottom: 1px solid #5a6090;
+            transform: rotate(-45deg);
+        }
+        .strategy-line.right::after {
+            left: -6px;
+            right: auto;
+            transform: rotate(135deg);
+        }
+        .strategy-title {
+            font-size: 20px;
+            color: #c5b8a8;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+        /* Strategy Content Card */
+        .strategy-card {
+            position: absolute;
+            top: 60px;
+            height: 344px;
+            left: 16px;
+            right: 16px;
+            background: #7e7e7e;
+            border-radius: 12px;
+            padding: 24px 16px;
+        }
+        .strategy-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .strategy-left {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .strategy-right {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding-left: 20px;
+        }
+        .diamond-icon {
+            width: 16px;
+            height: 16px;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+        .diamond-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #5a6090;
+        }
+        .dot-icon {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #8a8a8e;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        .strategy-text {
+            font-size: 15px;
+            color: #4a4a4e;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        .vs-circle {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: #8a8a8e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+        }
+        .vs-text {
+            font-size: 20px;
+            color: #ffffff;
+            font-weight: 700;
+            font-style: italic;
+        }
+        .row-with-vs {
+            position: relative;
+        }
+        .row-with-vs .strategy-left {
+            padding-right: 40px;
+        }
+        .row-with-vs .strategy-right {
+            padding-left: 40px;
+        }
+        /* Share Sheet */
+        .share-sheet {
+            position: absolute;
+            bottom: 0;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border-radius: 16px 16px 0 0;
+            z-index: 200;
+        }
+        .share-title {
+            text-align: center;
+            font-size: 17px;
+            color: #333333;
+            font-weight: 500;
+            padding: 20px 0;
+        }
+        .share-options {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px 40px;
+        }
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .share-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .wechat-icon {
+            background: #07c160;
+        }
+        .wechat-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: #ffffff;
+        }
+        .moments-icon {
+            background: #07c160;
+        }
+        .moments-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: #ffffff;
+        }
+        .share-label {
+            font-size: 14px;
+            color: #333333;
+        }
+        .cancel-btn {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid #e5e5e5;
+            font-size: 17px;
+            color: #333333;
+        }
+        /* Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 150;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">13:53</span>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <div class="wifi-icon"></div>
+                <div class="battery-icon">
+                    <div class="battery-level"></div>
+                    <span class="battery-text">72</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <div class="nav-title"></div>
+            <div class="share-btn">分享</div>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-title">陆港淘金</div>
+                <div class="hero-subtitle">一江之隔 价差几何</div>
+            </div>
+            <div class="hero-illustration">
+                <div class="monitor-base"></div>
+                <div class="monitor-stand"></div>
+                <div class="monitor-screen">
+                    <div class="screen-content">
+                        <div class="chart-line"></div>
+                    </div>
+                </div>
+                <div class="clipboard"></div>
+                <div class="floating-coin coin-1"></div>
+                <div class="floating-coin coin-2"></div>
+                <div class="floating-coin coin-3"></div>
+            </div>
+        </div>
+        <!-- Info Card -->
+        <div class="info-card">
+            <div class="info-label">适用人群：</div>
+            <div class="info-text">想要挖掘A-H跨市场投资契机的投资者。</div>
+            <div class="magnifier-icon"></div>
+        </div>
+        <!-- Strategy Section -->
+        <div class="strategy-section">
+            <div class="strategy-header">
+                <div class="strategy-line"></div>
+                <div class="strategy-title">策略亮点</div>
+                <div class="strategy-line right"></div>
+            </div>
+            <div class="strategy-card">
+                <div class="strategy-row">
+                    <div class="strategy-left">
+                        <div class="diamond-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2L4 8l8 14 8-14-8-6z"/>
+                            </svg>
+                        </div>
+                        <div class="strategy-text">A股、港股价值<br />联动捕捉</div>
+                    </div>
+                    <div class="strategy-right">
+                        <div class="dot-icon"></div>
+                        <div class="strategy-text">港股交易参与门<br />槛高</div>
+                    </div>
+                </div>
+                <div class="strategy-row row-with-vs">
+                    <div class="strategy-left">
+                        <div class="diamond-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2L4 8l8 14 8-14-8-6z"/>
+                            </svg>
+                        </div>
+                        <div class="strategy-text">每周一盘前精<br />选10支A股标的</div>
+                    </div>
+                    <div class="vs-circle">
+                        <span class="vs-text">VS</span>
+                    </div>
+                    <div class="strategy-right">
+                        <div class="dot-icon"></div>
+                        <div class="strategy-text">标的繁多，选择<br />困难</div>
+                    </div>
+                </div>
+                <div class="strategy-row">
+                    <div class="strategy-left">
+                        <div class="diamond-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2L4 8l8 14 8-14-8-6z"/>
+                            </svg>
+                        </div>
+                        <div class="strategy-text">多个量化模型<br />叠加筛选</div>
+                    </div>
+                    <div class="strategy-right">
+                        <div class="dot-icon"></div>
+                        <div class="strategy-text">单一模型失效风<br />险高</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Overlay -->
+        <div class="overlay"></div>
+        <!-- Share Sheet -->
+        <div class="share-sheet">
+            <div class="share-title">分享至</div>
+            <div class="share-options">
+                <div class="share-option">
+                    <div class="share-icon wechat-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M8.5,13.5A1.5,1.5 0 1,0 7,15A1.5,1.5 0 0,0 8.5,13.5M14.5,13.5A1.5,1.5 0 1,0 13,15A1.5,1.5 0 0,0 14.5,13.5M19,19.5A1.5,1.5 0 1,0 17.5,21A1.5,1.5 0 0,0 19,19.5M24,16.5A1.5,1.5 0 1,0 22.5,18A1.5,1.5 0 0,0 24,16.5M17.5,2C13.36,2 10,4.69 10,8C10,9.89 11.08,11.56 12.78,12.66L12,15L14.5,13.5C15.18,13.5 15.83,13.38 16.44,13.16C16.1,13.92 15.91,14.76 15.91,15.64C15.91,19.34 19.5,22.32 24,22.32L24,20.32C20.69,20.32 18,18.24 18,15.64C18,13.04 20.69,10.96 24,10.96L24,8.96C23.66,8.96 23.33,8.98 23,9.02C23,8.68 23,8.34 23,8C23,4.69 20.54,2 17.5,2Z"/>
+                        </svg>
+                    </div>
+                    <span class="share-label">微信好友</span>
+                </div>
+                <div class="share-option">
+                    <div class="share-icon moments-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                        </svg>
+                    </div>
+                    <span class="share-label">微信朋友圈</span>
+                </div>
+            </div>
+            <div class="cancel-btn">取消</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>主力跟踪</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #125330;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .signal-icon {
+            width: 18px;
+            height: 12px;
+            display: flex;
+            align-items: flex-end;
+            gap: 1px;
+        }
+        .signal-bar {
+            background: #ffffff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { width: 3px; height: 4px; }
+        .signal-bar:nth-child(2) { width: 3px; height: 6px; }
+        .signal-bar:nth-child(3) { width: 3px; height: 8px; }
+        .signal-bar:nth-child(4) { width: 3px; height: 10px; }
+        .wifi-icon {
+            width: 16px;
+            height: 12px;
+        }
+        .battery-icon {
+            width: 25px;
+            height: 12px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            border-bottom: 0.5px solid #e8e8e8;
+        }
+        .nav-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 17px;
+            font-weight: 600;
+            color: #333333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tag {
+            background: #ff9500;
+            color: #ffffff;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .nav-close {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Content Section 1 - Subtitle */
+        .content-subtitle {
+            position: absolute;
+            top: 91px;
+            height: 60px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .subtitle-text {
+            font-size: 16px;
+            color: #999999;
+        }
+        /* Content Section 2 - Description */
+        .content-desc {
+            position: absolute;
+            top: 151px;
+            height: 120px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 0 16px;
+        }
+        .desc-text {
+            font-size: 15px;
+            color: #333333;
+            line-height: 1.8;
+        }
+        /* Content Section 3 - Case Title */
+        .case-title {
+            position: absolute;
+            top: 271px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+        }
+        .case-title-text {
+            font-size: 17px;
+            font-weight: 700;
+            color: #333333;
+        }
+        /* Content Section 4 - Case Description */
+        .case-desc {
+            position: absolute;
+            top: 315px;
+            height: 140px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 0 16px;
+        }
+        .case-desc-text {
+            font-size: 15px;
+            color: #666666;
+            line-height: 1.7;
+        }
+        /* Chart Section */
+        .chart-section {
+            position: absolute;
+            top: 455px;
+            height: 400px;
+            left: 0;
+            right: 0;
+            background: #fafafc;
+        }
+        .chart-header {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            font-size: 12px;
+            color: #999999;
+        }
+        .chart-header .stock-name {
+            color: #666666;
+        }
+        .chart-header .divider {
+            color: #cccccc;
+        }
+        .chart-header .type {
+            color: #999999;
+        }
+        .ma-info {
+            height: 28px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+            font-size: 12px;
+            background: #ffffff;
+        }
+        .ma-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #666666;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .ma-label {
+            color: #666666;
+        }
+        .ma-5 { color: #ff9500; }
+        .ma-10 { color: #434cbf; }
+        .ma-30 { color: #00bfff; }
+        .chart-main {
+            position: relative;
+            height: 200px;
+            background: #ffffff;
+        }
+        .price-labels {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            font-size: 11px;
+            color: #999999;
+            display: flex;
+            flex-direction: column;
+            gap: 60px;
+        }
+        .price-label-right {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            font-size: 11px;
+            color: #999999;
+        }
+        .chart-candles {
+            position: absolute;
+            left: 50px;
+            right: 50px;
+            top: 20px;
+            bottom: 20px;
+        }
+        .candle {
+            position: absolute;
+            width: 4px;
+        }
+        .candle-green {
+            background: #22c55e;
+        }
+        .candle-red {
+            background: #ff4757;
+        }
+        /* Chart annotations */
+        .annotation-buy {
+            position: absolute;
+            left: 120px;
+            top: 140px;
+            background: #ffffff;
+            border: 1px solid #ff4757;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #ff4757;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .annotation-buy::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #ff4757;
+        }
+        .annotation-sell {
+            position: absolute;
+            right: 40px;
+            top: 100px;
+            background: #ffffff;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+            color: #333333;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .annotation-sell::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #333333;
+        }
+        .highlight-zone {
+            position: absolute;
+            width: 40px;
+            background: rgba(255, 200, 100, 0.3);
+        }
+        .zone-left {
+            left: 100px;
+            top: 40px;
+            bottom: 0;
+        }
+        .zone-right {
+            right: 60px;
+            top: 20px;
+            bottom: 0;
+        }
+        .label-zone {
+            position: absolute;
+            background: #ffffff;
+            border: 1px solid #434cbf;
+            border-radius: 12px;
+            padding: 4px 12px;
+            font-size: 12px;
+            color: #434cbf;
+        }
+        .zone-accumulate {
+            left: 140px;
+            bottom: 30px;
+        }
+        .zone-distribute {
+            right: 20px;
+            bottom: 50px;
+        }
+        /* Sub-chart */
+        .sub-chart {
+            position: relative;
+            height: 100px;
+            background: #ffffff;
+            border-top: 0.5px solid #e8e8e8;
+        }
+        .sub-chart-header {
+            height: 24px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+            font-size: 12px;
+        }
+        .sub-chart-title {
+            color: #666666;
+            font-weight: 500;
+        }
+        .sub-chart-value {
+            color: #999999;
+        }
+        .sub-chart-value span {
+            color: #434cbf;
+        }
+        .sub-chart-body {
+            position: relative;
+            height: 76px;
+        }
+        .sub-labels {
+            position: absolute;
+            left: 8px;
+            top: 4px;
+            font-size: 11px;
+            color: #999999;
+        }
+        .dollar-icon {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #ff9500;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        /* Feature Buttons */
+        .feature-buttons {
+            position: absolute;
+            top: 855px;
+            height: 80px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 0.5px solid #e8e8e8;
+        }
+        .feature-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .feature-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feature-icon-1 { background: #e8f5e9; }
+        .feature-icon-2 { background: #fff3e0; }
+        .feature-icon-3 { background: #e3f2fd; }
+        .feature-icon-4 { background: #fce4ec; }
+        .feature-text {
+            font-size: 12px;
+            color: #666666;
+        }
+        /* Bottom Info */
+        .bottom-info {
+            position: absolute;
+            top: 935px;
+            height: 120px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 16px;
+        }
+        .notice-text {
+            font-size: 13px;
+            color: #999999;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        .support-text {
+            font-size: 13px;
+            color: #666666;
+            line-height: 1.8;
+        }
+        /* Bottom Buttons */
+        .bottom-buttons {
+            position: absolute;
+            top: 1055px;
+            height: 80px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 0 16px;
+            border-top: 0.5px solid #e8e8e8;
+        }
+        .btn-detail {
+            flex: 1;
+            height: 44px;
+            border: 1px solid #434cbf;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            color: #434cbf;
+            background: #ffffff;
+        }
+        .btn-sign {
+            flex: 1;
+            height: 44px;
+            background: #434cbf;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            color: #ffffff;
+        }
+        /* SVG Icons */
+        .icon-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #333333;
+        }
+        .icon-close svg {
+            width: 20px;
+            height: 20px;
+            stroke: #999999;
+            stroke-width: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span>14:24</span>
+            </div>
+            <div class="status-right">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="wifi-icon" viewBox="0 0 24 24" fill="#ffffff">
+                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <div class="battery-icon">
+                    <div class="battery-level"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back icon-back">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </div>
+            <div class="nav-title">
+                <span>主力跟踪</span>
+                <span class="tag">异动揭秘</span>
+            </div>
+            <div class="nav-close icon-close">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Content Subtitle -->
+        <div class="content-subtitle">
+            <span class="subtitle-text">洞察主力成本，追踪吸筹轨迹</span>
+        </div>
+        <!-- Content Description -->
+        <div class="content-desc">
+            <p class="desc-text">主力跟踪按照股价的形态分析，计算主力运行轨迹，并且依据资金流入流出判断主力操盘阶段：吸筹、建仓、拉高、出货。</p>
+        </div>
+        <!-- Case Title -->
+        <div class="case-title">
+            <span class="case-title-text">实战案例</span>
+        </div>
+        <!-- Case Description -->
+        <div class="case-desc">
+            <p class="case-desc-text">林***（0*****），2023年5月16日至2023年6月19日期间，股票处于上涨趋势，主力跟踪指标根据股价计算主力运动轨迹，捕捉到主力吸筹区和主力出货区，提示投资者买卖机会。</p>
+        </div>
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <span class="stock-name">林***（0*****）</span>
+                <span class="divider">|</span>
+                <span class="type">日线</span>
+                <span class="divider">|</span>
+                <span class="type">前复权</span>
+            </div>
+            <div class="ma-info">
+                <div class="ma-dropdown">
+                    <span>前复权</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="#666666">
+                        <path d="M7 10l5 5 5-5z"/>
+                    </svg>
+                </div>
+                <span class="ma-label">MA <span class="ma-5">5=3.26</span></span>
+                <span class="ma-10">10=3.19</span>
+                <span class="ma-30">30=3.05</span>
+            </div>
+            <div class="chart-main">
+                <div class="price-labels">
+                    <span>3.96</span>
+                    <span>3.19</span>
+                    <span>2.34</span>
+                </div>
+                <div class="price-label-right">
+                    <span>3.82</span>
+                </div>
+                <div class="highlight-zone zone-left"></div>
+                <div class="highlight-zone zone-right"></div>
+                <div class="annotation-buy">
+                    <div>释放买入信号，</div>
+                    <div style="color: #333333;">可酌情买入进场</div>
+                </div>
+                <div class="annotation-sell">
+                    <div style="color: #ff4757;">释放逃跑信号，</div>
+                    <div>"$" 标注准备出场</div>
+                </div>
+                <div class="label-zone zone-accumulate">底部吸筹区</div>
+                <div class="label-zone zone-distribute">主力出货区</div>
+                <!-- Price line -->
+                <div style="position: absolute; left: 160px; top: 130px; font-size: 11px; color: #333333;">
+                    <span style="border-bottom: 1px solid #333333;">2.48</span>
+                </div>
+                <!-- Date labels -->
+                <div style="position: absolute; left: 8px; bottom: 4px; font-size: 11px; color: #999999;">2023-04-20</div>
+                <div style="position: absolute; right: 8px; bottom: 4px; font-size: 11px; color: #999999;">06-26</div>
+            </div>
+            <!-- Sub Chart -->
+            <div class="sub-chart">
+                <div class="sub-chart-header">
+                    <span class="sub-chart-title">主力跟踪</span>
+                    <span class="sub-chart-value">顶部·0.00 <span>抄底·0.00</span></span>
+                    <span style="margin-left: auto; color: #ff4757; font-size: 11px;">买</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="#999999" style="margin-left: 4px;">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                    </svg>
+                </div>
+                <div class="sub-chart-body">
+                    <div class="sub-labels">
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <div class="dollar-icon" style="position: static; width: 20px; height: 20px; font-size: 12px;">$</div>
+                            <span>80.00</span>
+                            <div class="dollar-icon" style="position: static; width: 20px; height: 20px; font-size: 12px;">$</div>
+                        </div>
+                        <div style="margin-top: 20px;">40.00</div>
+                    </div>
+                    <!-- Arrow icon -->
+                    <div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#434cbf" stroke-width="2">
+                            <path d="M7 17l5-5 5 5M7 12l5-5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Feature Buttons -->
+        <div class="feature-buttons">
+            <div class="feature-btn">
+                <div class="feature-icon feature-icon-1">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#22c55e">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <span class="feature-text">主力密码</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-icon feature-icon-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff9500">
+                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                </div>
+                <span class="feature-text">神奇电波</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-icon feature-icon-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#434cbf">
+                        <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                    </svg>
+                </div>
+                <span class="feature-text">主力跟踪</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-icon feature-icon-4">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#e91e63">
+                        <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
+                    </svg>
+                </div>
+                <span class="feature-text">资金博弈</span>
+            </div>
+        </div>
+        <!-- Bottom Info -->
+        <div class="bottom-info">
+            <p class="notice-text">注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。</p>
+            <p class="support-text">支持品种：沪深A股（不适用基金、债券、指数等类别）<br />查看路径：个股详情页K线（副图指标）</p>
+        </div>
+        <!-- Bottom Buttons -->
+        <div class="bottom-buttons">
+            <div class="btn-detail">查看详情</div>
+            <div class="btn-sign">立即签约</div>
+        </div>
+    </div>
+</body>
+</html>

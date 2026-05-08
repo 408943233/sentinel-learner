@@ -1,0 +1,492 @@
+{
+  "type": "incremental",
+  "timestamp": 1778202293216,
+  "url": "https://www.chinastock.com.cn/newsite/index.html",
+  "title": "中国银河证券官方网站",
+  "rrwebEvent": {
+    "type": 3,
+    "data": {
+      "source": 0,
+      "adds": [],
+      "removes": [],
+      "texts": [],
+      "attributes": [
+        {
+          "id": 514,
+          "attributes": {
+            "class": "swiper-slide banner-4 swiper-slide-prev"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "class": "swiper-slide banner-2 swiper-slide-next"
+          }
+        },
+        {
+          "id": 541,
+          "attributes": {
+            "class": "swiper-slide banner-3"
+          }
+        },
+        {
+          "id": 513,
+          "attributes": {
+            "style": "transition-duration: 1000ms;"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "style": "width: 1883px; opacity: 0; transform: translate3d(0px, 0px, 0px); transition-duration: 1000ms;"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "style": "width: 1883px; opacity: 1; transform: translate3d(-1883px, 0px, 0px); transition-duration: 1000ms;"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "style": "width: 1883px; opacity: 0; transform: translate3d(-3766px, 0px, 0px); transition-duration: 1000ms;"
+          }
+        },
+        {
+          "id": 541,
+          "attributes": {
+            "style": "width: 1883px; opacity: 0; transform: translate3d(-5649px, 0px, 0px); transition-duration: 1000ms;"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "style": "width: 1883px; opacity: 0; transform: translate3d(0px, 0px, 0px); transition-duration: 1000ms;"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "style": "width: 1883px; opacity: 1; transform: translate3d(-1883px, 0px, 0px); transition-duration: 1000ms;"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "class": "swiper-pagination-bullet swiper-pagination-bullet-active"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "class": "swiper-pagination-bullet swiper-pagination-bullet-active"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "class": "swiper-pagination-bullet swiper-pagination-bullet-active"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "class": "swiper-pagination-bullet swiper-pagination-bullet-active"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "class": "swiper-pagination-bullet swiper-pagination-bullet-active"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "class": "swiper-pagination-bullet swiper-pagination-bullet-active"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "class": "swiper-pagination-bullet"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "class": "swiper-pagination-bullet swiper-pagination-bullet-active"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "tabindex": "0"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "role": "button"
+          }
+        },
+        {
+          "id": 556,
+          "attributes": {
+            "aria-label": "Go to slide 1"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "tabindex": "0"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "role": "button"
+          }
+        },
+        {
+          "id": 557,
+          "attributes": {
+            "aria-label": "Go to slide 2"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "tabindex": "0"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "role": "button"
+          }
+        },
+        {
+          "id": 558,
+          "attributes": {
+            "aria-label": "Go to slide 3"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "tabindex": "0"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "role": "button"
+          }
+        },
+        {
+          "id": 559,
+          "attributes": {
+            "aria-label": "Go to slide 4"
+          }
+        },
+        {
+          "id": 555,
+          "attributes": {
+            "class": "swiper-pagination pagination1 swiper-pagination-clickable swiper-pagination-bullets"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "class": "swiper-slide banner-4 swiper-slide-prev"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "class": "swiper-slide banner-2 swiper-slide-next"
+          }
+        },
+        {
+          "id": 541,
+          "attributes": {
+            "class": "swiper-slide banner-3"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "class": "swiper-slide banner-4 swiper-slide-prev"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "class": "swiper-slide banner-2 swiper-slide-next"
+          }
+        },
+        {
+          "id": 541,
+          "attributes": {
+            "class": "swiper-slide banner-3"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "class": "swiper-slide banner-4 swiper-slide-prev"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "class": "swiper-slide banner-2 swiper-slide-next"
+          }
+        },
+        {
+          "id": 541,
+          "attributes": {
+            "class": "swiper-slide banner-3"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "class": "swiper-slide banner-4 swiper-slide-prev"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "class": "swiper-slide banner-2 swiper-slide-next"
+          }
+        },
+        {
+          "id": 541,
+          "attributes": {
+            "class": "swiper-slide banner-3"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "class": "swiper-slide banner-4 swiper-slide-prev"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "class": "swiper-slide banner-2 swiper-slide-next"
+          }
+        },
+        {
+          "id": 541,
+          "attributes": {
+            "class": "swiper-slide banner-3"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "class": "swiper-slide banner-4 swiper-slide-prev"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "class": "swiper-slide banner-2 swiper-slide-next"
+          }
+        },
+        {
+          "id": 541,
+          "attributes": {
+            "class": "swiper-slide banner-3"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 527,
+          "attributes": {
+            "class": "swiper-slide banner-2 swiper-slide-next"
+          }
+        },
+        {
+          "id": 514,
+          "attributes": {
+            "class": "swiper-slide banner-4 swiper-slide-prev"
+          }
+        },
+        {
+          "id": 517,
+          "attributes": {
+            "class": "swiper-slide banner-1 swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 941,
+          "attributes": {
+            "class": "swiper-slide open-account swiper-slide-active swiper-slide-on"
+          }
+        },
+        {
+          "id": 1533,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active swiper-slide-on"
+          }
+        }
+      ]
+    },
+    "timestamp": 1778202293317
+  }
+}

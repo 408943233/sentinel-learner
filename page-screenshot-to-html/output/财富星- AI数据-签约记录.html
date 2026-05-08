@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>签约记录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #e5e5e5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 844px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #f4f5f6;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 22px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .signal-icon {
+            display: flex;
+            align-items: flex-end;
+            gap: 1.5px;
+            height: 14px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 5px; }
+        .signal-bar:nth-child(2) { height: 8px; }
+        .signal-bar:nth-child(3) { height: 11px; }
+        .signal-bar:nth-child(4) { height: 14px; }
+        .wifi-icon {
+            width: 18px;
+            height: 14px;
+        }
+        .battery-icon {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .battery-body {
+            width: 27px;
+            height: 13px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .battery-body::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            width: 2px;
+            height: 7px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .battery-percent {
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #434dbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .back-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .nav-right {
+            color: #ffffff;
+            font-size: 15px;
+            opacity: 0.9;
+        }
+        /* Content Area */
+        .content-area {
+            position: absolute;
+            top: 91px;
+            height: 753px;
+            left: 0;
+            right: 0;
+            overflow: visible;
+        }
+        /* Card 1 */
+        .card {
+            position: relative;
+            margin: 12px 12px 0;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #090a1a;
+        }
+        .cancel-btn {
+            padding: 6px 20px;
+            border: 1px solid #434dbf;
+            border-radius: 16px;
+            color: #434dbf;
+            font-size: 14px;
+            background: #ffffff;
+        }
+        .strategy-box {
+            background: #fff5eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        .strategy-label {
+            color: #656b7c;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 0.5px solid #f0f0f0;
+        }
+        .info-row:last-of-type {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #656b7c;
+            font-size: 15px;
+        }
+        .info-value {
+            color: #090a1a;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .info-value.link {
+            color: #434dbf;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .info-value.link svg {
+            width: 16px;
+            height: 16px;
+            fill: #434dbf;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 0.5px solid #f0f0f0;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 10px 0;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+        }
+        .action-btn.primary {
+            background: #434dbf;
+            color: #ffffff;
+        }
+        .action-btn.secondary {
+            background: #f4f5f6;
+            color: #434dbf;
+        }
+        /* Bottom spacing */
+        .bottom-spacing {
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">14:54</span>
+            <div class="status-icons">
+                <div class="signal-icon">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="wifi-icon" viewBox="0 0 24 24" fill="#ffffff">
+                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <div class="battery-icon">
+                    <div class="battery-body">
+                        <div class="battery-level"></div>
+                    </div>
+                    <span class="battery-percent">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="nav-title">签约记录</span>
+            <span class="nav-right">历史记录</span>
+        </div>
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Card 1: 财富星-AI数据 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">财富星-AI数据</span>
+                    <button class="cancel-btn">退签</button>
+                </div>
+                <div class="strategy-box">
+                    <span class="strategy-label">包含策略：主力密码、异动揭秘、融资追击、VIP快讯、陆港淘金</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">签约时间</span>
+                    <span class="info-value">2026-04-13 14:54:06</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">收费方式</span>
+                    <span class="info-value">单笔交易固定收费8.800元</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">到期时间</span>
+                    <span class="info-value">长期有效</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">产品协议</span>
+                    <span class="info-value link">
+                        查看
+                        <svg viewBox="0 0 24 24">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </span>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn primary">修改收费方式</button>
+                    <button class="action-btn primary">修改服务方式</button>
+                </div>
+            </div>
+            <!-- Card 2: 财富星-AI选股 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">财富星-AI选股</span>
+                    <button class="cancel-btn">退签</button>
+                </div>
+                <div class="strategy-box">
+                    <span class="strategy-label">包含策略：神奇电波、智能诊股、异动揭秘、尾盘掘金、风口研报、科技解码</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">签约时间</span>
+                    <span class="info-value">2026-04-13 14:48:50</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">收费方式</span>
+                    <span class="info-value">单笔交易固定收费8.800元</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">到期时间</span>
+                    <span class="info-value">长期有效</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">产品协议</span>
+                    <span class="info-value link">
+                        查看
+                        <svg viewBox="0 0 24 24">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </span>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn primary">修改收费方式</button>
+                    <button class="action-btn primary">修改服务方式</button>
+                </div>
+            </div>
+            <div class="bottom-spacing"></div>
+        </div>
+    </div>
+</body>
+</html>

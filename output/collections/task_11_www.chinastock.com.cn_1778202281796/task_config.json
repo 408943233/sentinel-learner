@@ -1,0 +1,13 @@
+{
+  "name": "11",
+  "operatorName": "高一为",
+  "url": "https://www.chinastock.com.cn",
+  "description": "",
+  "options": {
+    "recordVideo": true,
+    "captureDOM": true,
+    "captureAPI": true,
+    "captureState": true,
+    "captureScreenshots": false
+  }
+}

@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>主力密码</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 2770px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #747fe7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-icons svg {
+            width: 18px;
+            height: 18px;
+            fill: #ffffff;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #737ee7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            z-index: 100;
+        }
+        .nav-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .nav-right {
+            width: 24px;
+            height: 24px;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 409px;
+            left: 0;
+            right: 0;
+            background: #5b66e1;
+        }
+        .hero-title {
+            position: absolute;
+            top: 30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #ffffff;
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: 4px;
+        }
+        .hero-subtitle {
+            position: absolute;
+            top: 85px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            font-size: 16px;
+        }
+        .hero-illustration {
+            position: absolute;
+            top: 120px;
+            right: 20px;
+            width: 180px;
+            height: 180px;
+        }
+        .hero-illustration-bg {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            top: 10px;
+            right: 10px;
+        }
+        .hero-illustration-main {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            top: 20px;
+            right: 20px;
+        }
+        .hero-illustration-main::before {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #ffd700;
+            top: 30px;
+            left: 30px;
+            box-shadow: 0 4px 20px rgba(255,215,0,0.4);
+        }
+        .hero-illustration-main::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            top: 10px;
+            right: 10px;
+        }
+        .hero-coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ffd700;
+            bottom: 20px;
+            left: 10px;
+            box-shadow: 0 2px 10px rgba(255,215,0,0.3);
+        }
+        .hero-card {
+            position: absolute;
+            bottom: 25px;
+            left: 15px;
+            right: 15px;
+            height: 120px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .hero-card-label {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .hero-card-label span {
+            color: #333333;
+            font-weight: 600;
+        }
+        .hero-card-desc {
+            color: #999999;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .hero-card-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #f0f4ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-card-icon svg {
+            width: 28px;
+            height: 28px;
+            fill: #5b66e1;
+        }
+        /* Star Stocks Section */
+        .star-stocks-section {
+            position: absolute;
+            top: 500px;
+            height: 400px;
+            left: 0;
+            right: 0;
+            background: #e7e9fc;
+            padding: 20px 15px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .section-header-line {
+            width: 40px;
+            height: 1px;
+            background: #5b66e1;
+        }
+        .section-header-text {
+            color: #5b66e1;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0 12px;
+        }
+        .section-header-icon {
+            position: absolute;
+            right: 15px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid #5b66e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #5b66e1;
+            font-size: 14px;
+        }
+        .stocks-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 15px;
+            height: 300px;
+        }
+        .stocks-list {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+        .stock-item {
+            text-align: center;
+            flex: 1;
+        }
+        .stock-rank {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .stock-rank-1 {
+            background: #fff5e6;
+            color: #ff9500;
+        }
+        .stock-rank-2 {
+            background: #f0f0f0;
+            color: #999999;
+        }
+        .stock-rank-3 {
+            background: #fff5e6;
+            color: #ff9500;
+        }
+        .stock-name {
+            color: #333333;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .stock-code {
+            color: #999999;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .stock-gain {
+            color: #ff4757;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .stock-hold {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #ff9500;
+            background: #fff5e6;
+        }
+        .stock-hold-2 {
+            color: #5b66e1;
+            background: #f0f4ff;
+        }
+        .stocks-note {
+            color: #999999;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+        /* Product Intro Section */
+        .product-section {
+            position: absolute;
+            top: 900px;
+            height: 700px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 20px 15px;
+        }
+        .product-card {
+            background: #f7f7ff;
+            border-radius: 12px;
+            padding: 20px 15px;
+            height: 640px;
+        }
+        .product-desc {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        .indicator-item {
+            margin-bottom: 20px;
+        }
+        .indicator-label {
+            color: #333333;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .indicator-bar-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .indicator-bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: 12px;
+        }
+        .indicator-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .indicator-bar-fill-1 {
+            width: 30%;
+            background: #5b66e1;
+        }
+        .indicator-bar-fill-2 {
+            width: 50%;
+            background: #5b66e1;
+        }
+        .indicator-bar-fill-3 {
+            width: 40%;
+            background: #5b66e1;
+        }
+        .indicator-bar-fill-4 {
+            width: 35%;
+            background: #5b66e1;
+        }
+        .indicator-bar-fill-5 {
+            width: 20%;
+            background: #cccccc;
+        }
+        .indicator-tag {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .indicator-tag-1 {
+            color: #ff9500;
+            background: #fff5e6;
+        }
+        .indicator-tag-2 {
+            color: #ff9500;
+            background: #fff5e6;
+        }
+        .indicator-tag-3 {
+            color: #ff9500;
+            background: #fff5e6;
+        }
+        .indicator-tag-4 {
+            color: #ff9500;
+            background: #fff5e6;
+        }
+        .indicator-tag-5 {
+            color: #999999;
+            background: #f0f0f0;
+        }
+        /* Video Section */
+        .video-section {
+            position: absolute;
+            top: 1600px;
+            height: 320px;
+            left: 0;
+            right: 0;
+            background: #e7e9fc;
+            padding: 20px 15px;
+        }
+        .video-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 15px;
+            height: 260px;
+        }
+        .video-placeholder {
+            width: 100%;
+            height: 200px;
+            background: #1a1a2e;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .video-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-title-big {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(91,102,225,0.5);
+        }
+        .video-sub {
+            color: #5b66e1;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .video-play-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .video-play-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+            margin-left: 4px;
+        }
+        .video-brand {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #ffffff;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        .video-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            background: #5b66e1;
+            color: #ffffff;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+        /* Case Section */
+        .case-section {
+            position: absolute;
+            top: 1920px;
+            height: 520px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 20px 15px;
+        }
+        .case-card {
+            background: #f7f7ff;
+            border-radius: 12px;
+            padding: 20px 15px;
+            height: 460px;
+        }
+        .case-text {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .case-chart {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 15px;
+            height: 280px;
+            position: relative;
+        }
+        .case-chart-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        .case-chart-name {
+            color: #333333;
+            font-weight: 600;
+            margin-right: 15px;
+        }
+        .case-chart-tag {
+            color: #999999;
+            margin-right: 15px;
+        }
+        .case-chart-tag-active {
+            color: #5b66e1;
+        }
+        .case-chart-area {
+            position: relative;
+            height: 200px;
+        }
+        .case-chart-line {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: #f0f0f0;
+        }
+        .case-chart-line:nth-child(1) { top: 20%; }
+        .case-chart-line:nth-child(2) { top: 40%; }
+        .case-chart-line:nth-child(3) { top: 60%; }
+        .case-chart-line:nth-child(4) { top: 80%; }
+        .case-chart-curve {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            height: 120px;
+        }
+        .case-chart-curve::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-bottom: 2px solid #5b66e1;
+            border-radius: 0 0 0 50%;
+        }
+        .case-signal {
+            position: absolute;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .case-signal-buy {
+            background: #5b66e1;
+            color: #ffffff;
+            bottom: 40px;
+            left: 60px;
+        }
+        .case-signal-sell {
+            background: #ff4757;
+            color: #ffffff;
+            top: 60px;
+            right: 80px;
+        }
+        .case-note {
+            color: #999999;
+            font-size: 12px;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+        /* Q&A Section */
+        .qa-section {
+            position: absolute;
+            top: 2440px;
+            height: 330px;
+            left: 0;
+            right: 0;
+            background: #e7e9fc;
+            padding: 20px 15px;
+        }
+        .qa-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 15px;
+        }
+        .qa-item {
+            margin-bottom: 20px;
+        }
+        .qa-question {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .qa-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #5b66e1;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .qa-icon-q {
+            background: #5b66e1;
+        }
+        .qa-icon-a {
+            background: #ff9500;
+        }
+        .qa-text {
+            color: #333333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .qa-answer {
+            display: flex;
+            align-items: flex-start;
+        }
+        .qa-answer-text {
+            color: #666666;
+            font-size: 13px;
+            line-height: 1.6;
+            flex: 1;
+        }
+        .qa-expand {
+            color: #5b66e1;
+            font-size: 13px;
+            white-space: nowrap;
+            margin-left: 8px;
+        }
+        /* Risk Section */
+        .risk-section {
+            position: absolute;
+            top: 2770px;
+            height: 0px;
+            left: 0;
+            right: 0;
+        }
+        /* Bottom CTA */
+        .bottom-cta {
+            position: absolute;
+            bottom: 70px;
+            left: 15px;
+            right: 15px;
+            height: 50px;
+            background: #ff9500;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            z-index: 100;
+        }
+        /* Bottom Bar */
+        .bottom-bar {
+            position: absolute;
+            top: 2714px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #ffffff;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 100;
+        }
+        .bottom-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .bottom-item svg {
+            width: 22px;
+            height: 22px;
+            fill: #999999;
+        }
+        .bottom-item.active svg {
+            fill: #5b66e1;
+        }
+        .bottom-item span {
+            font-size: 11px;
+            color: #999999;
+        }
+        .bottom-item.active span {
+            color: #5b66e1;
+        }
+        /* Decorative elements */
+        .deco-line-left, .deco-line-right {
+            position: absolute;
+            width: 2px;
+            height: 30px;
+            background: #5b66e1;
+            top: -15px;
+        }
+        .deco-line-left {
+            left: 30px;
+        }
+        .deco-line-right {
+            right: 30px;
+        }
+        .section-wrap {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <div class="status-icons">
+                <svg viewBox="0 0 24 24"><path d="M12 3C7.46 3 3.34 4.78.29 7.67c-.18.18-.29.43-.29.71 0 .28.11.53.29.71l11 11c.39.39 1.02.39 1.41 0l11-11c.18-.18.29-.43.29-.71 0-.28-.11-.53-.29-.71C20.66 4.78 16.54 3 12 3z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </div>
+            <span class="nav-title">主力密码</span>
+            <div class="nav-right">
+                <svg viewBox="0 0 24 24" style="width:24px;height:24px;fill:#ffffff;"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </div>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">主力密码</h1>
+            <p class="hero-subtitle">洞悉主力，把握先机</p>
+            <div class="hero-illustration">
+                <div class="hero-illustration-bg"></div>
+                <div class="hero-illustration-main"></div>
+                <div class="hero-coin"></div>
+            </div>
+            <div class="hero-card">
+                <div class="hero-card-label">适用人群：<span>短、中线</span></div>
+                <p class="hero-card-desc">适用于追随市场主力资金步伐投资者</p>
+                <div class="hero-card-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                </div>
+            </div>
+        </div>
+        <!-- Star Stocks Section -->
+        <div class="star-stocks-section">
+            <div class="section-header">
+                <div class="section-header-line"></div>
+                <span class="section-header-text">明星牛股榜</span>
+                <div class="section-header-line"></div>
+                <div class="section-header-icon">?</div>
+            </div>
+            <div class="stocks-card">
+                <div class="stocks-list">
+                    <div class="stock-item">
+                        <div class="stock-rank stock-rank-1">1</div>
+                        <div class="stock-name">电***</div>
+                        <div class="stock-code">0*****</div>
+                        <div class="stock-gain">170.37%</div>
+                        <span class="stock-hold">持股35天</span>
+                    </div>
+                    <div class="stock-item">
+                        <div class="stock-rank stock-rank-2">2</div>
+                        <div class="stock-name">玮***</div>
+                        <div class="stock-code">0*****</div>
+                        <div class="stock-gain">100.55%</div>
+                        <span class="stock-hold stock-hold-2">持股46天</span>
+                    </div>
+                    <div class="stock-item">
+                        <div class="stock-rank stock-rank-3">3</div>
+                        <div class="stock-name">安***</div>
+                        <div class="stock-code">0*****</div>
+                        <div class="stock-gain">92.57%</div>
+                        <span class="stock-hold">持股41天</span>
+                    </div>
+                </div>
+                <p class="stocks-note">注：选取近2个自然月入选综合评分top10的个股，根据个股最高涨幅和持股天数排名。</p>
+            </div>
+        </div>
+        <!-- Product Section -->
+        <div class="product-section">
+            <div class="section-wrap">
+                <div class="deco-line-left"></div>
+                <div class="deco-line-right"></div>
+                <div class="section-header">
+                    <div class="section-header-line"></div>
+                    <span class="section-header-text">产品介绍</span>
+                    <div class="section-header-line"></div>
+                </div>
+                <div class="product-card">
+                    <p class="product-desc">本策略通过五大决策因子构建智能分析模型，对个股的历史逐笔成交数据做全量计算，并通过分析当天因子数据与历史回测结果的匹配度，判断主力的"进场"、"加仓"、"离场"、"减仓"行为。</p>
+                    <div class="indicator-item">
+                        <div class="indicator-label">主力操盘度</div>
+                        <div class="indicator-bar-wrap">
+                            <div class="indicator-bar">
+                                <div class="indicator-bar-fill indicator-bar-fill-1"></div>
+                            </div>
+                            <span class="indicator-tag indicator-tag-1">轻度控盘</span>
+                        </div>
+                    </div>
+                    <div class="indicator-item">
+                        <div class="indicator-label">主力坚决度</div>
+                        <div class="indicator-bar-wrap">
+                            <div class="indicator-bar">
+                                <div class="indicator-bar-fill indicator-bar-fill-2"></div>
+                            </div>
+                            <span class="indicator-tag indicator-tag-2">一般坚决</span>
+                        </div>
+                    </div>
+                    <div class="indicator-item">
+                        <div class="indicator-label">入场动能</div>
+                        <div class="indicator-bar-wrap">
+                            <div class="indicator-bar">
+                                <div class="indicator-bar-fill indicator-bar-fill-3"></div>
+                            </div>
+                            <span class="indicator-tag indicator-tag-3">小幅进场</span>
+                        </div>
+                    </div>
+                    <div class="indicator-item">
+                        <div class="indicator-label">主力获利度</div>
+                        <div class="indicator-bar-wrap">
+                            <div class="indicator-bar">
+                                <div class="indicator-bar-fill indicator-bar-fill-4"></div>
+                            </div>
+                            <span class="indicator-tag indicator-tag-4">小幅盈利</span>
+                        </div>
+                    </div>
+                    <div class="indicator-item">
+                        <div class="indicator-label">量价背离度</div>
+                        <div class="indicator-bar-wrap">
+                            <div class="indicator-bar">
+                                <div class="indicator-bar-fill indicator-bar-fill-5"></div>
+                            </div>
+                            <span class="indicator-tag indicator-tag-5">未背离</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Video Section -->
+        <div class="video-section">
+            <div class="section-wrap">
+                <div class="deco-line-left"></div>
+                <div class="deco-line-right"></div>
+                <div class="section-header">
+                    <div class="section-header-line"></div>
+                    <span class="section-header-text">视频教程</span>
+                    <div class="section-header-line"></div>
+                </div>
+                <div class="video-card">
+                    <div class="video-placeholder">
+                        <span class="video-brand">中国银河证券|CGS</span>
+                        <span class="video-tag">财富星-AI数据</span>
+                        <div class="video-content">
+                            <div class="video-title-big">主力密码</div>
+                            <div class="video-sub">洞悉主力 把握先机</div>
+                            <div class="video-play-btn">
+                                <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Case Section -->
+        <div class="case-section">
+            <div class="section-wrap">
+                <div class="deco-line-left"></div>
+                <div class="deco-line-right"></div>
+                <div class="section-header">
+                    <div class="section-header-line"></div>
+                    <span class="section-header-text">成功案例</span>
+                    <div class="section-header-line"></div>
+                </div>
+                <div class="case-card">
+                    <p class="case-text">太***（6*****）在底部时，2023年7月25日主力密码提示"进场"，随后股价上涨51.87%；自8月2日起在高位连续提示"减仓"、"离场"，股价回落这波行情上涨结束。</p>
+                    <div class="case-chart">
+                        <div class="case-chart-header">
+                            <span class="case-chart-name">太***（6*****）</span>
+                            <span class="case-chart-tag">日线</span>
+                            <span class="case-chart-tag case-chart-tag-active">前复权</span>
+                        </div>
+                        <div class="case-chart-area">
+                            <div class="case-chart-line"></div>
+                            <div class="case-chart-line"></div>
+                            <div class="case-chart-line"></div>
+                            <div class="case-chart-line"></div>
+                            <div class="case-chart-curve"></div>
+                            <span class="case-signal case-signal-buy">进场</span>
+                            <span class="case-signal case-signal-sell">减仓</span>
+                        </div>
+                    </div>
+                    <p class="case-note">注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。</p>
+                </div>
+            </div>
+        </div>
+        <!-- Q&A Section -->
+        <div class="qa-section">
+            <div class="section-wrap">
+                <div class="deco-line-left"></div>
+                <div class="deco-line-right"></div>
+                <div class="section-header">
+                    <div class="section-header-line"></div>
+                    <span class="section-header-text">常见Q&A</span>
+                    <div class="section-header-line"></div>
+                </div>
+                <div class="qa-card">
+                    <div class="qa-item">
+                        <div class="qa-question">
+                            <span class="qa-icon qa-icon-q">Q</span>
+                            <span class="qa-text">什么是主力密码？</span>
+                        </div>
+                        <div class="qa-answer">
+                            <span class="qa-icon qa-icon-a">A</span>
+                            <span class="qa-answer-text">主力密码是一款股票择时分析工具，根...</span>
+                            <span class="qa-expand">展开</span>
+                        </div>
+                    </div>
+                    <div class="qa-item">
+                        <div class="qa-question">
+                            <span class="qa-icon qa-icon-q">Q</span>
+                            <span class="qa-text">主力密码信号更新频率？</span>
+                        </div>
+                        <div class="qa-answer">
+                            <span class="qa-icon qa-icon-a">A</span>
+                            <span class="qa-answer-text">主力密码是每日收盘后，根据当天更新...</span>
+                            <span class="qa-expand">展开</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Risk Warning (inline) -->
+        <div style="position:absolute;top:2770px;left:0;right:0;padding:20px 15px 100px;background:#f3f6ff;">
+            <p style="color:#999999;font-size:12px;line-height:1.8;margin-bottom:10px;">
+                <span style="color:#ff4757;font-weight:600;">风险提示：</span>
+                本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。
+            </p>
+            <p style="color:#999999;font-size:12px;line-height:1.8;margin-bottom:10px;">
+                <span style="font-weight:600;">固有风险：</span>模型构建依赖于历史数据，历史数据存在局限性，可能因缺乏足够的多样性和长时间的积累，导致样本取样出现误差或偏差。在此基础总结的相关性规律，在样本的范围外容易失效，将失去参考性。
+            </p>
+            <p style="color:#999999;font-size:12px;line-height:1.8;margin-bottom:10px;">
+                <span style="font-weight:600;">使用风险：</span>模型反映主力行为的指标具备滞后性，投资者需要充分知晓风险，结合其他指标综合判断做出合理投资决策。单纯参考模型指标，可能给投资者带来投资风险。
+            </p>
+            <p style="color:#999999;font-size:12px;">数据信息来源：沪深交易所</p>
+        </div>
+        <!-- Bottom CTA -->
+        <div class="bottom-cta">登录查看</div>
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="bottom-item">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                <span>下单</span>
+            </div>
+            <div class="bottom-item">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                <span>条件下单</span>
+            </div>
+            <div class="bottom-item active">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                <span>盯盘助手</span>
+            </div>
+            <div class="bottom-item">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <span>删自选</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

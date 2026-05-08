@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>异动揭秘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 2612px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #e7e7e7;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-icon {
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .nav-more {
+            position: absolute;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-more svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 209px;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, #242fa3 0%, #5662e1 100%);
+            overflow: hidden;
+        }
+        .hero-bg-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+        }
+        .hero-illustration {
+            position: absolute;
+            right: 16px;
+            top: 20px;
+            width: 140px;
+            height: 140px;
+        }
+        .hero-illustration svg {
+            width: 100%;
+            height: 100%;
+        }
+        .hero-title {
+            position: absolute;
+            top: 24px;
+            left: 20px;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .hero-subtitle {
+            position: absolute;
+            top: 64px;
+            left: 20px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.85);
+        }
+        .hero-btn {
+            position: absolute;
+            top: 96px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .hero-btn-icon {
+            width: 16px;
+            height: 16px;
+            background: #ffd700;
+            border-radius: 50%;
+        }
+        .hero-btn-text {
+            font-size: 13px;
+            color: #ffffff;
+        }
+        .hero-btn-arrow {
+            width: 12px;
+            height: 12px;
+            fill: #ffffff;
+        }
+        /* Info Card */
+        .info-card {
+            position: absolute;
+            top: 280px;
+            height: 140px;
+            left: 12px;
+            right: 12px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .info-card-text {
+            font-size: 14px;
+            color: #333333;
+            line-height: 1.8;
+        }
+        .info-card-highlight {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        /* Feature Tabs */
+        .feature-tabs {
+            position: absolute;
+            top: 420px;
+            height: 48px;
+            left: 0;
+            right: 0;
+            background: #515ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 12px;
+        }
+        .feature-tab {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            padding: 8px 12px;
+            position: relative;
+        }
+        .feature-tab.active {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .feature-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        /* Section Title */
+        .section-title-bar {
+            position: absolute;
+            top: 468px;
+            height: 48px;
+            left: 0;
+            right: 0;
+            background: #3744bc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .section-title::before,
+        .section-title::after {
+            content: '';
+            width: 40px;
+            height: 1px;
+            background: rgba(255,255,255,0.4);
+        }
+        /* Description Section */
+        .desc-section {
+            position: absolute;
+            top: 516px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #3240b5;
+            padding: 16px;
+        }
+        .desc-text {
+            font-size: 14px;
+            color: rgba(255,255,255,0.9);
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        .desc-case {
+            font-size: 13px;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.8;
+        }
+        .desc-case-label {
+            color: #ffd700;
+            font-weight: 600;
+        }
+        /* Chart Section */
+        .chart-section {
+            position: absolute;
+            top: 796px;
+            height: 520px;
+            left: 12px;
+            right: 12px;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        .chart-header {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .chart-header-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-header-back svg {
+            width: 18px;
+            height: 18px;
+            fill: #666;
+        }
+        .chart-header-time {
+            flex: 1;
+            text-align: center;
+            font-size: 13px;
+            color: #999;
+        }
+        .chart-header-search {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chart-header-search svg {
+            width: 18px;
+            height: 18px;
+            fill: #666;
+        }
+        .stock-price-bar {
+            height: 56px;
+            background: #ff4757;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            color: #ffffff;
+        }
+        .stock-price-main {
+            font-size: 32px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .stock-price-change {
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+        }
+        .stock-price-tag {
+            margin-left: auto;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .stock-info-grid {
+            height: 64px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 8px 12px;
+            gap: 8px;
+        }
+        .stock-info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .stock-info-label {
+            font-size: 11px;
+            color: #999;
+        }
+        .stock-info-value {
+            font-size: 13px;
+            color: #333;
+            font-weight: 600;
+        }
+        .stock-info-value.red {
+            color: #ff4757;
+        }
+        .chart-tabs {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 16px;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .chart-tab {
+            font-size: 13px;
+            color: #666;
+            padding: 4px 8px;
+        }
+        .chart-tab.active {
+            color: #242fa3;
+            font-weight: 600;
+            border-bottom: 2px solid #242fa3;
+        }
+        .chart-ma-bar {
+            height: 28px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+            font-size: 11px;
+            color: #999;
+        }
+        .chart-ma-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .chart-ma-color {
+            width: 8px;
+            height: 2px;
+            border-radius: 1px;
+        }
+        .chart-main {
+            height: 200px;
+            position: relative;
+            background: #fafafa;
+        }
+        .chart-y-axis {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 4px 4px;
+            font-size: 10px;
+            color: #999;
+        }
+        .chart-canvas {
+            position: absolute;
+            left: 40px;
+            right: 12px;
+            top: 0;
+            bottom: 0;
+        }
+        .k-line-svg {
+            width: 100%;
+            height: 100%;
+        }
+        .chart-annotation {
+            position: absolute;
+            background: rgba(36, 47, 163, 0.9);
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .chart-annotation.red-text {
+            color: #ff6b6b;
+        }
+        .chart-sub {
+            height: 80px;
+            position: relative;
+            background: #fafafa;
+            border-top: 1px solid #f0f0f0;
+        }
+        .chart-note {
+            height: 32px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 11px;
+            color: #999;
+        }
+        /* Feature Buttons */
+        .feature-buttons {
+            position: absolute;
+            top: 1320px;
+            height: 80px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 16px;
+        }
+        .feature-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .feature-btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feature-btn-icon.blue {
+            background: #e8eaf6;
+        }
+        .feature-btn-icon.purple {
+            background: #f3e5f5;
+        }
+        .feature-btn-icon.orange {
+            background: #fff3e0;
+        }
+        .feature-btn-icon.green {
+            background: #e8f5e9;
+        }
+        .feature-btn-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+        .feature-btn-text {
+            font-size: 12px;
+            color: #333;
+        }
+        /* What Section */
+        .what-section {
+            position: absolute;
+            top: 1400px;
+            height: 520px;
+            left: 0;
+            right: 0;
+            background: #303fb1;
+            padding: 16px;
+        }
+        .what-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            height: 100%;
+        }
+        .what-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #242fa3;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .what-title::before,
+        .what-title::after {
+            content: '';
+            width: 40px;
+            height: 1px;
+            background: #242fa3;
+        }
+        .what-desc {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+        .what-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .what-tag {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #ffffff;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .what-tag.red {
+            background: #ff4757;
+        }
+        .what-tag.purple {
+            background: #9c27b0;
+        }
+        .what-tag.green {
+            background: #4caf50;
+        }
+        .what-tag.blue {
+            background: #2196f3;
+        }
+        .what-item-text {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .what-item-text strong {
+            color: #242fa3;
+        }
+        /* How Section */
+        .how-section {
+            position: absolute;
+            top: 1920px;
+            height: 380px;
+            left: 0;
+            right: 0;
+            background: #3744bc;
+            padding: 16px;
+        }
+        .how-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            height: 100%;
+        }
+        .how-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #242fa3;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .how-title::before,
+        .how-title::after {
+            content: '';
+            width: 40px;
+            height: 1px;
+            background: #242fa3;
+        }
+        .how-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .how-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #242fa3;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .how-item-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .how-item-text strong {
+            color: #242fa3;
+        }
+        /* Risk Section */
+        .risk-section {
+            position: absolute;
+            top: 2300px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #303fb1;
+            padding: 16px;
+        }
+        .risk-title {
+            font-size: 14px;
+            color: #ffd700;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .risk-text {
+            font-size: 12px;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.8;
+        }
+        /* Login Button */
+        .login-btn {
+            position: absolute;
+            top: 2580px;
+            height: 48px;
+            left: 20px;
+            right: 20px;
+            background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <div class="status-icons">
+                <div class="status-icon" style="width: 16px; height: 16px; background: transparent; border: 2px solid #fff; border-radius: 3px;"></div>
+                <div class="status-icon" style="width: 14px; height: 14px; background: #fff; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);"></div>
+                <div class="status-icon" style="width: 22px; height: 10px; border: 1.5px solid #fff; border-radius: 3px; position: relative;">
+                    <div style="position: absolute; left: 2px; top: 2px; right: 4px; bottom: 2px; background: #fff; border-radius: 1px;"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </div>
+            <span class="nav-title">资金博弈</span>
+            <div class="nav-more">
+                <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </div>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-title">异动揭秘</div>
+            <div class="hero-subtitle">洞察主力成本，追踪吸筹轨迹</div>
+            <div class="hero-btn">
+                <div class="hero-btn-icon"></div>
+                <span class="hero-btn-text">视频教程</span>
+                <svg class="hero-btn-arrow" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
+            <div class="hero-illustration">
+                <svg viewBox="0 0 140 140" fill="none">
+                    <circle cx="70" cy="70" r="50" fill="rgba(255,255,255,0.1)"/>
+                    <circle cx="70" cy="70" r="35" fill="rgba(255,255,255,0.15)"/>
+                    <path d="M50 80 L70 50 L90 70 L110 40" stroke="#ffd700" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polygon points="105,35 110,40 115,38 112,45" fill="#ffd700"/>
+                    <rect x="45" y="85" width="50" height="8" rx="4" fill="rgba(255,255,255,0.3)"/>
+                    <rect x="55" y="75" width="30" height="8" rx="4" fill="rgba(255,255,255,0.2)"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Info Card -->
+        <div class="info-card">
+            <p class="info-card-text">
+                本策略由<span class="info-card-highlight">2个</span>Level 2指标和<span class="info-card-highlight">4个</span>Level 2异动监控池构成，其特色功能有主力跟踪、资金博弈、拖拉机单、主力撤单、顶级挂单和涨停承压。
+            </p>
+        </div>
+        <!-- Feature Tabs -->
+        <div class="feature-tabs">
+            <div class="feature-tab">主力跟踪</div>
+            <div class="feature-tab active">资金博弈</div>
+            <div class="feature-tab">拖拉机单</div>
+            <div class="feature-tab">顶级挂单</div>
+        </div>
+        <!-- Section Title -->
+        <div class="section-title-bar">
+            <span class="section-title">资金博弈指标</span>
+        </div>
+        <!-- Description Section -->
+        <div class="desc-section">
+            <p class="desc-text">
+                资金博弈全面剖析不同规模资金的进出情况，通过监控level2逐笔成交数据，将资金按交易量规模分为超大单、大单、中单和小单四档，四类资金在同一界面下进行展示。
+            </p>
+            <p class="desc-case">
+                <span class="desc-case-label">案例：</span>2023年5月31日前后，大***(6*****)资金博弈指标大单下穿中小单，说明主力流出，随后5月31日后股价出现了下跌；6月15日前后，超大单上穿中小单，且超大单资金线一路向上，随后股票出现了连板。
+            </p>
+        </div>
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <div class="chart-header-back">
+                    <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </div>
+                <span class="chart-header-time">07-13 15:00:03</span>
+                <div class="chart-header-search">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                </div>
+            </div>
+            <div class="stock-price-bar">
+                <span class="stock-price-main">9.46</span>
+                <div class="stock-price-change">
+                    <span>0.86</span>
+                    <span>10.00%</span>
+                </div>
+                <span class="stock-price-tag">领涨 大连热电 10.00%</span>
+            </div>
+            <div class="stock-info-grid">
+                <div class="stock-info-item">
+                    <span class="stock-info-label">今开</span>
+                    <span class="stock-info-value red">9.46</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">最高</span>
+                    <span class="stock-info-value red">9.46</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">成交量</span>
+                    <span class="stock-info-value">89.23万</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">换手</span>
+                    <span class="stock-info-value">22.05%</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">最低</span>
+                    <span class="stock-info-value red">9.12</span>
+                </div>
+                <div class="stock-info-item">
+                    <span class="stock-info-label">成交额</span>
+                    <span class="stock-info-value">8.41亿</span>
+                </div>
+            </div>
+            <div class="chart-tabs">
+                <span class="chart-tab">分时</span>
+                <span class="chart-tab">五日</span>
+                <span class="chart-tab active">日K</span>
+                <span class="chart-tab">周K</span>
+                <span class="chart-tab">月K</span>
+                <span class="chart-tab">其他</span>
+            </div>
+            <div class="chart-ma-bar">
+                <span>前复权</span>
+                <div class="chart-ma-item">
+                    <div class="chart-ma-color" style="background: #ff9800;"></div>
+                    <span>MA 5=7.89</span>
+                </div>
+                <div class="chart-ma-item">
+                    <div class="chart-ma-color" style="background: #2196f3;"></div>
+                    <span>10=6.54</span>
+                </div>
+                <div class="chart-ma-item">
+                    <div class="chart-ma-color" style="background: #4caf50;"></div>
+                    <span>20=5.81</span>
+                </div>
+            </div>
+            <div class="chart-main">
+                <div class="chart-y-axis">
+                    <span>9.98</span>
+                    <span>8.45</span>
+                    <span>6.92</span>
+                    <span>5.39</span>
+                    <span>3.86</span>
+                </div>
+                <div class="chart-canvas">
+                    <svg class="k-line-svg" viewBox="0 0 300 200" preserveAspectRatio="none">
+                        <!-- Grid lines -->
+                        <line x1="0" y1="40" x2="300" y2="40" stroke="#eee" stroke-width="1"/>
+                        <line x1="0" y1="80" x2="300" y2="80" stroke="#eee" stroke-width="1"/>
+                        <line x1="0" y1="120" x2="300" y2="120" stroke="#eee" stroke-width="1"/>
+                        <line x1="0" y1="160" x2="300" y2="160" stroke="#eee" stroke-width="1"/>
+                        <!-- MA lines -->
+                        <polyline points="0,150 30,145 60,140 90,138 120,135 150,130 180,125 210,120 240,110 270,100 300,90" fill="none" stroke="#ff9800" stroke-width="1.5"/>
+                        <polyline points="0,155 30,150 60,148 90,145 120,142 150,138 180,135 210,130 240,125 270,120 300,115" fill="none" stroke="#2196f3" stroke-width="1.5"/>
+                        <polyline points="0,160 30,158 60,155 90,152 120,150 150,148 180,145 210,142 240,140 270,138 300,135" fill="none" stroke="#4caf50" stroke-width="1.5"/>
+                        <!-- K-line candles -->
+                        <rect x="20" y="140" width="6" height="8" fill="#ff4757"/>
+                        <line x1="23" y1="135" x2="23" y2="152" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="35" y="138" width="6" height="6" fill="#22c55e"/>
+                        <line x1="38" y1="133" x2="38" y2="146" stroke="#22c55e" stroke-width="1"/>
+                        <rect x="50" y="142" width="6" height="10" fill="#ff4757"/>
+                        <line x1="53" y1="138" x2="53" y2="156" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="65" y="136" width="6" height="8" fill="#22c55e"/>
+                        <line x1="68" y1="130" x2="68" y2="148" stroke="#22c55e" stroke-width="1"/>
+                        <rect x="80" y="140" width="6" height="12" fill="#ff4757"/>
+                        <line x1="83" y1="135" x2="83" y2="158" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="95" y="132" width="6" height="10" fill="#22c55e"/>
+                        <line x1="98" y1="126" x2="98" y2="146" stroke="#22c55e" stroke-width="1"/>
+                        <!-- Highlighted area -->
+                        <rect x="140" y="40" width="40" height="120" fill="rgba(255,215,0,0.15)"/>
+                        <rect x="200" y="40" width="40" height="120" fill="rgba(255,215,0,0.15)"/>
+                        <!-- Price line -->
+                        <polyline points="0,145 60,140 100,130 140,100 180,80 220,60 260,50 300,40" fill="none" stroke="#ff4757" stroke-width="2"/>
+                    </svg>
+                    <div class="chart-annotation" style="right: 10px; top: 20px;">
+                        上穿股价涨
+                    </div>
+                    <div class="chart-annotation" style="right: 10px; top: 60px;">
+                        超大单上穿中小单，<br/ />主力流入，<span class="red-text">股价上涨</span>
+                    </div>
+                    <div class="chart-annotation" style="left: 50px; bottom: 40px;">
+                        超大、大单向上与中<br/ />小单收窄，<span class="red-text">重点关注</span>
+                    </div>
+                    <div class="chart-annotation" style="right: 30px; bottom: 20px;">
+                        下穿股价跌
+                    </div>
+                    <div class="chart-annotation" style="right: 10px; bottom: 50px;">
+                        大单下穿中小单，主<br/ />力流出，<span class="red-text">股价下跌</span>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-sub">
+                <div class="chart-y-axis" style="font-size: 9px;">
+                    <span>9.93</span>
+                    <span>0</span>
+                    <span>-9.93</span>
+                </div>
+                <div class="chart-canvas">
+                    <svg class="k-line-svg" viewBox="0 0 300 80" preserveAspectRatio="none">
+                        <polyline points="0,60 30,55 60,50 90,48 120,45 150,40 180,35 210,30 240,25 270,20 300,15" fill="none" stroke="#ff4757" stroke-width="1.5"/>
+                        <polyline points="0,65 30,60 60,58 90,55 120,52 150,50 180,48 210,45 240,42 270,40 300,38" fill="none" stroke="#9c27b0" stroke-width="1.5"/>
+                        <polyline points="0,70 30,68 60,66 90,64 120,62 150,60 180,58 210,56 240,54 270,52 300,50" fill="none" stroke="#4caf50" stroke-width="1.5"/>
+                        <polyline points="0,75 30,74 60,73 90,72 120,71 150,70 180,69 210,68 240,67 270,66 300,65" fill="none" stroke="#2196f3" stroke-width="1.5"/>
+                    </svg>
+                    <div class="chart-annotation" style="left: 40px; top: 10px; font-size: 10px;">
+                        收窄显机会
+                    </div>
+                </div>
+            </div>
+            <div class="chart-note">
+                注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。
+            </div>
+        </div>
+        <!-- Feature Buttons -->
+        <div class="feature-buttons">
+            <div class="feature-btn">
+                <div class="feature-btn-icon blue">
+                    <svg viewBox="0 0 24 24" fill="#242fa3"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                </div>
+                <span class="feature-btn-text">主力密码</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-btn-icon purple">
+                    <svg viewBox="0 0 24 24" fill="#9c27b0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                </div>
+                <span class="feature-btn-text">神奇电波</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-btn-icon orange">
+                    <svg viewBox="0 0 24 24" fill="#ff9800"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+                </div>
+                <span class="feature-btn-text">主力跟踪</span>
+            </div>
+            <div class="feature-btn">
+                <div class="feature-btn-icon green">
+                    <svg viewBox="0 0 24 24" fill="#4caf50"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+                </div>
+                <span class="feature-btn-text">资金博弈</span>
+            </div>
+        </div>
+        <!-- What Section -->
+        <div class="what-section">
+            <div class="what-card">
+                <div class="what-title">什么是资金博弈</div>
+                <p class="what-desc">
+                    通过对level2逐笔成交数据监控，还原真实成交量，细分为超大、大、中、小单并追踪其运动轨迹。
+                </p>
+                <div class="what-item">
+                    <span class="what-tag red">红色</span>
+                    <span class="what-item-text">代表超大单资金的动向，<strong>超大单</strong>指单笔交易总量大于50万股或者单笔交易总额大于100万元；</span>
+                </div>
+                <div class="what-item">
+                    <span class="what-tag purple">紫色</span>
+                    <span class="what-item-text">代表大单资金的动向，<strong>大单</strong>指单笔交易总量在10万-50万股或者单笔交易总额在20万元-100万元；</span>
+                </div>
+                <div class="what-item">
+                    <span class="what-tag green">绿色</span>
+                    <span class="what-item-text">代表中单资金的动向，<strong>中单</strong>指单笔交易总量在2万-10万股或者单笔交易总额在4万元-20万元；</span>
+                </div>
+                <div class="what-item">
+                    <span class="what-tag blue">蓝色</span>
+                    <span class="what-item-text">代表小单资金的动向，<strong>小单</strong>指单笔交易总量小于2万股或者单笔交易总额小于4万元。</span>
+                </div>
+            </div>
+        </div>
+        <!-- How Section -->
+        <div class="how-section">
+            <div class="how-card">
+                <div class="how-title">如何使用资金博弈指标</div>
+                <div class="how-item">
+                    <span class="how-num">1</span>
+                    <span class="how-item-text">当超大、大单资金线向上运行并与小单、中单资金线收窄，表示有主力资金在流入，<strong>可重点关注</strong>；</span>
+                </div>
+                <div class="how-item">
+                    <span class="how-num">2</span>
+                    <span class="how-item-text">当超大资金线或大单资金线上穿小单、中单资金线时，表示主力资金实现控盘，<strong>股价向上突破几率较大</strong>；</span>
+                </div>
+                <div class="how-item">
+                    <span class="how-num">3</span>
+                    <span class="how-item-text">当超大资金线或大单资金线下穿小单、中单资金线时，表示主力资金在流出，<strong>股价向下几率较大</strong>。</span>
+                </div>
+            </div>
+        </div>
+        <!-- Risk Section -->
+        <div class="risk-section">
+            <div class="risk-title">风险提示：</div>
+            <p class="risk-text">
+                本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。
+            </p>
+            <p class="risk-text" style="margin-top: 8px;">
+                固有风险：阶段行情不同会影响指标及异动信号的释放和入选，长期缺乏信号会导致算法模型缺少训练数据，有一定概率出现预测不精准的情况。
+            </p>
+            <p class="risk-text" style="margin-top: 8px;">
+                使用风险：L2数据信息量大、更新频率高，对使用者有一定知识储备和经验要求。历史入选不代表后期股票表现，投资者应该独立自主承担决策风险。
+            </p>
+            <p class="risk-text" style="margin-top: 8px;">
+                数据信息来源：沪深交易所
+            </p>
+        </div>
+        <!-- Login Button -->
+        <div class="login-btn">登录查看</div>
+    </div>
+</body>
+</html>

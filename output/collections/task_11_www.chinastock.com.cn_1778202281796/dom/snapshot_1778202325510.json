@@ -1,0 +1,284 @@
+{
+  "type": "incremental",
+  "timestamp": 1778202325510,
+  "url": "https://www.chinastock.com.cn/newsite/index.html",
+  "title": "中国银河证券官方网站",
+  "rrwebEvent": {
+    "type": 3,
+    "data": {
+      "source": 0,
+      "adds": [
+        {
+          "parentId": 1010,
+          "node": {
+            "type": 3,
+            "textContent": "\n",
+            "id": 1598
+          },
+          "nextId": null
+        },
+        {
+          "parentId": 1010,
+          "node": {
+            "type": 2,
+            "tagName": "div",
+            "attributes": {
+              "class": "swiper-slide swiper-slide-active",
+              "style": "height: 336px;"
+            },
+            "childNodes": [
+              1599,
+              1600,
+              1601,
+              1602,
+              1603,
+              1604,
+              1605,
+              1606,
+              1607,
+              1608,
+              1609,
+              1610,
+              1611
+            ],
+            "id": 1612
+          },
+          "nextId": null
+        },
+        {
+          "parentId": 1010,
+          "node": {
+            "type": 3,
+            "textContent": "\n\n",
+            "id": 1613
+          },
+          "nextId": null
+        },
+        {
+          "parentId": 1010,
+          "node": {
+            "type": 2,
+            "tagName": "div",
+            "attributes": {
+              "class": "swiper-slide swiper-slide-next",
+              "style": "height: 336px;"
+            },
+            "childNodes": [
+              1614,
+              1615,
+              1616,
+              1617,
+              1618,
+              1619,
+              1620,
+              1621,
+              1622,
+              1623,
+              1624,
+              1625,
+              1626
+            ],
+            "id": 1627
+          },
+          "nextId": null
+        },
+        {
+          "parentId": 1010,
+          "node": {
+            "type": 3,
+            "textContent": "\n",
+            "id": 1628
+          },
+          "nextId": null
+        },
+        {
+          "parentId": 1008,
+          "node": {
+            "type": 2,
+            "tagName": "span",
+            "attributes": {
+              "class": "swiper-notification",
+              "aria-live": "assertive",
+              "aria-atomic": "true"
+            },
+            "childNodes": [],
+            "id": 1629
+          },
+          "nextId": null
+        }
+      ],
+      "removes": [
+        {
+          "parentId": 1010,
+          "id": 1509
+        },
+        {
+          "parentId": 1010,
+          "id": 1523
+        },
+        {
+          "parentId": 1010,
+          "id": 1524
+        },
+        {
+          "parentId": 1008,
+          "id": 1525
+        }
+      ],
+      "texts": [],
+      "attributes": [
+        {
+          "id": 1008,
+          "attributes": {
+            "class": "swiper-container str-wrap swiper-container-initialized swiper-container-vertical"
+          }
+        },
+        {
+          "id": 1008,
+          "attributes": {
+            "class": "swiper-container str-wrap swiper-container-initialized swiper-container-vertical"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-on"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-on"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-on"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-on"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "style": null
+          }
+        },
+        {
+          "id": 1008,
+          "attributes": {
+            "class": "swiper-container str-wrap swiper-container-initialized swiper-container-vertical"
+          }
+        },
+        {
+          "id": 1008,
+          "attributes": {
+            "class": "swiper-container str-wrap swiper-container-initialized swiper-container-vertical"
+          }
+        },
+        {
+          "id": 1612,
+          "attributes": {
+            "style": "height: 336px;"
+          }
+        },
+        {
+          "id": 1627,
+          "attributes": {
+            "style": "height: 336px;"
+          }
+        },
+        {
+          "id": 1612,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1627,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-next"
+          }
+        },
+        {
+          "id": 1612,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1627,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-next"
+          }
+        },
+        {
+          "id": 1612,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1627,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-next"
+          }
+        },
+        {
+          "id": 1612,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1627,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-next"
+          }
+        },
+        {
+          "id": 1612,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1627,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-next"
+          }
+        },
+        {
+          "id": 1612,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1627,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-next"
+          }
+        },
+        {
+          "id": 1612,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1627,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-next"
+          }
+        }
+      ]
+    },
+    "timestamp": 1778202326510
+  }
+}

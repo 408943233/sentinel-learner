@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>融资追击</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #ececec;
+            display: flex;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 3128px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #ececec;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-signal {
+            width: 18px;
+            height: 12px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        .signal-bar {
+            width: 3px;
+            background: #fff;
+            border-radius: 1px;
+        }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 6px; }
+        .signal-bar:nth-child(3) { height: 8px; }
+        .signal-bar:nth-child(4) { height: 10px; opacity: 0.4; }
+        .status-wifi {
+            width: 16px;
+            height: 12px;
+        }
+        .status-battery {
+            width: 25px;
+            height: 12px;
+            border: 1px solid #fff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1px;
+        }
+        .status-battery::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 3px;
+            width: 2px;
+            height: 5px;
+            background: #fff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #fff;
+            border-radius: 1px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+        .nav-title {
+            color: #fff;
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .nav-more {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-more svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 209px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+            overflow: hidden;
+        }
+        .hero-content {
+            position: relative;
+            padding: 20px 24px;
+            z-index: 2;
+        }
+        .hero-title {
+            color: #fff;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .hero-subtitle {
+            color: rgba(255,255,255,0.85);
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        .hero-3d {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 140px;
+            height: 140px;
+        }
+        .hero-3d-box {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .hero-3d-box::before {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 60px;
+            background: #5a67e2;
+            border: 3px solid #7c8af0;
+            border-radius: 8px;
+            top: 20px;
+            left: 30px;
+            transform: perspective(100px) rotateX(15deg) rotateY(-20deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .hero-3d-box::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 50px;
+            background: #ff6b6b;
+            border-radius: 6px;
+            top: 45px;
+            left: 55px;
+            transform: perspective(100px) rotateX(15deg) rotateY(-20deg);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+        .hero-arrow {
+            position: absolute;
+            width: 40px;
+            height: 8px;
+            background: #ff4757;
+            border-radius: 4px;
+            top: 35px;
+            right: 10px;
+            transform: rotate(-30deg);
+        }
+        .hero-arrow::after {
+            content: '';
+            position: absolute;
+            right: -2px;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid #ff4757;
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+        }
+        /* Info Card */
+        .info-card {
+            position: absolute;
+            top: 280px;
+            height: 180px;
+            left: 16px;
+            right: 16px;
+            background: #f7f7fd;
+            border-radius: 12px;
+            padding: 16px 20px;
+            z-index: 10;
+            box-shadow: 0 4px 16px rgba(44, 58, 172, 0.15);
+        }
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .info-label {
+            color: #666;
+            white-space: nowrap;
+            margin-right: 4px;
+        }
+        .info-highlight {
+            color: #2c3aac;
+            font-weight: 600;
+        }
+        .info-bold {
+            font-weight: 600;
+            color: #333;
+        }
+        /* Star Section */
+        .star-section {
+            position: absolute;
+            top: 480px;
+            height: 380px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+        }
+        .star-header {
+            text-align: center;
+            padding: 16px 0 12px;
+        }
+        .star-title {
+            color: #ffd700;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .star-title::before,
+        .star-title::after {
+            content: '';
+            width: 30px;
+            height: 1px;
+            background: rgba(255,215,0,0.5);
+        }
+        .star-cards {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 0 16px;
+        }
+        .star-card {
+            width: 106px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 8px;
+            text-align: center;
+        }
+        .star-rank {
+            width: 36px;
+            height: 36px;
+            margin: 0 auto 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .star-rank.gold { background: #ffd700; }
+        .star-rank.silver { background: #c0c0c0; }
+        .star-rank.bronze { background: #cd7f32; }
+        .star-name {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .star-code {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        .star-rate {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ff4757;
+            margin-bottom: 8px;
+        }
+        .star-days {
+            font-size: 12px;
+            color: #666;
+            background: #f5f5f5;
+            padding: 4px 12px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .star-note {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 11px;
+            padding: 12px 24px;
+            line-height: 1.5;
+        }
+        /* Product Section */
+        .product-section {
+            position: absolute;
+            top: 860px;
+            height: 320px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+        }
+        .section-header {
+            text-align: center;
+            padding: 16px 0;
+        }
+        .section-title {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .section-title::before,
+        .section-title::after {
+            content: '';
+            width: 30px;
+            height: 1px;
+            background: rgba(255,255,255,0.4);
+        }
+        .product-card {
+            margin: 0 16px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+        }
+        .product-text {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #333;
+        }
+        .product-text p {
+            margin-bottom: 8px;
+            text-indent: 2em;
+        }
+        .product-icon {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            opacity: 0.1;
+        }
+        /* Video Section */
+        .video-section {
+            position: absolute;
+            top: 1180px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+        }
+        .video-card {
+            margin: 0 16px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .video-thumb {
+            width: 100%;
+            height: 160px;
+            background: #1a1a4e;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-content {
+            text-align: center;
+        }
+        .video-brand {
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+        .video-main-title {
+            color: #4fc3f7;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+        }
+        .video-sub {
+            color: #fff;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .video-play {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .video-play::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 16px solid #fff;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            margin-left: 4px;
+        }
+        .video-info {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .video-tag {
+            background: #2c3aac;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .video-desc {
+            font-size: 13px;
+            color: #333;
+        }
+        /* Case Section */
+        .case-section {
+            position: absolute;
+            top: 1460px;
+            height: 520px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+        }
+        .case-card {
+            margin: 0 16px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .case-text {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .case-text .highlight {
+            color: #ff4757;
+            font-weight: 600;
+        }
+        .case-chart-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+        .case-chart-header .name {
+            color: #333;
+            font-weight: 600;
+        }
+        .case-chart-header .tag {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        .case-chart {
+            width: 100%;
+            height: 200px;
+            background: #fafafa;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .chart-grid {
+            position: absolute;
+            top: 0;
+            left: 40px;
+            right: 40px;
+            bottom: 30px;
+        }
+        .chart-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        .chart-candles {
+            position: absolute;
+            bottom: 30px;
+            left: 40px;
+            right: 40px;
+            height: 140px;
+        }
+        .candle {
+            position: absolute;
+            width: 4px;
+            background: #ff4757;
+            border-radius: 1px;
+        }
+        .candle.green {
+            background: #22c55e;
+        }
+        .chart-highlight {
+            position: absolute;
+            right: 60px;
+            top: 20px;
+            width: 80px;
+            height: 100px;
+            background: rgba(255, 200, 200, 0.3);
+            border: 1px dashed #ff4757;
+            border-radius: 4px;
+        }
+        .chart-label {
+            position: absolute;
+            right: 70px;
+            top: 50px;
+            background: #ff4757;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .case-note {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #999;
+            line-height: 1.6;
+        }
+        /* Strategy Section */
+        .strategy-section {
+            position: absolute;
+            top: 1980px;
+            height: 480px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+        }
+        .strategy-table {
+            margin: 0 16px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .table-header {
+            display: flex;
+            padding: 12px 16px;
+            background: #f8f8f8;
+            font-size: 12px;
+            color: #999;
+        }
+        .table-header .col-name { flex: 1.2; }
+        .table-header .col-ratio { flex: 1; text-align: center; }
+        .table-header .col-days { flex: 1; text-align: center; }
+        .table-header .col-rate { flex: 1; text-align: right; }
+        .table-row {
+            display: flex;
+            padding: 14px 16px;
+            border-top: 1px solid #f0f0f0;
+            align-items: center;
+        }
+        .table-row .col-name {
+            flex: 1.2;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+        .table-row .col-ratio {
+            flex: 1;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+        .table-row .col-days {
+            flex: 1;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+        .table-row .col-rate {
+            flex: 1;
+            text-align: right;
+            font-size: 14px;
+            color: #ff4757;
+            font-weight: 600;
+        }
+        /* FAQ Section */
+        .faq-section {
+            position: absolute;
+            top: 2460px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+        }
+        .faq-card {
+            margin: 0 16px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .faq-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        .faq-q {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .faq-icon {
+            width: 20px;
+            height: 20px;
+            background: #2c3aac;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .faq-text {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .faq-a {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .faq-a .faq-icon {
+            background: #ff9800;
+        }
+        .faq-a-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+            flex: 1;
+        }
+        .faq-expand {
+            color: #999;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        /* Risk Section */
+        .risk-section {
+            position: absolute;
+            top: 2740px;
+            height: 320px;
+            left: 0;
+            right: 0;
+            background: #2c3aac;
+            padding: 16px;
+        }
+        .risk-title {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .risk-text {
+            color: rgba(255,255,255,0.75);
+            font-size: 12px;
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+        .risk-source {
+            color: rgba(255,255,255,0.6);
+            font-size: 11px;
+            margin-top: 12px;
+        }
+        /* Bottom Button */
+        .bottom-btn {
+            position: absolute;
+            top: 3060px;
+            height: 48px;
+            left: 16px;
+            right: 16px;
+            background: #ff9800;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            z-index: 100;
+        }
+        /* Decorative elements */
+        .deco-ring {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .deco-dots {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.2) 2px, transparent 2px);
+            background-size: 12px 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <div class="status-icons">
+                <div class="status-signal">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <svg class="status-wifi" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <div class="status-battery">
+                    <div class="battery-level"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="nav-title">融资追击</span>
+            <div class="nav-more">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-title">融资追击</div>
+                <div class="hero-subtitle">透视融资数据，获悉多空力量</div>
+            </div>
+            <div class="hero-3d">
+                <div class="hero-3d-box"></div>
+                <div class="hero-arrow"></div>
+            </div>
+            <div class="deco-ring" style="top: 120px; left: -20px;"></div>
+            <div class="deco-dots" style="bottom: 20px; right: 160px;"></div>
+        </div>
+        <!-- Info Card -->
+        <div class="info-card">
+            <div class="info-row">
+                <span class="info-label">适用人群：</span>
+                <span class="info-highlight">短线、中线</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">适用于</span>
+                <span class="info-bold">小白用户</span>
+                <span>，按策略提示持股周期和收益进行买卖</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">适用于</span>
+                <span class="info-bold">有经验用户</span>
+                <span>，策略提示持股周期用以辅助判断</span>
+            </div>
+        </div>
+        <!-- Star Section -->
+        <div class="star-section">
+            <div class="star-header">
+                <div class="star-title">明星牛股榜</div>
+            </div>
+            <div class="star-cards">
+                <div class="star-card">
+                    <div class="star-rank gold">1</div>
+                    <div class="star-name">顺***</div>
+                    <div class="star-code">*****</div>
+                    <div class="star-rate">146.22%</div>
+                    <div class="star-days">持股29天</div>
+                </div>
+                <div class="star-card">
+                    <div class="star-rank silver">2</div>
+                    <div class="star-name">德***</div>
+                    <div class="star-code">*****</div>
+                    <div class="star-rate">85.90%</div>
+                    <div class="star-days">持股37天</div>
+                </div>
+                <div class="star-card">
+                    <div class="star-rank bronze">3</div>
+                    <div class="star-name">晓***</div>
+                    <div class="star-code">*****</div>
+                    <div class="star-rate">67.79%</div>
+                    <div class="star-days">持股15天</div>
+                </div>
+            </div>
+            <div class="star-note">注：选取近2个自然月入选综合评分top10的个股，根据个股最高涨幅和持股天数排名。</div>
+        </div>
+        <!-- Product Section -->
+        <div class="product-section">
+            <div class="section-header">
+                <div class="section-title">产品介绍</div>
+            </div>
+            <div class="product-card">
+                <div class="product-text">
+                    <p>融资融券交易具有财务杠杆效应，是投资者向证券公司借入资金买入证券（融资买入）或借入证券卖出（融券卖出）的行为。</p>
+                    <p>针对融资融券和历史行情数据回测分析股价走势规律，得出最佳持股策略。包括当前个股最佳持股策略和市场个股最佳持股策略。</p>
+                </div>
+            </div>
+        </div>
+        <!-- Video Section -->
+        <div class="video-section">
+            <div class="section-header">
+                <div class="section-title">视频教程</div>
+            </div>
+            <div class="video-card">
+                <div class="video-thumb">
+                    <div class="video-content">
+                        <div class="video-brand">中国银河证券 | CGS</div>
+                        <div class="video-main-title">融资追击</div>
+                        <div class="video-sub">透视融资数据 获悉多空力量</div>
+                    </div>
+                    <div class="video-play"></div>
+                </div>
+                <div class="video-info">
+                    <span class="video-tag">财富星-AI数据</span>
+                    <span class="video-desc">融资融券交易具有财务杠杆效应...</span>
+                </div>
+            </div>
+        </div>
+        <!-- Case Section -->
+        <div class="case-section">
+            <div class="section-header">
+                <div class="section-title">成功案例</div>
+            </div>
+            <div class="case-card">
+                <div class="case-text">
+                    大***（6*****），2023年7月13日入选市场最佳持股策略，历史测算持股41天左右获利概率达80.99%，按照策略买入并持有17天后该股<span class="highlight">涨幅达21.22%</span>
+                </div>
+                <div class="case-chart-header">
+                    <span class="name">大***（6*****）</span>
+                    <span class="tag">日线</span>
+                    <span class="tag">前复权</span>
+                </div>
+                <div class="case-chart">
+                    <div class="chart-grid">
+                        <div class="chart-line" style="top: 0;"></div>
+                        <div class="chart-line" style="top: 35px;"></div>
+                        <div class="chart-line" style="top: 70px;"></div>
+                        <div class="chart-line" style="top: 105px;"></div>
+                    </div>
+                    <div class="chart-candles">
+                        <div class="candle green" style="left: 10px; height: 20px; bottom: 40px;"></div>
+                        <div class="candle" style="left: 18px; height: 15px; bottom: 35px;"></div>
+                        <div class="candle green" style="left: 26px; height: 25px; bottom: 30px;"></div>
+                        <div class="candle" style="left: 34px; height: 18px; bottom: 45px;"></div>
+                        <div class="candle green" style="left: 42px; height: 22px; bottom: 25px;"></div>
+                        <div class="candle" style="left: 50px; height: 16px; bottom: 50px;"></div>
+                        <div class="candle green" style="left: 58px; height: 20px; bottom: 30px;"></div>
+                        <div class="candle" style="left: 66px; height: 14px; bottom: 55px;"></div>
+                        <div class="candle green" style="left: 74px; height: 28px; bottom: 20px;"></div>
+                        <div class="candle" style="left: 82px; height: 12px; bottom: 60px;"></div>
+                        <div class="candle green" style="left: 90px; height: 35px; bottom: 15px;"></div>
+                        <div class="candle" style="left: 98px; height: 18px; bottom: 70px;"></div>
+                        <div class="candle green" style="left: 106px; height: 40px; bottom: 10px;"></div>
+                        <div class="candle" style="left: 114px; height: 22px; bottom: 80px;"></div>
+                        <div class="candle green" style="left: 122px; height: 45px; bottom: 5px;"></div>
+                        <div class="candle" style="left: 130px; height: 25px; bottom: 90px;"></div>
+                        <div class="candle green" style="left: 138px; height: 50px; bottom: 0px;"></div>
+                        <div class="candle" style="left: 146px; height: 30px; bottom: 100px;"></div>
+                        <div class="candle green" style="left: 154px; height: 55px; bottom: 0px;"></div>
+                        <div class="candle" style="left: 162px; height: 35px; bottom: 110px;"></div>
+                        <div class="candle green" style="left: 170px; height: 60px; bottom: 0px;"></div>
+                        <div class="candle" style="left: 178px; height: 40px; bottom: 120px;"></div>
+                        <div class="candle green" style="left: 186px; height: 70px; bottom: 0px;"></div>
+                        <div class="candle" style="left: 194px; height: 45px; bottom: 130px;"></div>
+                        <div class="candle green" style="left: 202px; height: 80px; bottom: 0px;"></div>
+                        <div class="candle" style="left: 210px; height: 50px; bottom: 140px;"></div>
+                        <div class="candle green" style="left: 218px; height: 90px; bottom: 0px;"></div>
+                        <div class="candle" style="left: 226px; height: 55px; bottom: 150px;"></div>
+                    </div>
+                    <div class="chart-highlight"></div>
+                    <div class="chart-label">17天涨幅21.22%</div>
+                </div>
+                <div class="case-note">注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。</div>
+            </div>
+        </div>
+        <!-- Strategy Section -->
+        <div class="strategy-section">
+            <div class="section-header">
+                <div class="section-title">最新市场最佳持股策略</div>
+            </div>
+            <div class="strategy-table">
+                <div class="table-header">
+                    <span class="col-name">名称代码</span>
+                    <span class="col-ratio">融资买入比</span>
+                    <span class="col-days">持股周期</span>
+                    <span class="col-rate">胜率</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">探***</span>
+                    <span class="col-ratio">11.27%</span>
+                    <span class="col-days">54天</span>
+                    <span class="col-rate">98.95%</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">洁***</span>
+                    <span class="col-ratio">21.89%</span>
+                    <span class="col-days">3天</span>
+                    <span class="col-rate">88.89%</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">汇***</span>
+                    <span class="col-ratio">22.67%</span>
+                    <span class="col-days">53天</span>
+                    <span class="col-rate">88.89%</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">公***</span>
+                    <span class="col-ratio">22.77%</span>
+                    <span class="col-days">50天</span>
+                    <span class="col-rate">83.33%</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">协***</span>
+                    <span class="col-ratio">13.83%</span>
+                    <span class="col-days">50天</span>
+                    <span class="col-rate">82.51%</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">崇***</span>
+                    <span class="col-ratio">14.87%</span>
+                    <span class="col-days">59天</span>
+                    <span class="col-rate">80.68%</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">中***</span>
+                    <span class="col-ratio">11.81%</span>
+                    <span class="col-days">60天</span>
+                    <span class="col-rate">80.25%</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">海***</span>
+                    <span class="col-ratio">60.22%</span>
+                    <span class="col-days">5天</span>
+                    <span class="col-rate">80.00%</span>
+                </div>
+                <div class="table-row">
+                    <span class="col-name">鸥***</span>
+                    <span class="col-ratio">35.93%</span>
+                    <span class="col-days">33天</span>
+                    <span class="col-rate">80.00%</span>
+                </div>
+            </div>
+        </div>
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <div class="section-header">
+                <div class="section-title">常见Q&A</div>
+            </div>
+            <div class="faq-card">
+                <div class="faq-item">
+                    <div class="faq-q">
+                        <div class="faq-icon">Q</div>
+                        <span class="faq-text">什么是个股最佳持股策略？</span>
+                    </div>
+                    <div class="faq-a">
+                        <div class="faq-icon">A</div>
+                        <span class="faq-a-text">针对当前股票的融资买入和历史行情数...</span>
+                        <span class="faq-expand">展开</span>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">
+                        <div class="faq-icon">Q</div>
+                        <span class="faq-text">什么是市场最佳持股策略？</span>
+                    </div>
+                    <div class="faq-a">
+                        <div class="faq-icon">A</div>
+                        <span class="faq-a-text">针对市场中所有融资融券标的融资买入...</span>
+                        <span class="faq-expand">展开</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Risk Section -->
+        <div class="risk-section">
+            <div class="risk-title">风险提示：</div>
+            <div class="risk-text">
+                本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务
+            </div>
+            <div class="risk-text">
+                固有风险：模型依赖过往融资融券资金数据构建，历史数据具有局限性，历史规律不代表未来规律。
+            </div>
+            <div class="risk-text">
+                使用风险：模型所依赖的融资融券数据反映市场情绪变化，波动性相对较高。单纯参考模型指标，可能给投资者带来投资风险。
+            </div>
+            <div class="risk-source">数据信息来源：沪深交易所</div>
+        </div>
+        <!-- Bottom Button -->
+        <div class="bottom-btn">登录查看</div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no,viewport-fit=cover"
+    />
+    <meta name="robots" content="all" />
+    <meta name="author" content="Chinastock-WZFE" />
+    <meta name="Copyright" content="Chinastock" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="Description" content="中国银河证券" />
+    <meta name="Keywords" content="中国银河证券" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>中国银河证券智能客服</title>
+    
+    <script type="module" crossorigin src="./static/js/index-b3b46938.js"></script>
+    <link rel="stylesheet" href="./static/css/index-37e1cac1.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      //阿里无痕配置
+      window.AliyunCaptchaConfig = {
+        // 必填，验证码示例所属地区，支持中国内地（cn）、新加坡（sgp）
+        region: "cn",
+        // 必填，身份标。开通阿里云验证码2.0后，您可以在控制台概览页面的实例基本信息卡片区域，获取身份标
+        prefix: "1swshj", //新建ID后要改写，要和后台对接的prefix一致
+      };
+    </script>
+    <script
+      type="text/javascript"
+      src="https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js"
+    ></script>
+    <script src="https://cdns.chinastock.com.cn/cdn/wskh/js/al/guide.js?t=2018041813"></script>
+    <script src="//cdns.chinastock.com.cn/cdn/jssdk-h5/prod/jssdk.min.js"></script>
+    <!--  兼容银河证券app低版本,后期不需要兼容时可以打开下面cdn注释，去掉 oldapp.js dsbridge.js-->
+    <!-- <script src="//cdns.chinastock.com.cn/cdn/jlcms/dsbridge.js" defer></script> -->
+    <script src="./oldapp.js"></script>
+    <script src="./dsbridge.js"></script>
+
+    <script async src="//res.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
+    
+  </body>
+</html>

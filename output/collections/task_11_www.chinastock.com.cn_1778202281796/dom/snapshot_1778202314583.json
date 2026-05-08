@@ -1,0 +1,84 @@
+{
+  "type": "incremental",
+  "timestamp": 1778202314583,
+  "url": "https://chinastock.zhiye.com/custom/campus",
+  "title": "中国银河证券股份有限公司",
+  "rrwebEvent": {
+    "type": 3,
+    "data": {
+      "source": 0,
+      "adds": [],
+      "removes": [],
+      "texts": [],
+      "attributes": [
+        {
+          "id": 504,
+          "attributes": {
+            "style": "display: none; opacity: 0; right: 50px; bottom: 50px;"
+          }
+        },
+        {
+          "id": 504,
+          "attributes": {
+            "style": "display: none; opacity: 0; right: 50px; bottom: 50px;"
+          }
+        },
+        {
+          "id": 651,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 672,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 690,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 745,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 820,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 906,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 937,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 964,
+          "attributes": {
+            "style": "display: none;"
+          }
+        },
+        {
+          "id": 1399,
+          "attributes": {
+            "style": "display: none;"
+          }
+        }
+      ]
+    },
+    "timestamp": 1778202314585
+  }
+}

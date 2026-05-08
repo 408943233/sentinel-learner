@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>财富星-AI数据</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #f3f5f7;
+            display: flex;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 1378px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #434cbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-icon {
+            width: 18px;
+            height: 18px;
+            fill: #ffffff;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #434cbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 10px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-back svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+        /* Service Content Section */
+        .service-section {
+            position: absolute;
+            top: 91px;
+            height: 520px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 20px 15px;
+        }
+        .service-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .service-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333333;
+        }
+        .service-detail-btn {
+            width: 72px;
+            height: 32px;
+            border: 1px solid #a3abbe;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #434cbf;
+        }
+        .service-subtitle {
+            font-size: 14px;
+            color: #a3abbe;
+            margin-bottom: 20px;
+        }
+        /* Feature Grid */
+        .feature-grid {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px 0;
+        }
+        .feature-item {
+            width: 33.33%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+        .feature-icon-gold {
+            background: #fcf3e3;
+            color: #d4a574;
+        }
+        .feature-name {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 4px;
+        }
+        .feature-desc {
+            font-size: 12px;
+            color: #a3abbe;
+        }
+        /* Payment Section */
+        .payment-section {
+            position: absolute;
+            top: 611px;
+            height: 320px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 20px 15px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333333;
+            margin-bottom: 16px;
+        }
+        .payment-options {
+            display: flex;
+            gap: 12px;
+        }
+        .payment-card {
+            flex: 1;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+        .payment-card-normal {
+            border: 1px solid #e8e8e8;
+            background: #ffffff;
+        }
+        .payment-card-active {
+            border: 2px solid #ff6b6b;
+            background: #fff8f0;
+        }
+        .payment-tag {
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            padding: 4px 12px;
+            border-radius: 12px 0 12px 0;
+            font-size: 12px;
+            color: #ffffff;
+        }
+        .payment-tag-normal {
+            background: #a3abbe;
+        }
+        .payment-tag-active {
+            background: #ff6b6b;
+        }
+        .payment-card-title {
+            font-size: 14px;
+            color: #666666;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+        .payment-price {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+        .price-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ff4757;
+        }
+        .price-unit {
+            font-size: 14px;
+            color: #ff4757;
+            margin-left: 2px;
+        }
+        .price-original {
+            font-size: 14px;
+            color: #a3abbe;
+            text-decoration: line-through;
+            margin-left: 4px;
+        }
+        .payment-desc {
+            font-size: 12px;
+            color: #a3abbe;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        .payment-detail {
+            font-size: 12px;
+            color: #434cbf;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .check-icon {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .check-icon-normal {
+            background: #e8e8e8;
+        }
+        .check-icon-active {
+            background: #ff6b6b;
+        }
+        .check-icon svg {
+            width: 14px;
+            height: 14px;
+            fill: #ffffff;
+        }
+        /* Renewal Section */
+        .renewal-section {
+            position: absolute;
+            top: 931px;
+            height: 100px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 20px 15px;
+            border-top: 8px solid #f3f5f7;
+        }
+        .renewal-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+        }
+        .renewal-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .radio-btn {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #434cbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .radio-btn-inner {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #434cbf;
+        }
+        .renewal-text {
+            font-size: 15px;
+            color: #333333;
+        }
+        .renewal-edit {
+            font-size: 15px;
+            color: #434cbf;
+        }
+        /* Service Method Section */
+        .method-section {
+            position: absolute;
+            top: 1031px;
+            height: 347px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 20px 15px;
+            border-top: 8px solid #f3f5f7;
+        }
+        .method-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .method-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #434cbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .method-checkbox svg {
+            width: 14px;
+            height: 14px;
+            fill: #ffffff;
+        }
+        .method-content {
+            flex: 1;
+        }
+        .method-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333333;
+            margin-bottom: 6px;
+        }
+        .method-desc {
+            font-size: 13px;
+            color: #a3abbe;
+            line-height: 1.5;
+        }
+        .method-phone {
+            font-size: 14px;
+            color: #a3abbe;
+            margin-top: 4px;
+        }
+        /* Agreement Section */
+        .agreement-section {
+            position: absolute;
+            top: 1244px;
+            height: 78px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 0 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .agreement-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid #a3abbe;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .agreement-text {
+            font-size: 13px;
+            color: #a3abbe;
+            line-height: 1.6;
+        }
+        .agreement-text a {
+            color: #434cbf;
+            text-decoration: none;
+        }
+        /* Bottom Button */
+        .bottom-btn {
+            position: absolute;
+            top: 1306px;
+            height: 72px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .confirm-btn {
+            width: 100%;
+            height: 48px;
+            background: #a3abbe;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">14:52</span>
+            <div class="status-icons">
+                <svg class="status-icon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                <svg class="status-icon" viewBox="0 0 24 24">
+                    <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                </svg>
+                <svg class="status-icon" viewBox="0 0 24 24">
+                    <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="nav-title">财富星-AI数据</span>
+        </div>
+        <!-- Service Section -->
+        <div class="service-section">
+            <div class="service-header">
+                <span class="service-title">服务内容</span>
+                <div class="service-detail-btn">详情</div>
+            </div>
+            <div class="service-subtitle">签约超值套餐解锁以下服务</div>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon feature-icon-gold">★</div>
+                    <span class="feature-name">主力密码</span>
+                    <span class="feature-desc">洞悉主力动向</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon feature-icon-gold">◐</div>
+                    <span class="feature-name">异动揭秘</span>
+                    <span class="feature-desc">识别大单异动</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon feature-icon-gold">⇄</div>
+                    <span class="feature-name">融资追击</span>
+                    <span class="feature-desc">透视融资数据</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon feature-icon-gold">▣</div>
+                    <span class="feature-name">VIP快讯</span>
+                    <span class="feature-desc">实时推送市场重要快讯</span>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon feature-icon-gold">◎</div>
+                    <span class="feature-name">陆港淘金</span>
+                    <span class="feature-desc">一江之隔，价差几何</span>
+                </div>
+            </div>
+        </div>
+        <!-- Payment Section -->
+        <div class="payment-section">
+            <div class="section-title">请选择收费方式</div>
+            <div class="payment-options">
+                <div class="payment-card payment-card-normal">
+                    <div class="payment-tag payment-tag-normal">大家爱选</div>
+                    <div class="payment-card-title">单笔交易固定收费</div>
+                    <div class="payment-price">
+                        <span class="price-number">8.80</span>
+                        <span class="price-unit">元/笔</span>
+                    </div>
+                    <div class="payment-desc">自签约生效日起，您使用在本公司开立的证券账户（含</div>
+                    <div class="payment-detail">查看详情 ></div>
+                    <div class="check-icon check-icon-normal">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                </div>
+                <div class="payment-card payment-card-active">
+                    <div class="payment-tag payment-tag-active">活动优惠</div>
+                    <div class="payment-card-title">立减3888元<br />体验15天</div>
+                    <div class="payment-price">
+                        <span class="price-number">0</span>
+                        <span class="price-unit">元</span>
+                        <span class="price-original">3888</span>
+                    </div>
+                    <div class="payment-desc">本公司将在您签约后，一次性扣除体验期约定的费用；</div>
+                    <div class="payment-detail">查看详情 ></div>
+                    <div class="check-icon check-icon-active">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Renewal Section -->
+        <div class="renewal-section">
+            <div class="section-title">到期后续费方式</div>
+            <div class="renewal-option">
+                <div class="renewal-left">
+                    <div class="radio-btn">
+                        <div class="radio-btn-inner"></div>
+                    </div>
+                    <span class="renewal-text">单笔交易固定收费 8.80 元/笔</span>
+                </div>
+                <span class="renewal-edit">修改</span>
+            </div>
+        </div>
+        <!-- Service Method Section -->
+        <div class="method-section">
+            <div class="section-title">获取服务方式</div>
+            <div class="method-item">
+                <div class="method-checkbox">
+                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+                <div class="method-content">
+                    <div class="method-name">微信推送</div>
+                    <div class="method-desc">关注微信服务号"中国银河证券"，并绑定账户，便于微信端接收投资服务信息。</div>
+                </div>
+            </div>
+            <div class="method-item">
+                <div class="method-checkbox">
+                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+                <div class="method-content">
+                    <div class="method-name">APP推送</div>
+                    <div class="method-desc">确保APP的"设置-推送设置"是"打开"状态，以免影响接收投资服务消息</div>
+                </div>
+            </div>
+            <div class="method-item">
+                <div class="method-checkbox">
+                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+                <div class="method-content">
+                    <div class="method-name">短信推送（默认勾选）</div>
+                    <div class="method-phone">接收手机号 18500318898</div>
+                </div>
+            </div>
+        </div>
+        <!-- Agreement Section -->
+        <div class="agreement-section">
+            <div class="agreement-checkbox"></div>
+            <div class="agreement-text">
+                我已阅读并同意<a href="#">《中国银河证券股份有限公司证券投资顾问业务风险揭示书(中国银河证券投资顾问服务签约)》、《中国银河证券股份有限公司"财富星-AI投顾"证券投资顾问业务服务协议》、《中国银河证券股份有限公司"财富星-AI投顾"证券投资顾问业务收费方式确认书》</a>
+            </div>
+        </div>
+        <!-- Bottom Button -->
+        <div class="bottom-btn">
+            <div class="confirm-btn">确认签约</div>
+        </div>
+    </div>
+</body>
+</html>

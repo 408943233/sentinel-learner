@@ -1,0 +1,199 @@
+{
+  "type": "incremental",
+  "timestamp": 1778202320511,
+  "url": "https://www.chinastock.com.cn/newsite/index.html",
+  "title": "中国银河证券官方网站",
+  "rrwebEvent": {
+    "type": 3,
+    "data": {
+      "source": 0,
+      "adds": [
+        {
+          "parentId": 1010,
+          "node": {
+            "type": 3,
+            "textContent": "\n",
+            "id": 1509
+          },
+          "nextId": null
+        },
+        {
+          "parentId": 1010,
+          "node": {
+            "type": 2,
+            "tagName": "div",
+            "attributes": {
+              "class": "swiper-slide swiper-slide-active",
+              "style": "height: 336px;"
+            },
+            "childNodes": [
+              1510,
+              1511,
+              1512,
+              1513,
+              1514,
+              1515,
+              1516,
+              1517,
+              1518,
+              1519,
+              1520,
+              1521,
+              1522
+            ],
+            "id": 1523
+          },
+          "nextId": null
+        },
+        {
+          "parentId": 1010,
+          "node": {
+            "type": 3,
+            "textContent": "\n",
+            "id": 1524
+          },
+          "nextId": null
+        },
+        {
+          "parentId": 1008,
+          "node": {
+            "type": 2,
+            "tagName": "span",
+            "attributes": {
+              "class": "swiper-notification",
+              "aria-live": "assertive",
+              "aria-atomic": "true"
+            },
+            "childNodes": [],
+            "id": 1525
+          },
+          "nextId": null
+        }
+      ],
+      "removes": [
+        {
+          "parentId": 1010,
+          "id": 1408
+        },
+        {
+          "parentId": 1010,
+          "id": 1422
+        },
+        {
+          "parentId": 1010,
+          "id": 1423
+        },
+        {
+          "parentId": 1008,
+          "id": 1424
+        }
+      ],
+      "texts": [],
+      "attributes": [
+        {
+          "id": 1008,
+          "attributes": {
+            "class": "swiper-container str-wrap swiper-container-initialized swiper-container-vertical"
+          }
+        },
+        {
+          "id": 1008,
+          "attributes": {
+            "class": "swiper-container str-wrap swiper-container-initialized swiper-container-vertical"
+          }
+        },
+        {
+          "id": 1422,
+          "attributes": {
+            "class": "swiper-slide"
+          }
+        },
+        {
+          "id": 1422,
+          "attributes": {
+            "class": "swiper-slide"
+          }
+        },
+        {
+          "id": 1422,
+          "attributes": {
+            "class": "swiper-slide"
+          }
+        },
+        {
+          "id": 1422,
+          "attributes": {
+            "class": "swiper-slide"
+          }
+        },
+        {
+          "id": 1422,
+          "attributes": {
+            "style": null
+          }
+        },
+        {
+          "id": 1008,
+          "attributes": {
+            "class": "swiper-container str-wrap swiper-container-initialized swiper-container-vertical"
+          }
+        },
+        {
+          "id": 1008,
+          "attributes": {
+            "class": "swiper-container str-wrap swiper-container-initialized swiper-container-vertical"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "style": "height: 336px;"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        },
+        {
+          "id": 1523,
+          "attributes": {
+            "class": "swiper-slide swiper-slide-active"
+          }
+        }
+      ]
+    },
+    "timestamp": 1778202321509
+  }
+}

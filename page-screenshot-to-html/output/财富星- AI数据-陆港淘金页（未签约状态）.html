@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>陆港淘金</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 2383px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #eaeaea;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-icon {
+            width: 18px;
+            height: 18px;
+            fill: #ffffff;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .nav-back {
+            position: absolute;
+            left: 12px;
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-title {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 500;
+        }
+        .nav-more {
+            position: absolute;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        /* Hero Section */
+        .hero-section {
+            position: absolute;
+            top: 91px;
+            height: 209px;
+            left: 0;
+            right: 0;
+            background: #242fa3;
+            overflow: hidden;
+        }
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #242fa3;
+        }
+        .hero-content {
+            position: relative;
+            padding: 20px 24px;
+            z-index: 2;
+        }
+        .hero-title {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .hero-subtitle {
+            color: rgba(255,255,255,0.85);
+            font-size: 14px;
+            letter-spacing: 4px;
+        }
+        .hero-illustration {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 140px;
+            height: 140px;
+        }
+        .hero-coin {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background: #ffd700;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .hero-coin-1 {
+            right: 40px;
+            top: 10px;
+        }
+        .hero-coin-2 {
+            right: 10px;
+            bottom: 40px;
+            width: 24px;
+            height: 24px;
+        }
+        /* Target Audience Card */
+        .audience-card {
+            position: absolute;
+            top: 280px;
+            height: 80px;
+            left: 16px;
+            right: 16px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 16px rgba(36, 47, 163, 0.15);
+            z-index: 10;
+        }
+        .audience-label {
+            color: #242fa3;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .audience-text {
+            color: #666666;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        /* Strategy Highlights Section */
+        .highlights-section {
+            position: absolute;
+            top: 360px;
+            height: 320px;
+            left: 0;
+            right: 0;
+            background: #515dde;
+            padding: 48px 16px 20px;
+        }
+        .section-title-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .title-line {
+            width: 40px;
+            height: 1px;
+            background: rgba(255,255,255,0.5);
+        }
+        .section-title {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .highlights-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+        }
+        .highlights-vs {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: #f0f0f5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9999bb;
+            font-size: 16px;
+            font-weight: 700;
+            z-index: 2;
+        }
+        .highlights-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .highlights-row:last-child {
+            margin-bottom: 0;
+        }
+        .highlight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            width: 45%;
+        }
+        .highlight-item.right {
+            justify-content: flex-end;
+            text-align: right;
+        }
+        .highlight-dot {
+            width: 8px;
+            height: 8px;
+            background: #515dde;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        .highlight-dot.right {
+            background: #cccccc;
+        }
+        .highlight-text {
+            color: #333333;
+            font-size: 13px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        .highlight-text.gray {
+            color: #888888;
+        }
+        /* Usage Section */
+        .usage-section {
+            position: absolute;
+            top: 680px;
+            height: 180px;
+            left: 0;
+            right: 0;
+            background: #515dde;
+            padding: 20px 16px;
+        }
+        .usage-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .usage-icon {
+            width: 36px;
+            height: 36px;
+            background: #e8e8f5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .usage-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #515dde;
+        }
+        .usage-text {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        /* Logic Section */
+        .logic-section {
+            position: absolute;
+            top: 860px;
+            height: 520px;
+            left: 0;
+            right: 0;
+            background: #515dde;
+            padding: 20px 16px;
+        }
+        .logic-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .logic-list {
+            margin-bottom: 20px;
+        }
+        .logic-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .logic-bullet {
+            width: 6px;
+            height: 6px;
+            background: #515dde;
+            border-radius: 50%;
+            margin-top: 7px;
+            flex-shrink: 0;
+        }
+        .logic-diagram {
+            position: relative;
+            height: 280px;
+            background: #f8f8fc;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .diagram-step {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffffff;
+            border: 1px solid #d0d0e8;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 11px;
+            color: #515dde;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .diagram-step-1 {
+            top: 16px;
+        }
+        .diagram-step-2 {
+            top: 80px;
+        }
+        .diagram-step-3 {
+            top: 144px;
+        }
+        .diagram-step-4 {
+            top: 208px;
+            background: #515dde;
+            color: #ffffff;
+            border-color: #515dde;
+        }
+        .diagram-connector {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 40px;
+            background: #d0d0e8;
+        }
+        .diagram-connector-1 {
+            top: 44px;
+        }
+        .diagram-connector-2 {
+            top: 108px;
+        }
+        .diagram-connector-3 {
+            top: 172px;
+        }
+        .diagram-platform {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 40px;
+            background: #515dde;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        /* Pool Section */
+        .pool-section {
+            position: absolute;
+            top: 1380px;
+            height: 520px;
+            left: 0;
+            right: 0;
+            background: #515dde;
+            padding: 20px 16px;
+        }
+        .pool-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .pool-header {
+            margin-bottom: 16px;
+        }
+        .pool-date {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .pool-table-header {
+            display: flex;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f5;
+        }
+        .pool-th {
+            flex: 1;
+            color: #999999;
+            font-size: 12px;
+            text-align: center;
+        }
+        .pool-th:first-child {
+            text-align: left;
+            flex: 1.2;
+        }
+        .pool-row {
+            display: flex;
+            padding: 14px 0;
+            border-bottom: 1px solid #f5f5f8;
+        }
+        .pool-td {
+            flex: 1;
+            color: #333333;
+            font-size: 14px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .pool-td:first-child {
+            text-align: left;
+            flex: 1.2;
+        }
+        .pool-td.star {
+            color: #cccccc;
+        }
+        .pool-note {
+            margin-top: 12px;
+            color: #999999;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+        /* Risk Section */
+        .risk-section {
+            position: absolute;
+            top: 1900px;
+            height: 420px;
+            left: 0;
+            right: 0;
+            background: #2530a5;
+            padding: 20px 16px;
+        }
+        .risk-title {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        .risk-text {
+            color: rgba(255,255,255,0.75);
+            font-size: 12px;
+            line-height: 2;
+            margin-bottom: 12px;
+        }
+        .risk-source {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        /* Login Button */
+        .login-btn {
+            position: absolute;
+            top: 2320px;
+            height: 48px;
+            left: 16px;
+            right: 16px;
+            background: #f5a623;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        /* Decorative elements */
+        .deco-ring {
+            position: absolute;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .deco-ring-1 {
+            width: 200px;
+            height: 200px;
+            right: -60px;
+            top: -40px;
+        }
+        .deco-ring-2 {
+            width: 120px;
+            height: 120px;
+            right: 20px;
+            bottom: 20px;
+        }
+        /* Hanging decorations */
+        .hanging {
+            position: absolute;
+            width: 24px;
+            height: 40px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+        }
+        .hanging-left {
+            left: 20px;
+            top: -20px;
+        }
+        .hanging-right {
+            right: 20px;
+            top: -20px;
+        }
+        .hanging-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">9:41</span>
+            <div class="status-icons">
+                <svg class="status-icon" viewBox="0 0 24 24">
+                    <path d="M12 3C7.46 3 3.34 4.78.29 7.67c-.18.18-.29.43-.29.71 0 .28.11.53.29.71l11 11c.39.39 1.02.39 1.41 0l11-11c.18-.18.29-.43.29-.71 0-.28-.11-.53-.29-.71C20.66 4.78 16.54 3 12 3z"/>
+                </svg>
+                <svg class="status-icon" viewBox="0 0 24 24">
+                    <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <svg class="nav-back" viewBox="0 0 24 24">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+            <span class="nav-title">陆港淘金</span>
+            <svg class="nav-more" viewBox="0 0 24 24">
+                <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>
+        </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="hero-bg">
+                <div class="deco-ring deco-ring-1"></div>
+                <div class="deco-ring deco-ring-2"></div>
+            </div>
+            <div class="hero-content">
+                <div class="hero-title">陆港淘金</div>
+                <div class="hero-subtitle">一江之隔 价差几何</div>
+            </div>
+            <div class="hero-illustration">
+                <svg viewBox="0 0 140 140" style="width:100%;height:100%">
+                    <rect x="30" y="20" width="80" height="60" rx="8" fill="#6b7bff"/>
+                    <rect x="40" y="30" width="60" height="40" rx="4" fill="#ffffff"/>
+                    <rect x="45" y="38" width="30" height="4" rx="2" fill="#515dde"/>
+                    <rect x="45" y="48" width="50" height="4" rx="2" fill="#e0e0f0"/>
+                    <rect x="45" y="58" width="40" height="4" rx="2" fill="#e0e0f0"/>
+                    <circle cx="70" cy="95" r="25" fill="#4a90e2"/>
+                    <rect x="55" y="85" width="30" height="20" rx="4" fill="#ffffff"/>
+                    <path d="M60 95 L70 88 L80 95" stroke="#4a90e2" stroke-width="2" fill="none"/>
+                </svg>
+            </div>
+            <div class="hero-coin hero-coin-1"></div>
+            <div class="hero-coin hero-coin-2"></div>
+        </div>
+        <!-- Audience Card -->
+        <div class="audience-card">
+            <div class="audience-label">适用人群：</div>
+            <div class="audience-text">想要挖掘A-H跨市场投资契机的投资者。</div>
+        </div>
+        <!-- Strategy Highlights -->
+        <div class="highlights-section">
+            <div class="hanging hanging-left"><div class="hanging-dot"></div></div>
+            <div class="hanging hanging-right"><div class="hanging-dot"></div></div>
+            <div class="section-title-bar">
+                <span class="title-line"></span>
+                <span class="section-title">策略亮点</span>
+                <span class="title-line"></span>
+            </div>
+            <div class="highlights-card">
+                <div class="highlights-vs">VS</div>
+                <div class="highlights-row">
+                    <div class="highlight-item">
+                        <div class="highlight-dot"></div>
+                        <span class="highlight-text">A股、港股价值<br />联动捕捉</span>
+                    </div>
+                    <div class="highlight-item right">
+                        <span class="highlight-text gray">港股交易参与门<br />槛高</span>
+                        <div class="highlight-dot right"></div>
+                    </div>
+                </div>
+                <div class="highlights-row">
+                    <div class="highlight-item">
+                        <div class="highlight-dot"></div>
+                        <span class="highlight-text">每周一盘前精<br />选10支A股标的</span>
+                    </div>
+                    <div class="highlight-item right">
+                        <span class="highlight-text gray">标的繁多，选择<br />困难</span>
+                        <div class="highlight-dot right"></div>
+                    </div>
+                </div>
+                <div class="highlights-row">
+                    <div class="highlight-item">
+                        <div class="highlight-dot"></div>
+                        <span class="highlight-text">多个量化模型<br />叠加筛选</span>
+                    </div>
+                    <div class="highlight-item right">
+                        <span class="highlight-text gray">单一模型失效风<br />险高</span>
+                        <div class="highlight-dot right"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Usage Section -->
+        <div class="usage-section">
+            <div class="hanging hanging-left"><div class="hanging-dot"></div></div>
+            <div class="hanging hanging-right"><div class="hanging-dot"></div></div>
+            <div class="section-title-bar">
+                <span class="title-line"></span>
+                <span class="section-title">策略用法</span>
+                <span class="title-line"></span>
+            </div>
+            <div class="usage-card">
+                <div class="usage-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <p class="usage-text">陆港淘金策略每周一开盘前精选10只A股标的，投资者可以自行判断市场情况，把握交易节奏。</p>
+            </div>
+        </div>
+        <!-- Logic Section -->
+        <div class="logic-section">
+            <div class="hanging hanging-left"><div class="hanging-dot"></div></div>
+            <div class="hanging hanging-right"><div class="hanging-dot"></div></div>
+            <div class="section-title-bar">
+                <span class="title-line"></span>
+                <span class="section-title">策略逻辑</span>
+                <span class="title-line"></span>
+            </div>
+            <div class="logic-card">
+                <div class="logic-list">
+                    <div class="logic-item">
+                        <div class="logic-bullet"></div>
+                        <span>【协整分析】发现同时在A股和港股上市的标的，具有长期均衡关系。</span>
+                    </div>
+                    <div class="logic-item">
+                        <div class="logic-bullet"></div>
+                        <span>用【蒙特卡洛模拟】捕捉上涨概率较大的标的。</span>
+                    </div>
+                    <div class="logic-item">
+                        <div class="logic-bullet"></div>
+                        <span>甄别出有【均值回归】特性的标的。</span>
+                    </div>
+                    <div class="logic-item">
+                        <div class="logic-bullet"></div>
+                        <span>经过两轮筛选后，选取AH折价率前10的票池。</span>
+                    </div>
+                </div>
+                <div class="logic-diagram">
+                    <div class="diagram-step diagram-step-1">【第一步】：A股、港股市场关联性验证</div>
+                    <div class="diagram-connector diagram-connector-1"></div>
+                    <div class="diagram-step diagram-step-2">【第二步】：蒙特卡洛模拟走势</div>
+                    <div class="diagram-connector diagram-connector-2"></div>
+                    <div class="diagram-step diagram-step-3">【第三步】：价值回归特征识别</div>
+                    <div class="diagram-connector diagram-connector-3"></div>
+                    <div class="diagram-step diagram-step-4">【第四步】：AH折价率排序</div>
+                </div>
+            </div>
+        </div>
+        <!-- Pool Section -->
+        <div class="pool-section">
+            <div class="hanging hanging-left"><div class="hanging-dot"></div></div>
+            <div class="hanging hanging-right"><div class="hanging-dot"></div></div>
+            <div class="section-title-bar">
+                <span class="title-line"></span>
+                <span class="section-title">最新一期票池</span>
+                <span class="title-line"></span>
+            </div>
+            <div class="pool-card">
+                <div class="pool-header">
+                    <div class="pool-date">第66期 (2026-04-13)</div>
+                    <div class="pool-table-header">
+                        <div class="pool-th">股票名称</div>
+                        <div class="pool-th">入选价</div>
+                        <div class="pool-th">5日最大涨幅</div>
+                    </div>
+                </div>
+                <div class="pool-row">
+                    <div class="pool-td">福****</div>
+                    <div class="pool-td star">*</div>
+                    <div class="pool-td star">*</div>
+                </div>
+                <div class="pool-row">
+                    <div class="pool-td">京****</div>
+                    <div class="pool-td star">*</div>
+                    <div class="pool-td star">*</div>
+                </div>
+                <div class="pool-row">
+                    <div class="pool-td">复*****</div>
+                    <div class="pool-td star">*</div>
+                    <div class="pool-td star">*</div>
+                </div>
+                <div class="pool-row">
+                    <div class="pool-td">豪****</div>
+                    <div class="pool-td star">*</div>
+                    <div class="pool-td star">*</div>
+                </div>
+                <div class="pool-row">
+                    <div class="pool-td">三****</div>
+                    <div class="pool-td star">*</div>
+                    <div class="pool-td star">*</div>
+                </div>
+                <p class="pool-note">注：以上展示内容仅为最新一期票池中部分标的，完整票池以签约后页面展示为准。</p>
+            </div>
+        </div>
+        <!-- Risk Section -->
+        <div class="risk-section">
+            <div class="risk-title">风险提示：</div>
+            <p class="risk-text">本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。</p>
+            <p class="risk-text">固有风险：指标依赖市场公开数据，存在一定的延迟效应。模型根据港股A股两地同时上市股票数据情况构建，数据来源相对单一。历史数据具有局限性，历史规律不代表未来规律。</p>
+            <p class="risk-text">使用风险：公开数据可能因不可抗力出现停止披露等问题，或存在数据传导不及时、受市场情绪面影响等情况，投资者应该独立自主承担策略风险。</p>
+            <p class="risk-source">数据信息来源：沪深交易所/香港交易所</p>
+        </div>
+        <!-- Login Button -->
+        <button class="login-btn">登录查看</button>
+    </div>
+</body>
+</html>

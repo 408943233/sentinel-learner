@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>修改收费方式</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 1069px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #434cbf;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 21px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .status-bar .time {
+            font-size: 17px;
+            font-weight: 600;
+        }
+        .status-bar .icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-bar .signal-icon {
+            width: 18px;
+            height: 12px;
+        }
+        .status-bar .wifi-icon {
+            width: 16px;
+            height: 12px;
+        }
+        .status-bar .battery {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .status-bar .battery-icon {
+            width: 25px;
+            height: 12px;
+            border: 1px solid #ffffff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+        .status-bar .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            width: 2px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+        .status-bar .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
+        .status-bar .battery-text {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #434cbf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+        }
+        .nav-bar .back-btn {
+            position: absolute;
+            left: 16px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-bar .back-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: #ffffff;
+        }
+        .nav-bar .title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        /* Current Fee Section */
+        .current-fee-section {
+            position: absolute;
+            top: 91px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 0 16px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333333;
+            margin-top: 20px;
+            margin-bottom: 16px;
+        }
+        .tag {
+            display: inline-block;
+            background: #ff4757;
+            color: #ffffff;
+            font-size: 13px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+        .fee-card {
+            background: #f7f7fd;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .fee-card .fee-name {
+            font-size: 16px;
+            color: #333333;
+            font-weight: 500;
+        }
+        .fee-card .fee-price {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+        }
+        .fee-card .fee-price .price {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ff4757;
+            line-height: 1;
+        }
+        .fee-card .fee-price .unit {
+            font-size: 14px;
+            color: #ff4757;
+        }
+        .fee-desc {
+            margin-top: 16px;
+            font-size: 14px;
+            color: #666666;
+            line-height: 1.8;
+        }
+        /* Modify Section */
+        .modify-section {
+            position: absolute;
+            top: 371px;
+            height: 380px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 0 16px;
+        }
+        .modify-section .section-title {
+            margin-top: 16px;
+        }
+        .modify-desc {
+            font-size: 14px;
+            color: #666666;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        .collapse-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #434cbf;
+            font-size: 14px;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+        .collapse-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: #434cbf;
+        }
+        .option-card {
+            background: #f7f7fd;
+            border-radius: 8px;
+            padding: 16px;
+            width: 200px;
+            position: relative;
+        }
+        .option-card .option-title {
+            font-size: 15px;
+            color: #333333;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        .option-card .option-price {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+            margin-bottom: 12px;
+        }
+        .option-card .option-price .price {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ff4757;
+            line-height: 1;
+        }
+        .option-card .option-price .unit {
+            font-size: 14px;
+            color: #ff4757;
+        }
+        .option-card .option-desc {
+            font-size: 13px;
+            color: #666666;
+            line-height: 1.6;
+        }
+        .option-card .detail-link {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #434cbf;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        .option-card .detail-link svg {
+            width: 14px;
+            height: 14px;
+            fill: #434cbf;
+        }
+        .option-card .check-mark {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            background: #a2abbe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .option-card .check-mark svg {
+            width: 16px;
+            height: 16px;
+            fill: #ffffff;
+        }
+        /* Risk Section */
+        .risk-section {
+            position: absolute;
+            top: 751px;
+            height: 260px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 0 16px;
+        }
+        .risk-title {
+            font-size: 15px;
+            color: #666666;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        .risk-content {
+            font-size: 13px;
+            color: #999999;
+            line-height: 1.8;
+        }
+        /* Agreement Section */
+        .agreement-section {
+            position: absolute;
+            top: 1011px;
+            height: 60px;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .agreement-section .radio {
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid #a2abbe;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .agreement-section .agreement-text {
+            font-size: 14px;
+            color: #666666;
+            line-height: 1.5;
+        }
+        .agreement-section .agreement-text .link {
+            color: #434cbf;
+        }
+        /* Bottom Button */
+        .bottom-button {
+            position: absolute;
+            top: 1081px;
+            height: 56px;
+            left: 16px;
+            right: 16px;
+            background: #a2abbe;
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="time">14:54</span>
+            <div class="icons">
+                <svg class="signal-icon" viewBox="0 0 18 12" fill="white">
+                    <rect x="0" y="8" width="3" height="4" rx="0.5"/>
+                    <rect x="5" y="5" width="3" height="7" rx="0.5"/>
+                    <rect x="10" y="2" width="3" height="10" rx="0.5"/>
+                    <rect x="15" y="0" width="3" height="12" rx="0.5"/>
+                </svg>
+                <svg class="wifi-icon" viewBox="0 0 16 12" fill="white">
+                    <path d="M8 0L0 8h2l6-6 6 6h2L8 0zm0 4L2 10h2l4-4 4 4h2L8 4z"/>
+                    <circle cx="8" cy="11" r="1"/>
+                </svg>
+                <div class="battery">
+                    <div class="battery-icon">
+                        <div class="battery-level"></div>
+                    </div>
+                    <span class="battery-text">80</span>
+                </div>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="title">修改收费方式</span>
+        </div>
+        <!-- Current Fee Section -->
+        <div class="current-fee-section">
+            <h2 class="section-title">当前收费方式</h2>
+            <span class="tag">大家爱选</span>
+            <div class="fee-card">
+                <span class="fee-name">单笔交易固定收费</span>
+                <div class="fee-price">
+                    <span class="price">8.80</span>
+                    <span class="unit">元/笔</span>
+                </div>
+            </div>
+            <p class="fee-desc">
+                自签约生效日起，您使用在本公司开立的证券账户（含信用账户）进行所有A股等投资品种交易时，无论是否为本公司推荐标的，每笔买入或卖出交易将额外收取固定的投资顾问服务费用8.80元/笔（原账户交易佣金照常收取）。
+            </p>
+        </div>
+        <!-- Modify Section -->
+        <div class="modify-section">
+            <h2 class="section-title">修改为其他收费方式</h2>
+            <p class="modify-desc">
+                您可以在以下收费方式中选择一种作为证券投资顾问业务服务协议收费方式，您选择一种收费方式后也可以根据自身需求自主选择变更为另外一种收费方式。具体以您在中国银河证券APP页面选择的收费方式为准。
+            </p>
+            <div class="collapse-btn">
+                <span>收起</span>
+                <svg viewBox="0 0 24 24">
+                    <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                </svg>
+            </div>
+            <div class="option-card">
+                <div class="option-title">约定周期固定收费30天</div>
+                <div class="option-price">
+                    <span class="price">3888</span>
+                    <span class="unit">元</span>
+                </div>
+                <p class="option-desc">自签约生效日起，本公司将按照证券投资顾问业务服务</p>
+                <div class="detail-link">
+                    <span>查看详情</span>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    </svg>
+                </div>
+                <div class="check-mark">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <!-- Risk Section -->
+        <div class="risk-section">
+            <div class="risk-title">风险揭示：</div>
+            <p class="risk-content">
+                本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。
+            </p>
+        </div>
+        <!-- Agreement Section -->
+        <div class="agreement-section">
+            <div class="radio"></div>
+            <p class="agreement-text">
+                我已阅读并同意<span class="link">《中国银河证券股份有限公司"财富星-AI投顾"证券投资顾问业务收费方式确认书》</span>
+            </p>
+        </div>
+        <!-- Bottom Button -->
+        <div class="bottom-button">确认修改</div>
+    </div>
+</body>
+</html>

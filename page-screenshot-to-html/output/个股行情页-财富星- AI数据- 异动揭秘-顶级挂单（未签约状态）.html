@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>白银有色 601212</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 2076px;
+            background: #fefefe;
+            overflow: visible;
+            margin: 0 auto;
+        }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #f8f8f8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .status-time {
+            font-size: 17px;
+            font-weight: 600;
+            color: #000;
+        }
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        /* Nav Bar */
+        .nav-bar {
+            position: absolute;
+            top: 47px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+        }
+        .nav-back {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-code {
+            font-size: 13px;
+            color: #999;
+            font-weight: 400;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #999;
+        }
+        .nav-search {
+            width: 20px;
+            height: 20px;
+        }
+        /* Stock Header */
+        .stock-header {
+            position: absolute;
+            top: 91px;
+            height: 60px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .stock-name-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stock-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+        .stock-code {
+            font-size: 14px;
+            color: #666;
+        }
+        .stock-tags {
+            display: flex;
+            gap: 4px;
+        }
+        .tag {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+            color: #666;
+        }
+        .stock-time {
+            font-size: 13px;
+            color: #999;
+        }
+        /* Price Section */
+        .price-section {
+            position: absolute;
+            top: 151px;
+            height: 64px;
+            left: 0;
+            right: 0;
+            background: #24a861;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .price-main {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .price-big {
+            font-size: 42px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+        .price-change {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .price-change-value {
+            font-size: 16px;
+            color: #fff;
+        }
+        .price-change-pct {
+            font-size: 16px;
+            color: #fff;
+        }
+        .price-right {
+            text-align: right;
+        }
+        .price-industry {
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .price-leader {
+            font-size: 13px;
+            color: rgba(255,255,255,0.9);
+            margin-top: 2px;
+        }
+        /* Stock Info Grid */
+        .stock-info {
+            position: absolute;
+            top: 215px;
+            height: 80px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            padding: 8px 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px 16px;
+        }
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .info-label {
+            font-size: 13px;
+            color: #666;
+            min-width: 36px;
+        }
+        .info-value {
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .info-value.green {
+            color: #24a861;
+        }
+        .info-value.red {
+            color: #ff4757;
+        }
+        .info-value.dark {
+            color: #333;
+        }
+        /* Chart Tabs */
+        .chart-tabs {
+            position: absolute;
+            top: 295px;
+            height: 40px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .chart-tab {
+            font-size: 15px;
+            color: #666;
+            padding-bottom: 8px;
+            position: relative;
+        }
+        .chart-tab.active {
+            color: #333;
+            font-weight: 600;
+        }
+        .chart-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #333;
+            border-radius: 1px;
+        }
+        .chart-tab-settings {
+            margin-left: auto;
+            width: 20px;
+            height: 20px;
+        }
+        /* Chart Section */
+        .chart-section {
+            position: absolute;
+            top: 335px;
+            height: 520px;
+            left: 0;
+            right: 0;
+            background: #fafafc;
+        }
+        .chart-indicators {
+            position: absolute;
+            top: 0;
+            height: 28px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+            font-size: 12px;
+            color: #666;
+        }
+        .chart-indicator-btn {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 6px;
+            background: #e8e8e8;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        .chart-indicator-value {
+            color: #999;
+        }
+        .chart-indicator-value span {
+            color: #ff9500;
+        }
+        .chart-fq {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 6px;
+            background: #e8e8e8;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        /* Main Chart Area */
+        .main-chart {
+            position: absolute;
+            top: 28px;
+            height: 260px;
+            left: 0;
+            right: 0;
+        }
+        .chart-y-labels {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            bottom: 8px;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+            z-index: 10;
+        }
+        .chart-content {
+            position: absolute;
+            left: 48px;
+            right: 8px;
+            top: 8px;
+            bottom: 24px;
+        }
+        .chart-x-labels {
+            position: absolute;
+            left: 48px;
+            right: 8px;
+            bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+        }
+        /* K-line SVG */
+        .kline-svg {
+            width: 100%;
+            height: 100%;
+        }
+        /* MACD Area */
+        .macd-area {
+            position: absolute;
+            top: 288px;
+            height: 100px;
+            left: 0;
+            right: 0;
+        }
+        .macd-header {
+            position: absolute;
+            top: 0;
+            height: 24px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        .macd-chart {
+            position: absolute;
+            top: 24px;
+            height: 76px;
+            left: 48px;
+            right: 8px;
+        }
+        .macd-y-labels {
+            position: absolute;
+            left: 8px;
+            top: 24px;
+            height: 76px;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+        }
+        /* Volume Area */
+        .volume-area {
+            position: absolute;
+            top: 388px;
+            height: 100px;
+            left: 0;
+            right: 0;
+        }
+        .volume-header {
+            position: absolute;
+            top: 0;
+            height: 24px;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        .volume-chart {
+            position: absolute;
+            top: 24px;
+            height: 76px;
+            left: 48px;
+            right: 8px;
+        }
+        .volume-y-labels {
+            position: absolute;
+            left: 8px;
+            top: 24px;
+            height: 76px;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+        }
+        /* Feature Buttons */
+        .feature-buttons {
+            position: absolute;
+            top: 855px;
+            height: 52px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 12px;
+            gap: 8px;
+        }
+        .feature-btn {
+            flex: 1;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #333;
+            background: #fff;
+        }
+        .feature-btn-icon {
+            width: 16px;
+            height: 16px;
+        }
+        /* Detail Tabs */
+        .detail-tabs {
+            position: absolute;
+            top: 907px;
+            height: 40px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .detail-tab {
+            font-size: 15px;
+            color: #666;
+            padding-bottom: 8px;
+            position: relative;
+        }
+        .detail-tab.active {
+            color: #4a90d9;
+            font-weight: 600;
+        }
+        .detail-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #4a90d9;
+            border-radius: 1px;
+        }
+        .detail-expand {
+            margin-left: auto;
+            width: 20px;
+            height: 20px;
+            color: #999;
+        }
+        /* Transaction List */
+        .transaction-list {
+            position: absolute;
+            top: 947px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+        }
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            height: 40px;
+            font-size: 14px;
+        }
+        .transaction-time {
+            width: 50px;
+            color: #333;
+        }
+        .transaction-price {
+            flex: 1;
+            text-align: center;
+            color: #24a861;
+            font-weight: 500;
+        }
+        .transaction-price.red {
+            color: #ff4757;
+        }
+        .transaction-volume {
+            width: 80px;
+            text-align: right;
+            color: #24a861;
+        }
+        .transaction-volume.red {
+            color: #ff4757;
+        }
+        .transaction-count {
+            width: 40px;
+            text-align: right;
+            color: #333;
+        }
+        /* Fund Section */
+        .fund-section {
+            position: absolute;
+            top: 1227px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            justify-content: space-between;
+            border-top: 8px solid #f5f5f5;
+        }
+        .fund-title {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        .fund-arrow {
+            width: 16px;
+            height: 16px;
+            color: #999;
+        }
+        /* Daily Section */
+        .daily-section {
+            position: absolute;
+            top: 1271px;
+            height: 60px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .daily-badge {
+            background: #ff6b6b;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        .daily-content {
+            flex: 1;
+        }
+        .daily-title {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        .daily-desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+        .daily-close {
+            width: 20px;
+            height: 20px;
+            color: #999;
+        }
+        /* Tool Grid */
+        .tool-grid {
+            position: absolute;
+            top: 1331px;
+            height: 90px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            padding: 12px 8px;
+            gap: 8px;
+        }
+        .tool-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .tool-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e0e0e0;
+        }
+        .tool-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+        .tool-name {
+            font-size: 12px;
+            color: #666;
+        }
+        /* Info Tabs */
+        .info-tabs {
+            position: absolute;
+            top: 1421px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 24px;
+            border-top: 8px solid #f5f5f5;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-tab {
+            font-size: 15px;
+            color: #666;
+        }
+        .info-tab.active {
+            color: #4a90d9;
+            font-weight: 600;
+        }
+        /* Sub Tabs */
+        .sub-tabs {
+            position: absolute;
+            top: 1465px;
+            height: 40px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+        }
+        .sub-tab {
+            font-size: 14px;
+            color: #666;
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+        .sub-tab.active {
+            color: #4a90d9;
+            background: #f0f7ff;
+        }
+        /* Promo Banner */
+        .promo-banner {
+            position: absolute;
+            top: 1505px;
+            height: 44px;
+            left: 0;
+            right: 0;
+            background: #fdf5e6;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            justify-content: space-between;
+        }
+        .promo-text {
+            font-size: 13px;
+            color: #666;
+        }
+        .promo-btn {
+            background: #4a90d9;
+            color: #fff;
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 4px;
+        }
+        /* Description Section */
+        .desc-section {
+            position: absolute;
+            top: 1549px;
+            height: 200px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            padding: 16px;
+        }
+        .desc-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+        }
+        .desc-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        /* Case Section */
+        .case-section {
+            position: absolute;
+            top: 1749px;
+            height: 280px;
+            left: 0;
+            right: 0;
+            background: #f5f5f5;
+            padding: 12px;
+        }
+        .case-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            height: 100%;
+        }
+        .case-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .case-stock {
+            font-size: 14px;
+            color: #666;
+        }
+        .case-time {
+            font-size: 12px;
+            color: #999;
+        }
+        .case-price-section {
+            background: #ff4757;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .case-price-main {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .case-price-big {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .case-price-change {
+            font-size: 13px;
+        }
+        .case-price-pct {
+            font-size: 13px;
+        }
+        .case-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .case-info-item {
+            display: flex;
+            gap: 4px;
+        }
+        .case-info-label {
+            color: #999;
+        }
+        .case-info-value {
+            color: #333;
+            font-weight: 500;
+        }
+        .case-info-value.red {
+            color: #ff4757;
+        }
+        /* Index Bar */
+        .index-bar {
+            position: absolute;
+            top: 2029px;
+            height: 47px;
+            left: 0;
+            right: 0;
+            background: #fefefe;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .index-name {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #333;
+        }
+        .index-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4757;
+        }
+        .index-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ff4757;
+        }
+        .index-change {
+            font-size: 13px;
+            color: #ff4757;
+        }
+        .index-volume {
+            margin-left: auto;
+            font-size: 13px;
+            color: #666;
+        }
+        /* Bottom Bar */
+        .bottom-bar {
+            position: absolute;
+            top: 2020px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #e0e0e0;
+            z-index: 100;
+        }
+        .bottom-btn {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .bottom-btn.primary {
+            background: #ff6b6b;
+            color: #fff;
+        }
+        .bottom-btn.secondary {
+            background: #4a90d9;
+            color: #fff;
+        }
+        .bottom-btn.normal {
+            color: #333;
+        }
+        .bottom-divider {
+            width: 1px;
+            height: 24px;
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-time">14:30</span>
+            <div class="status-icons">
+                <svg width="18" height="12" viewBox="0 0 18 12">
+                    <rect x="0" y="2" width="3" height="8" rx="0.5" fill="#333"/>
+                    <rect x="4" y="2" width="3" height="8" rx="0.5" fill="#333"/>
+                    <rect x="8" y="2" width="3" height="8" rx="0.5" fill="#333"/>
+                    <rect x="12" y="2" width="3" height="8" rx="0.5" fill="#333"/>
+                    <rect x="16" y="4" width="2" height="4" rx="0.5" fill="#333"/>
+                </svg>
+                <svg width="16" height="12" viewBox="0 0 16 12">
+                    <path d="M8 0L14 6H2L8 0Z" fill="#333"/>
+                    <rect x="1" y="6" width="14" height="5" rx="1" fill="#333"/>
+                </svg>
+                <svg width="25" height="12" viewBox="0 0 25 12">
+                    <rect x="0.5" y="0.5" width="21" height="11" rx="2.5" fill="none" stroke="#333" stroke-width="1"/>
+                    <rect x="2" y="2" width="17" height="8" rx="1" fill="#24a861"/>
+                    <rect x="22" y="4" width="2" height="4" rx="1" fill="#333"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Nav Bar -->
+        <div class="nav-bar">
+            <div class="nav-back">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="#333"/>
+                </svg>
+            </div>
+            <div class="nav-title">
+                白银有色 <span class="nav-code">601212</span>
+            </div>
+            <div class="nav-right">
+                04-13 14:30:21
+                <svg class="nav-search" viewBox="0 0 24 24">
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#999"/>
+                </svg>
+            </div>
+        </div>
+        <!-- Stock Header -->
+        <div class="stock-header">
+            <div class="stock-name-section">
+                <span class="stock-name">白银有色</span>
+                <span class="stock-code">601212</span>
+                <div class="stock-tags">
+                    <span class="tag">沪股通</span>
+                    <span class="tag">融</span>
+                </div>
+            </div>
+        </div>
+        <!-- Price Section -->
+        <div class="price-section">
+            <div class="price-main">
+                <span class="price-big">8.02</span>
+                <div class="price-change">
+                    <span class="price-change-value">-0.02</span>
+                    <span class="price-change-pct">-0.25%</span>
+                </div>
+            </div>
+            <div class="price-right">
+                <div class="price-industry">
+                    <span class="tag" style="border-color: rgba(255,255,255,0.5); color: rgba(255,255,255,0.9);">联</span>
+                    工业金属
+                    <svg width="14" height="14" viewBox="0 0 24 24">
+                        <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="rgba(255,255,255,0.9)"/>
+                    </svg>
+                </div>
+                <div class="price-leader">领涨 焦作万方 10.02%</div>
+            </div>
+        </div>
+        <!-- Stock Info -->
+        <div class="stock-info">
+            <div class="info-item">
+                <span class="info-label">今开</span>
+                <span class="info-value green">7.94</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">最高</span>
+                <span class="info-value red">8.09</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">成交量</span>
+                <span class="info-value dark">77.43万</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">换手</span>
+                <span class="info-value dark">1.05%</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">最低</span>
+                <span class="info-value green">7.91</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">成交额</span>
+                <span class="info-value dark">6.20亿</span>
+            </div>
+        </div>
+        <!-- Chart Tabs -->
+        <div class="chart-tabs">
+            <span class="chart-tab">分时</span>
+            <span class="chart-tab">五日</span>
+            <span class="chart-tab active">日K</span>
+            <span class="chart-tab">周K</span>
+            <span class="chart-tab">月K</span>
+            <span class="chart-tab">其他</span>
+            <svg class="chart-tab-settings" viewBox="0 0 24 24">
+                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="#999"/>
+            </svg>
+        </div>
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <!-- Indicators -->
+            <div class="chart-indicators">
+                <div class="chart-indicator-btn">
+                    EXPMA
+                    <svg width="10" height="10" viewBox="0 0 24 24">
+                        <path d="M7 10l5 5 5-5z" fill="#666"/>
+                    </svg>
+                </div>
+                <div class="chart-indicator-value">
+                    EXPMA <span>12=8.13</span> <span style="color:#666">50=8.58</span>
+                </div>
+                <div class="chart-fq">
+                    前复权
+                    <svg width="10" height="10" viewBox="0 0 24 24">
+                        <path d="M7 10l5 5 5-5z" fill="#666"/>
+                    </svg>
+                </div>
+            </div>
+            <!-- Main Chart -->
+            <div class="main-chart">
+                <div class="chart-y-labels">
+                    <span>16.66</span>
+                    <span>10.24</span>
+                    <span>3.82</span>
+                </div>
+                <div class="chart-content">
+                    <svg class="kline-svg" viewBox="0 0 320 220" preserveAspectRatio="none">
+                        <!-- Grid lines -->
+                        <line x1="0" y1="0" x2="320" y2="0" stroke="#e8e8e8" stroke-width="0.5"/>
+                        <line x1="0" y1="73" x2="320" y2="73" stroke="#e8e8e8" stroke-width="0.5"/>
+                        <line x1="0" y1="146" x2="320" y2="146" stroke="#e8e8e8" stroke-width="0.5"/>
+                        <!-- EXPMA lines -->
+                        <polyline points="0,200 30,190 60,170 90,140 120,120 150,100 180,95 210,110 240,130 270,150 300,160 320,165" fill="none" stroke="#ff9500" stroke-width="1.5"/>
+                        <polyline points="0,205 30,200 60,195 90,190 120,185 150,180 180,175 210,170 240,168 270,166 300,165 320,164" fill="none" stroke="#4a90d9" stroke-width="1.5"/>
+                        <!-- K-line candles -->
+                        <!-- Red candles (up) -->
+                        <rect x="10" y="180" width="6" height="15" fill="#ff4757"/>
+                        <line x1="13" y1="175" x2="13" y2="200" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="25" y="170" width="6" height="20" fill="#ff4757"/>
+                        <line x1="28" y1="160" x2="28" y2="195" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="40" y="150" width="6" height="25" fill="#ff4757"/>
+                        <line x1="43" y1="140" x2="43" y2="180" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="55" y="120" width="6" height="30" fill="#ff4757"/>
+                        <line x1="58" y1="100" x2="58" y2="155" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="70" y="90" width="6" height="35" fill="#ff4757"/>
+                        <line x1="73" y1="70" x2="73" y2="130" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="85" y="80" width="6" height="20" fill="#ff4757"/>
+                        <line x1="88" y1="75" x2="88" y2="105" stroke="#ff4757" stroke-width="1"/>
+                        <!-- Green candles (down) -->
+                        <rect x="100" y="100" width="6" height="15" fill="#24a861"/>
+                        <line x1="103" y1="95" x2="103" y2="120" stroke="#24a861" stroke-width="1"/>
+                        <rect x="115" y="110" width="6" height="12" fill="#24a861"/>
+                        <line x1="118" y1="105" x2="118" y2="125" stroke="#24a861" stroke-width="1"/>
+                        <rect x="130" y="115" width="6" height="10" fill="#24a861"/>
+                        <line x1="133" y1="110" x2="133" y2="128" stroke="#24a861" stroke-width="1"/>
+                        <rect x="145" y="120" width="6" height="8" fill="#ff4757"/>
+                        <line x1="148" y1="115" x2="148" y2="130" stroke="#ff4757" stroke-width="1"/>
+                        <rect x="160" y="118" width="6" height="12" fill="#24a861"/>
+                        <line x1="163" y1="112" x2="163" y2="132" stroke="#24a861" stroke-width="1"/>
+                        <rect x="175" y="122" width="6" height="10" fill="#24a861"/>
+                        <line x1="178" y1="118" x2="178" y2="135" stroke="#24a861" stroke-width="1"/>
+                        <rect x="190" y="125" width="6" height="8" fill="#24a861"/>
+                        <line x1="193" y1="120" x2="193" y2="135" stroke="#24a861" stroke-width="1"/>
+                        <rect x="205" y="128" width="6" height="10" fill="#24a861"/>
+                        <line x1="208" y1="123" x2="208" y2="140" stroke="#24a861" stroke-width="1"/>
+                        <rect x="220" y="130" width="6" height="12" fill="#24a861"/>
+                        <line x1="223" y1="125" x2="223" y2="145" stroke="#24a861" stroke-width="1"/>
+                        <rect x="235" y="135" width="6" height="10" fill="#24a861"/>
+                        <line x1="238" y1="130" x2="238" y2="148" stroke="#24a861" stroke-width="1"/>
+                        <rect x="250" y="140" width="6" height="8" fill="#24a861"/>
+                        <line x1="253" y1="135" x2="253" y2="150" stroke="#24a861" stroke-width="1"/>
+                        <rect x="265" y="142" width="6" height="10" fill="#24a861"/>
+                        <line x1="268" y1="138" x2="268" y2="155" stroke="#24a861" stroke-width="1"/>
+                        <rect x="280" y="145" width="6" height="8" fill="#24a861"/>
+                        <line x1="283" y1="140" x2="283" y2="155" stroke="#24a861" stroke-width="1"/>
+                        <rect x="295" y="148" width="6" height="6" fill="#24a861"/>
+                        <line x1="298" y1="144" x2="298" y2="155" stroke="#24a861" stroke-width="1"/>
+                        <rect x="310" y="150" width="6" height="8" fill="#24a861"/>
+                        <line x1="313" y1="146" x2="313" y2="158" stroke="#24a861" stroke-width="1"/>
+                    </svg>
+                </div>
+                <div class="chart-x-labels">
+                    <span>2026-01-07</span>
+                    <span>2026-04-13</span>
+                </div>
+            </div>
+            <!-- MACD Area -->
+            <div class="macd-area">
+                <div class="macd-header">
+                    <div class="chart-indicator-btn">
+                        MACD
+                        <svg width="10" height="10" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z" fill="#666"/>
+                        </svg>
+                    </div>
+                    <span>MACD(12,26,9) <span style="color:#ff9500">DIF=-0.35</span> <span style="color:#4a90d9">DEA=-0.41</span> <span style="color:#ff4757">MACD=0.12</span></span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" style="margin-left:auto">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="#999"/>
+                    </svg>
+                </div>
+                <div class="macd-y-labels">
+                    <span>2.09</span>
+                    <span>-0.92</span>
+                </div>
+                <div class="macd-chart">
+                    <svg width="100%" height="100%" viewBox="0 0 320 76" preserveAspectRatio="none">
+                        <!-- DIF line -->
+                        <polyline points="0,60 20,55 40,50 60,45 80,40 100,38 120,42 140,48 160,52 180,55 200,58 220,60 240,62 260,63 280,64 300,65 320,66" fill="none" stroke="#ff9500" stroke-width="1"/>
+                        <!-- DEA line -->
+                        <polyline points="0,62 20,58 40,54 60,50 80,46 100,43 120,45 140,49 160,53 180,56 200,58 220,60 240,61 260,62 280,63 300,64 320,65" fill="none" stroke="#4a90d9" stroke-width="1"/>
+                        <!-- MACD bars -->
+                        <rect x="5" y="58" width="4" height="4" fill="#ff4757"/>
+                        <rect x="15" y="56" width="4" height="6" fill="#ff4757"/>
+                        <rect x="25" y="54" width="4" height="8" fill="#ff4757"/>
+                        <rect x="35" y="52" width="4" height="10" fill="#ff4757"/>
+                        <rect x="45" y="50" width="4" height="12" fill="#ff4757"/>
+                        <rect x="55" y="48" width="4" height="14" fill="#ff4757"/>
+                        <rect x="65" y="50" width="4" height="10" fill="#24a861"/>
+                        <rect x="75" y="52" width="4" height="8" fill="#24a861"/>
+                        <rect x="85" y="54" width="4" height="6" fill="#24a861"/>
+                        <rect x="95" y="55" width="4" height="5" fill="#24a861"/>
+                        <rect x="105" y="56" width="4" height="4" fill="#24a861"/>
+                        <rect x="115" y="57" width="4" height="3" fill="#24a861"/>
+                        <rect x="125" y="58" width="4" height="2" fill="#24a861"/>
+                        <rect x="135" y="58" width="4" height="2" fill="#24a861"/>
+                        <rect x="145" y="59" width="4" height="1" fill="#24a861"/>
+                        <rect x="155" y="59" width="4" height="1" fill="#24a861"/>
+                        <rect x="165" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="175" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="185" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="195" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="205" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="215" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="225" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="235" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="245" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="255" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="265" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="275" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="285" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="295" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="305" y="60" width="4" height="0.5" fill="#24a861"/>
+                        <rect x="315" y="60" width="4" height="0.5" fill="#24a861"/>
+                    </svg>
+                </div>
+            </div>
+            <!-- Volume Area -->
+            <div class="volume-area">
+                <div class="volume-header">
+                    <div class="chart-indicator-btn">
+                        成交量
+                        <svg width="10" height="10" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z" fill="#666"/>
+                        </svg>
+                    </div>
+                    <span>VOLUME=77.43万 <span style="color:#ff9500">MA5=137.55万</span> <span style="color:#4a90d9">MA10=125.55万</span></span>
+                </div>
+                <div class="volume-y-labels">
+                    <span>745.46万</span>
+                </div>
+                <div class="volume-chart">
+                    <svg width="100%" height="100%" viewBox="0 0 320 76" preserveAspectRatio="none">
+                        <!-- Volume bars -->
+                        <rect x="5" y="60" width="6" height="16" fill="#ff4757"/>
+                        <rect x="15" y="55" width="6" height="21" fill="#ff4757"/>
+                        <rect x="25" y="50" width="6" height="26" fill="#ff4757"/>
+                        <rect x="35" y="45" width="6" height="31" fill="#ff4757"/>
+                        <rect x="45" y="40" width="6" height="36" fill="#ff4757"/>
+                        <rect x="55" y="35" width="6" height="41" fill="#ff4757"/>
+                        <rect x="65" y="30" width="6" height="46" fill="#ff4757"/>
+                        <rect x="75" y="25" width="6" height="51" fill="#ff4757"/>
+                        <rect x="85" y="20" width="6" height="56" fill="#ff4757"/>
+                        <rect x="95" y="15" width="6" height="61" fill="#ff4757"/>
+                        <rect x="105" y="10" width="6" height="66" fill="#ff4757"/>
+                        <rect x="115" y="5" width="6" height="71" fill="#ff4757"/>
+                        <rect x="125" y="8" width="6" height="68" fill="#ff4757"/>
+                        <rect x="135" y="12" width="6" height="64" fill="#24a861"/>
+                        <rect x="145" y="15" width="6" height="61" fill="#24a861"/>
+                        <rect x="155" y="18" width="6" height="58" fill="#24a861"/>
+                        <rect x="165" y="20" width="6" height="56" fill="#24a861"/>
+                        <rect x="175" y="22" width="6" height="54" fill="#24a861"/>
+                        <rect x="185" y="25" width="6" height="51" fill="#24a861"/>
+                        <rect x="195" y="28" width="6" height="48" fill="#24a861"/>
+                        <rect x="205" y="30" width="6" height="46" fill="#24a861"/>
+                        <rect x="215" y="32" width="6" height="44" fill="#24a861"/>
+                        <rect x="225" y="35" width="6" height="41" fill="#24a861"/>
+                        <rect x="235" y="38" width="6" height="38" fill="#24a861"/>
+                        <rect x="245" y="40" width="6" height="36" fill="#24a861"/>
+                        <rect x="255" y="42" width="6" height="34" fill="#24a861"/>
+                        <rect x="265" y="45" width="6" height="31" fill="#24a861"/>
+                        <rect x="275" y="48" width="6" height="28" fill="#24a861"/>
+                        <rect x="285" y="50" width="6" height="26" fill="#24a861"/>
+                        <rect x="295" y="52" width="6" height="24" fill="#24a861"/>
+                        <rect x="305" y="55" width="6" height="21" fill="#ff4757"/>
+                        <rect x="315" y="58" width="6" height="18" fill="#ff4757"/>
+                        <!-- MA5 line -->
+                        <polyline points="0,50 30,45 60,40 90,35 120,30 150,28 180,30 210,35 240,40 270,45 300,50 320,52" fill="none" stroke="#ff9500" stroke-width="1"/>
+                        <!-- MA10 line -->
+                        <polyline points="0,52 30,48 60,44 90,40 120,36 150,34 180,36 210,40 240,44 270,48 300,52 320,54" fill="none" stroke="#4a90d9" stroke-width="1"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <!-- Feature Buttons -->
+        <div class="feature-buttons">
+            <div class="feature-btn">
+                <svg class="feature-btn-icon" viewBox="0 0 24 24">
+                    <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <circle cx="12" cy="12" r="3" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <line x1="12" y1="5" x2="12" y2="7" stroke="#666" stroke-width="1.5"/>
+                    <line x1="12" y1="17" x2="12" y2="19" stroke="#666" stroke-width="1.5"/>
+                    <line x1="5" y1="12" x2="7" y2="12" stroke="#666" stroke-width="1.5"/>
+                    <line x1="17" y1="12" x2="19" y2="12" stroke="#666" stroke-width="1.5"/>
+                </svg>
+                主力密码
+            </div>
+            <div class="feature-btn">
+                <svg class="feature-btn-icon" viewBox="0 0 24 24">
+                    <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <path d="M8 12c0-2 2-4 4-4s4 2 4 4-2 4-4 4" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <circle cx="12" cy="12" r="1" fill="#666"/>
+                </svg>
+                神奇电波
+            </div>
+            <div class="feature-btn">
+                <svg class="feature-btn-icon" viewBox="0 0 24 24">
+                    <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <circle cx="12" cy="10" r="3" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <path d="M7 18c0-2.76 2.24-5 5-5s5 2.24 5 5" fill="none" stroke="#666" stroke-width="1.5"/>
+                </svg>
+                主力跟踪
+            </div>
+            <div class="feature-btn">
+                <svg class="feature-btn-icon" viewBox="0 0 24 24">
+                    <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <rect x="7" y="14" width="4" height="4" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <rect x="13" y="10" width="4" height="8" fill="none" stroke="#666" stroke-width="1.5"/>
+                    <line x1="9" y1="10" x2="9" y2="6" stroke="#666" stroke-width="1.5"/>
+                    <line x1="15" y1="6" x2="15" y2="6" stroke="#666" stroke-width="1.5"/>
+                </svg>
+                资金博弈
+            </div>
+        </div>
+        <!-- Detail Tabs -->
+        <div class="detail-tabs">
+            <span class="detail-tab active">明细</span>
+            <span class="detail-tab">队列</span>
+            <span class="detail-tab">量价</span>
+            <span class="detail-tab">逐笔委托</span>
+            <span class="detail-tab">逐笔还原</span>
+            <svg class="detail-expand" viewBox="0 0 24 24">
+                <path d="M7 14l5-5 5 5z" fill="#999"/>
+                <path d="M7 10l5 5 5-5z" fill="#999" transform="rotate(180 12 12)"/>
+            </svg>
+        </div>
+        <!-- Transaction List -->
+        <div class="transaction-list">
+            <div class="transaction-item">
+                <span class="transaction-time">14:30</span>
+                <span class="transaction-price">8.02</span>
+                <span class="transaction-volume">54 卖</span>
+                <span class="transaction-count">8</span>
+            </div>
+            <div class="transaction-item">
+                <span class="transaction-time">14:30</span>
+                <span class="transaction-price">8.02</span>
+                <span class="transaction-volume">36 卖</span>
+                <span class="transaction-count">4</span>
+            </div>
+            <div class="transaction-item">
+                <span class="transaction-time">14:30</span>
+                <span class="transaction-price">8.02</span>
+                <span class="transaction-volume">54 卖</span>
+                <span class="transaction-count">8</span>
+            </div>
+            <div class="transaction-item">
+                <span class="transaction-time">14:30</span>
+                <span class="transaction-price">8.02</span>
+                <span class="transaction-volume">36 卖</span>
+                <span class="transaction-count">4</span>
+            </div>
+            <div class="transaction-item">
+                <span class="transaction-time">14:30</span>
+                <span class="transaction-price">8.02</span>
+                <span class="transaction-volume">65 卖</span>
+                <span class="transaction-count">16</span>
+            </div>
+            <div class="transaction-item">
+                <span class="transaction-time">14:30</span>
+                <span class="transaction-price red">8.03</span>
+                <span class="transaction-volume red">30 买</span>
+                <span class="transaction-count">8</span>
+            </div>
+            <div class="transaction-item">
+                <span class="transaction-time">14:30</span>
+                <span class="transaction-price">8.02</span>
+                <span class="transaction-volume">205 卖</span>
+                <span class="transaction-count">28</span>
+            </div>
+        </div>
+        <!-- Fund Section -->
+        <div class="fund-section">
+            <span class="fund-title">重仓TA的基金  场内 2  场外 2</span>
+            <svg class="fund-arrow" viewBox="0 0 24 24">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="#999"/>
+            </svg>
+        </div>
+        <!-- Daily Section -->
+        <div class="daily-section">
+            <span class="daily-badge">每日</span>
+            <div class="daily-content">
+                <div class="daily-title">资金观察</div>
+                <div class="daily-desc">银小河带您观察资金动向</div>
+            </div>
+            <svg class="daily-close" viewBox="0 0 24 24">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="#999"/>
+            </svg>
+        </div>
+        <!-- Tool Grid -->
+        <div class="tool-grid">
+            <div class="tool-item">
+                <div class="tool-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="#ff6b6b" stroke-width="1.5"/>
+                        <path d="M8 12h8M12 8v8" stroke="#ff6b6b" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <span class="tool-name">AI投顾</span>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="#4a90d9" stroke-width="1.5"/>
+                        <circle cx="12" cy="12" r="4" fill="none" stroke="#4a90d9" stroke-width="1.5"/>
+                        <circle cx="12" cy="12" r="1" fill="#4a90d9"/>
+                    </svg>
+                </div>
+                <span class="tool-name">筹码分布</span>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="#ff9500" stroke-width="1.5"/>
+                        <path d="M7 15l3-5 3 3 4-6" fill="none" stroke="#ff9500" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <span class="tool-name">DK信号</span>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="#24a861" stroke-width="1.5"/>
+                        <polygon points="10,8 16,12 10,16" fill="#24a861"/>
+                    </svg>
+                </div>
+                <span class="tool-name">异动资讯</span>
+            </div>
+            <div class="tool-item">
+                <div class="tool-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="#666" stroke-width="1.5"/>
+                        <line x1="8" y1="12" x2="16" y2="12" stroke="#666" stroke-width="1.5"/>
+                        <line x1="12" y1="8" x2="12" y2="16" stroke="#666" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <span class="tool-name">交易记录</span>
+            </div>
+        </div>
+        <!-- Info Tabs -->
+        <div class="info-tabs">
+            <span class="info-tab">要闻</span>
+            <span class="info-tab">资金</span>
+            <span class="info-tab">F10</span>
+            <span class="info-tab">两融</span>
+            <span class="info-tab active">揭秘</span>
+            <span class="info-tab">诊股</span>
+        </div>
+        <!-- Sub Tabs -->
+        <div class="sub-tabs">
+            <span class="sub-tab">拖拉机单</span>
+            <span class="sub-tab active">顶级挂单</span>
+            <span class="sub-tab">主力撤单</span>
+            <span class="sub-tab">涨停承压</span>
+        </div>
+        <!-- Promo Banner -->
+        <div class="promo-banner">
+            <span class="promo-text">签约超值套餐解锁「异动揭秘」等多项权益</span>
+            <span class="promo-btn">立即签约</span>
+        </div>
+        <!-- Description Section -->
+        <div class="desc-section">
+            <p class="desc-text">
+                顶级挂单是指在9000手以上的挂单，通过跟踪这些挂单的委托买入、委托卖出、撤销委托的行为，发现主力的踪迹以及意图，把握介入和撤退的时机。
+            </p>
+            <p class="desc-title" style="margin-top: 16px;">实战案例：</p>
+            <p class="desc-text">
+                省****（0*****），2023年7月13日临近收盘11点29分出现大量的超级买单，判断是多头主力发力了，盘中拉升触及涨停，最终封死在涨停板。
+            </p>
+        </div>
+        <!-- Case Section -->
+        <div class="case-section">
+            <div class="case-card">
+                <div class="case-header">
+                    <span class="case-stock">省****  0*****</span>
+                    <span class="case-time">07-13 15:00:03</span>
+                </div>
+                <div class="case-price-section">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                        <div class="case-price-main">
+                            <span class="case-price-big">5.13</span>
+                            <div style="display:flex;flex-direction:column;">
+                                <span class="case-price-change">0.47</span>
+                                <span class="case-price-pct">10.09%</span>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:12px;display:flex;align-items:center;gap:4px;">
+                                <span class="tag" style="border-color:rgba(255,255,255,0.5);color:rgba(255,255,255,0.9);">联</span>
+                                广告营销
+                                <svg width="14" height="14" viewBox="0 0 24 24">
+                                    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="rgba(255,255,255,0.9)"/>
+                                </svg>
+                            </div>
+                            <div style="font-size:12px;margin-top:4px;">领涨 省广集团 10.09%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="case-info-grid">
+                    <div class="case-info-item">
+                        <span class="case-info-label">今开</span>
+                        <span class="case-info-value">4.69</span>
+                    </div>
+                    <div class="case-info-item">
+                        <span class="case-info-label">最高</span>
+                        <span class="case-info-value red">5.13</span>
+                    </div>
+                    <div class="case-info-item">
+                        <span class="case-info-label">成交量</span>
+                        <span class="case-info-value">63.73万</span>
+                    </div>
+                    <div class="case-info-item">
+                        <span class="case-info-label">换手</span>
+                        <span class="case-info-value">3.78%</span>
+                    </div>
+                    <div class="case-info-item">
+                        <span class="case-info-label">最低</span>
+                        <span class="case-info-value">4.68</span>
+                    </div>
+                    <div class="case-info-item">
+                        <span class="case-info-label">成交额</span>
+                        <span class="case-info-value">3.16亿</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Index Bar -->
+        <div class="index-bar">
+            <div class="index-name">
+                <span class="index-dot"></span>
+                科创50
+            </div>
+            <span class="index-value">1374.60</span>
+            <span class="index-change">0.74%</span>
+            <span class="index-volume">成交额 722.61亿</span>
+        </div>
+        <!-- Bottom Bar -->
+        <div class="bottom-bar">
+            <div class="bottom-btn primary">下单</div>
+            <div class="bottom-btn secondary">条件下单</div>
+            <div class="bottom-btn normal">盯盘助手</div>
+            <div class="bottom-divider"></div>
+            <div class="bottom-btn normal" style="display:flex;align-items:center;gap:4px;">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z" fill="#999"/>
+                </svg>
+                删自选
+            </div>
+        </div>
+    </div>
+</body>
+</html>

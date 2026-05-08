@@ -1,0 +1,14 @@
+2026/05/07-11:21:21.558 ca6bc5d Reusing MANIFEST /Users/gaoyiwei/Documents/trae_projects/openclaw/.trae/skills/sentinel-browser/userdata/IndexedDB/https_cdns.chinastock.com.cn_0.indexeddb.leveldb/MANIFEST-000001
+2026/05/07-11:21:21.559 ca6bc5d Recovering log #302
+2026/05/07-11:21:21.559 ca6bc5d Reusing old log /Users/gaoyiwei/Documents/trae_projects/openclaw/.trae/skills/sentinel-browser/userdata/IndexedDB/https_cdns.chinastock.com.cn_0.indexeddb.leveldb/000302.log 
+2026/05/07-11:21:21.559 ca6bc5d Delete type=2 #300
+2026/05/07-11:21:21.580 ca6bc5d Level-0 table #307: started
+2026/05/07-11:21:21.582 ca6bc5d Level-0 table #307: 1085 bytes OK
+2026/05/07-11:21:21.583 ca6bc5d Delete type=0 #302
+2026/05/07-11:21:21.583 ca6bc5d Manual compaction at level-0 from '\x00Z\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00[\x00\x00\x00' @ 0 : 0; will stop at '\x00Z\x00\x00\xc8\x04\x00d\x00a\x00t\x00a' @ 5716 : 1
+2026/05/07-11:21:21.584 ca6bc5d Compacting 1@0 + 1@1 files
+2026/05/07-11:21:21.585 ca6bc5d Generated table #308@0: 106 keys, 1974 bytes
+2026/05/07-11:21:21.585 ca6bc5d Compacted 1@0 + 1@1 files => 1974 bytes
+2026/05/07-11:21:21.586 ca6bc5d compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/05/07-11:21:21.586 ca6bc5d Delete type=2 #307
+2026/05/07-11:21:21.587 ca6bc5d Manual compaction at level-0 from '\x00Z\x00\x00\xc8\x04\x00d\x00a\x00t\x00a' @ 5716 : 1 .. '\x00[\x00\x00\x00' @ 0 : 0; will stop at (end)

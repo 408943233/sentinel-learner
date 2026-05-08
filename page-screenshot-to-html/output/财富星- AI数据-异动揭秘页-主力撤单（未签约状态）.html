@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" c />
+    <title>异动揭秘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            background: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+        .page-container {
+            position: relative;
+            width: 390px;
+            height: 2209px;
+            overflow: visible;
+            margin: 0 auto;
+            background: #e5e5e5;
+        }
+        .section {
+            position: absolute;
+            left: 0;
+            right: 0;
+        }
+        /* 状态栏 */
+        .status-bar {
+            top: 0;
+            height: 47px;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+        .status-bar .time {
+            font-weight: 600;
+        }
+        .status-bar .icons {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+        /* 导航栏 */
+        .nav-bar {
+            top: 47px;
+            height: 44px;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            color: #ffffff;
+        }
+        .nav-bar .back-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-bar .title {
+            font-size: 17px;
+            font-weight: 500;
+        }
+        .nav-bar .right-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Hero区域 - 异动揭秘 */
+        .hero-section {
+            top: 91px;
+            height: 200px;
+            background: linear-gradient(180deg, #5864e1 0%, #515ddd 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-content {
+            padding: 24px 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .hero-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+        .hero-subtitle {
+            font-size: 14px;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 16px;
+        }
+        .video-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            padding: 6px 16px;
+            color: #ffffff;
+            font-size: 14px;
+        }
+        .hero-illustration {
+            position: absolute;
+            right: 10px;
+            top: 20px;
+            width: 140px;
+            height: 140px;
+        }
+        /* 说明卡片 */
+        .info-card-section {
+            top: 291px;
+            height: 120px;
+            background: #f6f6ff;
+            padding: 16px 20px;
+        }
+        .info-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .info-card-text {
+            font-size: 14px;
+            color: #333333;
+            line-height: 1.8;
+        }
+        .info-card-text .highlight {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        /* 标签栏 */
+        .tab-section {
+            top: 411px;
+            height: 50px;
+            background: #3340b5;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        .tab-item {
+            color: rgba(255,255,255,0.6);
+            font-size: 15px;
+            padding: 8px 0;
+            position: relative;
+        }
+        .tab-item.active {
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 2px;
+        }
+        /* 主力撤单标题 */
+        .section-title-bar {
+            top: 461px;
+            height: 50px;
+            background: #303eb0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .section-title-bar .line {
+            width: 40px;
+            height: 1px;
+            background: rgba(255,255,255,0.4);
+        }
+        .section-title-bar .title {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        /* 说明文字区域 */
+        .desc-section {
+            top: 511px;
+            height: 280px;
+            background: #2e3cac;
+            padding: 16px 20px;
+        }
+        .desc-text {
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 12px;
+        }
+        .desc-text .label {
+            color: #ffd700;
+            font-weight: 600;
+        }
+        .case-box {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        /* 股票详情卡片 */
+        .stock-detail-section {
+            top: 791px;
+            height: 520px;
+            background: #ffffff;
+            margin: 0 12px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .stock-header-mini {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .stock-header-mini .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stock-tag {
+            font-size: 11px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .stock-time {
+            font-size: 13px;
+            color: #999;
+        }
+        .stock-price-bar {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #fff5f5;
+        }
+        .big-price {
+            font-size: 36px;
+            font-weight: 700;
+            color: #ff4757;
+        }
+        .price-change {
+            font-size: 14px;
+            color: #ff4757;
+        }
+        .price-change-pct {
+            font-size: 14px;
+            color: #ff4757;
+            background: rgba(255,71,87,0.1);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .stock-info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 12px 16px;
+            font-size: 12px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .info-item .label {
+            color: #999;
+        }
+        .info-item .value {
+            color: #333;
+            font-weight: 500;
+        }
+        .info-item .value.up {
+            color: #ff4757;
+        }
+        .info-item .value.down {
+            color: #22c55e;
+        }
+        /* 分时图区域 */
+        .chart-area {
+            height: 200px;
+            position: relative;
+            padding: 0 16px;
+        }
+        .chart-time-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+        .chart-main {
+            height: 160px;
+            position: relative;
+            border-left: 1px solid #e5e5e5;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            font-size: 11px;
+            padding: 8px;
+            border-radius: 6px;
+            max-width: 200px;
+            line-height: 1.6;
+        }
+        /* 买卖盘 */
+        .order-book {
+            position: absolute;
+            right: 16px;
+            top: 0;
+            width: 120px;
+            font-size: 12px;
+        }
+        .order-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0;
+        }
+        .order-row .side {
+            color: #999;
+        }
+        .order-row .price {
+            color: #ff4757;
+        }
+        .order-row .qty {
+            color: #333;
+        }
+        /* 功能按钮区域 */
+        .feature-buttons {
+            top: 1311px;
+            height: 90px;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 16px;
+        }
+        .feature-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .feature-btn .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .feature-btn .icon.blue {
+            background: #e8eaf6;
+            color: #242fa3;
+        }
+        .feature-btn .icon.purple {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        .feature-btn .icon.orange {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+        .feature-btn .icon.green {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .feature-btn .text {
+            font-size: 12px;
+            color: #333;
+        }
+        /* 什么是主力撤单 */
+        .what-section {
+            top: 1401px;
+            height: 280px;
+            background: #e5e5e5;
+            padding: 16px;
+        }
+        .what-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #242fa3;
+            text-align: center;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .card-title::before,
+        .card-title::after {
+            content: '';
+            width: 30px;
+            height: 2px;
+            background: #242fa3;
+        }
+        .card-body {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+        }
+        .card-body .term {
+            color: #242fa3;
+            font-weight: 600;
+        }
+        /* 如何分析 */
+        .how-section {
+            top: 1681px;
+            height: 280px;
+            background: #e5e5e5;
+            padding: 0 16px 16px;
+        }
+        /* 风险提示 */
+        .risk-section {
+            top: 1961px;
+            height: 200px;
+            background: #f1f1f3;
+            padding: 16px;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.8;
+        }
+        .risk-title {
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        /* 登录按钮 */
+        .login-btn-section {
+            top: 2161px;
+            height: 48px;
+            padding: 0 16px;
+        }
+        .login-btn {
+            width: 100%;
+            height: 44px;
+            background: #242fa3;
+            color: #ffffff;
+            border: none;
+            border-radius: 22px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* SVG图标 */
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- 状态栏 -->
+        <div class="section status-bar">
+            <span class="time">9:41</span>
+            <div class="icons">
+                <svg viewBox="0 0 24 24" fill="white" style="width:18px;height:18px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <svg viewBox="0 0 24 24" fill="white" style="width:18px;height:18px;"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+                <svg viewBox="0 0 24 24" fill="white" style="width:18px;height:18px;"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+            </div>
+        </div>
+        <!-- 导航栏 -->
+        <div class="section nav-bar">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24" fill="white"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </div>
+            <span class="title">异动揭秘</span>
+            <div class="right-btn">
+                <svg viewBox="0 0 24 24" fill="white"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            </div>
+        </div>
+        <!-- Hero区域 -->
+        <div class="section hero-section">
+            <div class="hero-content">
+                <div class="hero-title">异动揭秘</div>
+                <div class="hero-subtitle">洞察主力成本，追踪吸筹轨迹</div>
+                <div class="video-btn">
+                    <svg viewBox="0 0 24 24" fill="white" style="width:16px;height:16px;"><path d="M8 5v14l11-7z"/></svg>
+                    视频教程
+                    <svg viewBox="0 0 24 24" fill="white" style="width:16px;height:16px;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+                </div>
+            </div>
+            <div class="hero-illustration">
+                <svg viewBox="0 0 140 140">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="70" cy="70" r="50" fill="url(#grad1)" opacity="0.3"/>
+                    <path d="M50 90 L70 50 L90 70 L110 30" stroke="#ff6b6b" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polygon points="105,25 115,35 110,40" fill="#ff6b6b"/>
+                    <circle cx="70" cy="50" r="8" fill="#ffd93d"/>
+                    <circle cx="90" cy="70" r="6" fill="#ffd93d"/>
+                </svg>
+            </div>
+        </div>
+        <!-- 说明卡片 -->
+        <div class="section info-card-section">
+            <div class="info-card">
+                <div class="info-card-text">
+                    本策略由<span class="highlight">2个Level 2指标</span>和<span class="highlight">4个Level 2异动监控</span>池构成，其特色功能有主力跟踪、资金博弈、拖拉机单、主力撤单、顶级挂单和涨停承压。
+                </div>
+            </div>
+        </div>
+        <!-- 标签栏 -->
+        <div class="section tab-section">
+            <div class="tab-item">拖拉机单</div>
+            <div class="tab-item">顶级挂单</div>
+            <div class="tab-item active">主力撤单</div>
+            <div class="tab-item">涨停承压</div>
+        </div>
+        <!-- 主力撤单标题 -->
+        <div class="section section-title-bar">
+            <div class="line"></div>
+            <div class="title">主力撤单</div>
+            <div class="line"></div>
+        </div>
+        <!-- 说明文字 -->
+        <div class="section desc-section">
+            <div class="desc-text">
+                分析Level2盘口撤单数据，利用数据还原原理，逐笔还原撤买和撤卖，挖掘大主力撤单的意图，发现机会辨别风险。
+            </div>
+            <div class="desc-text">
+                <span class="label">案例：</span>2023年7月13日，主力单统计数据显示雅***(0*****)在上午有7次主力撤卖的动作，并在下午13:00前后连续出现3次撤卖操作。结合当日分时走势，很有可能是主力吸筹，从下午走势来看，股价处于上升趋势，并在最后一次主力撤卖(13:16)后涨停，进一步印证了主力吸筹。
+            </div>
+        </div>
+        <!-- 股票详情卡片 -->
+        <div class="section stock-detail-section">
+            <div class="stock-header-mini">
+                <div class="left">
+                    <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="#333"/></svg>
+                    <span class="stock-tag">深股通</span>
+                    <span class="stock-tag">融</span>
+                </div>
+                <span class="stock-time">07-13 15:00:00</span>
+                <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#999"/></svg>
+            </div>
+            <div class="stock-price-bar">
+                <span class="big-price">83.11</span>
+                <div style="display:flex;flex-direction:column;gap:2px;">
+                    <span class="price-change">7.56</span>
+                    <span class="price-change-pct">10.01%</span>
+                </div>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:4px;">
+                    <span class="stock-tag" style="color:#ff4757;border:1px solid #ff4757;">半导体</span>
+                    <span style="font-size:12px;color:#666;">领涨 华海诚科-注 20.00%</span>
+                    <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="#999"/></svg>
+                </div>
+            </div>
+            <div class="stock-info-grid">
+                <div class="info-item">
+                    <span class="label">今开</span>
+                    <span class="value up">76.04</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">最高</span>
+                    <span class="value up">83.11</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">成交量</span>
+                    <span class="value">21.11万</span>
+                </div>
+                <div class="info-item">
+                    <span class="label"></span>
+                    <span class="value"></span>
+                </div>
+                <div class="info-item">
+                    <span class="label">换手</span>
+                    <span class="value">6.63%</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">最低</span>
+                    <span class="value down">75.40</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">成交额</span>
+                    <span class="value">17.02亿</span>
+                </div>
+                <div class="info-item">
+                    <span class="label"></span>
+                    <span class="value"></span>
+                </div>
+            </div>
+            <div style="padding:8px 16px;font-size:13px;color:#666;display:flex;gap:16px;">
+                <span>13:16</span>
+                <span>价 <span style="color:#ff4757;font-weight:600;">82.80</span></span>
+                <span>均 <span style="color:#ff4757;">79.96</span></span>
+                <span>幅 <span style="color:#ff4757;">9.60%</span></span>
+                <span>量 <span style="color:#333;">1139</span></span>
+            </div>
+            <div class="chart-area">
+                <div style="display:flex;justify-content:space-between;">
+                    <div style="font-size:11px;color:#ff4757;background:#ffebee;padding:2px 8px;border-radius:4px;">82.80</div>
+                    <div style="font-size:11px;color:#ff4757;background:#ffebee;padding:2px 8px;border-radius:4px;">9.60%</div>
+                </div>
+                <div class="chart-main">
+                    <svg viewBox="0 0 300 150" style="width:100%;height:100%;">
+                        <path d="M10 120 Q30 115 50 110 T90 100 T130 85 T170 70 T210 50 T250 30 T290 20" stroke="#ff4757" stroke-width="1.5" fill="none"/>
+                        <path d="M10 125 Q30 122 50 118 T90 112 T130 105 T170 95 T210 85 T250 75 T290 70" stroke="#ffd93d" stroke-width="1" fill="none"/>
+                        <line x1="0" y1="75" x2="300" y2="75" stroke="#e5e5e5" stroke-width="0.5" stroke-dasharray="3,3"/>
+                    </svg>
+                    <div class="chart-tooltip" style="left:60px;top:40px;">
+                        雅***（0*****），2023年7月13号<br />
+                        当天一共出现了7次撤卖，挂单总<br />
+                        量5626手，并出现了涨停。
+                    </div>
+                    <div class="order-book">
+                        <div class="order-row">
+                            <span class="side">卖5</span>
+                            <span class="price">--</span>
+                            <span class="qty">0</span>
+                        </div>
+                        <div class="order-row">
+                            <span class="side">卖4</span>
+                            <span class="price">--</span>
+                            <span class="qty">0</span>
+                        </div>
+                        <div class="order-row">
+                            <span class="side">卖3</span>
+                            <span class="price">--</span>
+                            <span class="qty">0</span>
+                        </div>
+                        <div class="order-row">
+                            <span class="side">卖2</span>
+                            <span class="price">--</span>
+                            <span class="qty">0</span>
+                        </div>
+                        <div class="order-row">
+                            <span class="side">卖1</span>
+                            <span class="price">--</span>
+                            <span class="qty">0</span>
+                        </div>
+                        <div style="height:8px;"></div>
+                        <div class="order-row">
+                            <span class="side">买1</span>
+                            <span class="price" style="color:#ff4757;">83.11</span>
+                            <span class="qty">3776</span>
+                        </div>
+                        <div class="order-row">
+                            <span class="side">买2</span>
+                            <span class="price" style="color:#ff4757;">83.10</span>
+                            <span class="qty">25</span>
+                        </div>
+                        <div class="order-row">
+                            <span class="side">买3</span>
+                            <span class="price" style="color:#ff4757;">83.09</span>
+                            <span class="qty">11</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-time-bar">
+                    <span>09:30</span>
+                    <span>11:30</span>
+                    <span style="background:#242fa3;color:#fff;padding:2px 8px;border-radius:4px;">13:16</span>
+                    <span>15:00</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:#22c55e;">
+                    <span>67.99</span>
+                    <span>-10.01%</span>
+                </div>
+            </div>
+            <div style="padding:12px 16px;font-size:12px;color:#999;">
+                注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。
+            </div>
+        </div>
+        <!-- 功能按钮 -->
+        <div class="section feature-buttons">
+            <div class="feature-btn">
+                <div class="icon blue">
+                    <svg viewBox="0 0 24 24" style="width:24px;height:24px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#242fa3"/></svg>
+                </div>
+                <span class="text">主力密码</span>
+            </div>
+            <div class="feature-btn">
+                <div class="icon purple">
+                    <svg viewBox="0 0 24 24" style="width:24px;height:24px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#7b1fa2"/></svg>
+                </div>
+                <span class="text">神奇电波</span>
+            </div>
+            <div class="feature-btn">
+                <div class="icon orange">
+                    <svg viewBox="0 0 24 24" style="width:24px;height:24px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#ef6c00"/></svg>
+                </div>
+                <span class="text">主力跟踪</span>
+            </div>
+            <div class="feature-btn">
+                <div class="icon green">
+                    <svg viewBox="0 0 24 24" style="width:24px;height:24px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#2e7d32"/></svg>
+                </div>
+                <span class="text">资金博弈</span>
+            </div>
+        </div>
+        <!-- 什么是主力撤单 -->
+        <div class="section what-section">
+            <div class="what-card">
+                <div class="card-title">什么是主力撤单</div>
+                <div class="card-body">
+                    <span class="term">主力撤单</span>是根据Level2盘口撤单数据，利用数据还原原理，将机构撤单数据进行点对点的记忆跟踪并加工处理，展现逐笔撤买、逐笔撤卖的细节，揭示市场操纵和盘口诱导行为，抓取撤单金额巨大的异常个股，发现主力意图。
+                </div>
+            </div>
+        </div>
+        <!-- 如何分析主力撤单 -->
+        <div class="section how-section">
+            <div class="what-card">
+                <div class="card-title">如何分析主力撤单</div>
+                <div class="card-body">
+                    <p style="margin-bottom:12px;"><span class="term">主力撤买：</span>对于主力撤买频繁出现的个股，可以留意一下主力成交的实际情况，如果卖方成交异常活跃，那很有可能是主力出货，投资者应该警惕风险。</p>
+                    <p><span class="term">主力撤卖：</span>对于主力撤卖频繁出现的个股，可以留意一下主力成交的实际情况，如果买方成交异常活跃，那很有可能是主力吸筹，投资者可以择机介入。</p>
+                </div>
+            </div>
+        </div>
+        <!-- 风险提示 -->
+        <div class="section risk-section">
+            <div class="risk-title">风险提示：</div>
+            <p>本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。</p>
+            <p style="margin-top:8px;">固有风险：阶段行情不同会影响指标及异动信号的释放和入选，长期缺乏信号会导致算法模型缺少训练数据，有一定概率出现预测不精准的情况。</p>
+            <p style="margin-top:8px;">使用风险：L2数据信息量大、更新频率高，对使用者有一定知识储备和经验要求。历史入选不代表后期股票表现，投资者应该独立自主承担决策风险。</p>
+            <p style="margin-top:8px;">数据信息来源：沪深交易所</p>
+        </div>
+        <!-- 登录按钮 -->
+        <div class="section login-btn-section">
+            <button class="login-btn">登录查看</button>
+        </div>
+    </div>
+</body>
+</html>

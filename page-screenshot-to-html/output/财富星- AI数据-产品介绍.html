@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" / />
+    <meta name="viewport" c / />
+    <title>财富星-AI数据</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+        }
+        .page-container {
+            width: 390px;
+            min-height: 100vh;
+            background: #f5f5f5;
+            position: relative;
+            overflow: visible;
+            padding-bottom: 80px;
+        }
+        /* 顶部蓝色背景区域 */
+        .header-section {
+            background: #445bde;
+            padding: 44px 16px 24px;
+            position: relative;
+        }
+        /* 状态栏 */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px 4px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .battery-icon {
+            width: 25px;
+            height: 12px;
+            border: 1px solid #fff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1px;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3px;
+            width: 2px;
+            height: 6px;
+            background: #fff;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #fff;
+            border-radius: 1px;
+        }
+        /* 导航栏 */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            color: #fff;
+        }
+        .back-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-title {
+            font-size: 17px;
+            font-weight: 500;
+        }
+        .nav-right {
+            width: 24px;
+        }
+        /* 标题区域 */
+        .title-section {
+            padding: 16px;
+            color: #fff;
+        }
+        .main-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .sub-title {
+            font-size: 14px;
+            opacity: 0.85;
+        }
+        /* 白色内容区域 */
+        .content-section {
+            background: #fff;
+            margin: 0 12px;
+            border-radius: 12px;
+            padding: 20px 16px;
+            margin-top: -12px;
+            position: relative;
+            z-index: 2;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 16px;
+        }
+        /* 服务图标网格 */
+        .service-grid {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .service-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .service-icon.gold {
+            background: #fef3e2;
+        }
+        .service-icon.blue {
+            background: #e8eeff;
+        }
+        .service-icon.purple {
+            background: #f0e8ff;
+        }
+        .service-icon.orange {
+            background: #fff0e8;
+        }
+        .service-icon.green {
+            background: #e8f5e9;
+        }
+        .service-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+        .service-name {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+        .service-desc {
+            font-size: 11px;
+            color: #999;
+            text-align: center;
+            line-height: 1.4;
+        }
+        /* 产品亮点 */
+        .highlight-section {
+            margin-top: 20px;
+        }
+        .highlight-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .highlight-card {
+            background: #f7f8fd;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+        .highlight-card.full-width {
+            grid-column: 1 / -1;
+            text-align: center;
+            background: #eceefc;
+        }
+        .highlight-tag {
+            display: inline-block;
+            background: #445bde;
+            color: #fff;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .highlight-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .highlight-desc {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.5;
+        }
+        /* 陆港淘金 */
+        .feature-detail {
+            margin-top: 24px;
+            padding: 0 4px;
+        }
+        .feature-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .feature-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .feature-subtitle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f0f5;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            color: #666;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            position: relative;
+            padding-left: 16px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .feature-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 6px;
+            height: 6px;
+            background: #445bde;
+            border-radius: 50%;
+        }
+        /* 流程图 */
+        .flow-chart {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .flow-step {
+            background: #e8eeff;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #445bde;
+            text-align: center;
+            width: 80%;
+        }
+        .flow-arrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid #c5d0ff;
+        }
+        /* 图表区域 */
+        .chart-container {
+            margin: 20px 0;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fefefe;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: #999;
+        }
+        .chart-canvas {
+            height: 180px;
+            background: #fafafa;
+            border-radius: 4px;
+            position: relative;
+        }
+        .chart-annotation {
+            position: absolute;
+            background: #445bde;
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+        }
+        .chart-annotation.entry {
+            left: 20%;
+            top: 60%;
+        }
+        .chart-annotation.reduce {
+            right: 25%;
+            top: 20%;
+        }
+        /* 异动揭秘网格 */
+        .anomaly-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .anomaly-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #333;
+        }
+        .anomaly-icon {
+            width: 20px;
+            height: 20px;
+            background: #e8eeff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .anomaly-icon svg {
+            width: 12px;
+            height: 12px;
+            color: #445bde;
+        }
+        /* VIP快讯表格 */
+        .news-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 12px;
+        }
+        .news-table th {
+            background: #f7f8fd;
+            padding: 10px 8px;
+            text-align: center;
+            color: #666;
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+        }
+        .news-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #f5f5f5;
+            vertical-align: top;
+        }
+        .news-table .vip-time {
+            color: #445bde;
+            font-weight: 500;
+        }
+        .news-table .normal-time {
+            color: #999;
+        }
+        .news-table .stock-code {
+            color: #999;
+        }
+        .news-table .rise {
+            color: #ff4757;
+        }
+        .news-table .news-content {
+            text-align: left;
+            color: #333;
+            line-height: 1.6;
+            font-size: 11px;
+        }
+        /* 收费方式 */
+        .pricing-section {
+            margin-top: 24px;
+        }
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .pricing-card {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+        }
+        .pricing-tag {
+            position: absolute;
+            top: -1px;
+            left: 16px;
+            background: #ff4757;
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 12px;
+            border-radius: 0 0 8px 8px;
+        }
+        .pricing-title {
+            font-size: 14px;
+            color: #333;
+            margin-top: 16px;
+            margin-bottom: 12px;
+        }
+        .pricing-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ff4757;
+        }
+        .pricing-unit {
+            font-size: 14px;
+            color: #ff4757;
+        }
+        .pricing-desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+        .pricing-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #445bde;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+        /* 风险提示 */
+        .risk-notice {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f9faff;
+            border-radius: 8px;
+            font-size: 11px;
+            color: #999;
+            line-height: 1.8;
+        }
+        .risk-title {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        /* 底部按钮 */
+        .bottom-action {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 390px;
+            padding: 12px 16px 24px;
+            background: #fff;
+            border-top: 1px solid #eee;
+            z-index: 100;
+        }
+        .action-btn {
+            width: 100%;
+            height: 48px;
+            background: #445bde;
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        .tag-blue {
+            background: #e8eeff;
+            color: #445bde;
+        }
+        /* 辅助样式 */
+        .text-center {
+            text-align: center;
+        }
+        .mt-16 {
+            margin-top: 16px;
+        }
+        .mb-16 {
+            margin-bottom: 16px;
+        }
+        .note {
+            font-size: 11px;
+            color: #999;
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+        .case-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 16px 0 12px;
+        }
+        .case-info {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- 顶部蓝色区域 -->
+        <div class="header-section">
+            <!-- 状态栏 -->
+            <div class="status-bar">
+                <span>9:41</span>
+                <div class="status-right">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                        <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                    </svg>
+                    <div class="battery-icon">
+                        <div class="battery-level"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 导航栏 -->
+            <div class="nav-bar">
+                <div class="back-btn">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="white">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                </div>
+                <span class="nav-title">财富星-AI数据</span>
+                <div class="nav-right">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="white">
+                        <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                    </svg>
+                </div>
+            </div>
+            <!-- 标题 -->
+            <div class="title-section">
+                <h1 class="main-title">财富星-AI数据</h1>
+                <p class="sub-title">大数据共享，掌握资金动向</p>
+            </div>
+        </div>
+        <!-- 白色内容区域 -->
+        <div class="content-section">
+            <!-- 服务内容 -->
+            <h2 class="section-title">服务内容</h2>
+            <div class="service-grid">
+                <div class="service-item">
+                    <div class="service-icon gold">
+                        <svg viewBox="0 0 24 24" fill="#e6a23c">
+                            <path d="M12 2l-5.5 9h11z"/>
+                            <circle cx="17.5" cy="17.5" r="4.5"/>
+                            <path d="M3 13.5h8v8H3z"/>
+                        </svg>
+                    </div>
+                    <span class="service-name">陆港淘金</span>
+                    <span class="service-desc">一江之隔，价差几何</span>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon blue">
+                        <svg viewBox="0 0 24 24" fill="#445bde">
+                            <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
+                        </svg>
+                    </div>
+                    <span class="service-name">融资追击</span>
+                    <span class="service-desc">透视融资数据</span>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon purple">
+                        <svg viewBox="0 0 24 24" fill="#7c4dff">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                        </svg>
+                    </div>
+                    <span class="service-name">主力密码</span>
+                    <span class="service-desc">洞悉主力动向</span>
+                </div>
+            </div>
+            <div class="service-grid" style="justify-content: center; gap: 40px;">
+                <div class="service-item">
+                    <div class="service-icon orange">
+                        <svg viewBox="0 0 24 24" fill="#ff7043">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                        </svg>
+                    </div>
+                    <span class="service-name">异动揭秘</span>
+                    <span class="service-desc">识别大单异动</span>
+                </div>
+                <div class="service-item">
+                    <div class="service-icon green">
+                        <svg viewBox="0 0 24 24" fill="#66bb6a">
+                            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/>
+                        </svg>
+                    </div>
+                    <span class="service-name">VIP快讯</span>
+                    <span class="service-desc">实时推送市场重要快讯</span>
+                </div>
+            </div>
+            <!-- 产品亮点 -->
+            <div class="highlight-section">
+                <h2 class="section-title">产品亮点</h2>
+                <div class="highlight-grid">
+                    <div class="highlight-card">
+                        <div class="highlight-title">看融资</div>
+                        <div class="highlight-desc">透视融资数据，获悉多空力量</div>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-title">盯主力</div>
+                        <div class="highlight-desc">五大因子监控主力资金，捕获大概率上涨股票池</div>
+                    </div>
+                    <div class="highlight-card full-width">
+                        <span class="highlight-tag">揭秘市场底牌</span>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-title">淘价差</div>
+                        <div class="highlight-desc">一江之隔，价差几何</div>
+                    </div>
+                    <div class="highlight-card">
+                        <div class="highlight-title">VIP快讯</div>
+                        <div class="highlight-desc">海量信息源+行业专家分析</div>
+                    </div>
+                </div>
+            </div>
+            <!-- 陆港淘金 -->
+            <div class="feature-detail">
+                <div class="feature-header">
+                    <h3 class="feature-name">陆港淘金</h3>
+                    <span class="feature-subtitle">
+                        一江之隔，价差几何
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#445bde">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </span>
+                </div>
+                <ul class="feature-list">
+                    <li>【协整分析】发现同时在A股和港股上市的标的，具有长期均衡关系。</li>
+                    <li>用【蒙特卡洛模拟】捕捉上涨概率较大的标的。</li>
+                    <li>甄别出有【均值回归】特性的标的。</li>
+                    <li>经过两轮筛选后，选取AH折价率前10的票池。</li>
+                </ul>
+                <div class="flow-chart">
+                    <div class="flow-step">【第一步】：A股、港股市场关联性验证</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-step">【第二步】：蒙特卡洛模拟走势</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-step">【第三步】：价值回归特征识别</div>
+                    <div class="flow-arrow"></div>
+                    <div class="flow-step">【第四步】：AH折价率排序</div>
+                </div>
+            </div>
+            <!-- 融资追击 -->
+            <div class="feature-detail">
+                <div class="feature-header">
+                    <h3 class="feature-name">融资追击</h3>
+                    <span class="feature-subtitle">
+                        透视融资数据，获悉多空力量
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#445bde">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </span>
+                </div>
+                <p style="font-size: 14px; color: #333; line-height: 1.8; margin-bottom: 16px;">
+                    融资融券是表现市场多空力量的重要信号，融资追击通过分析两融数据，获得标的在当前时间的短期和最佳持股策略。
+                </p>
+                <div class="case-title">实战案例</div>
+                <p class="case-info">2023年7月13日，大名城入选市场最佳持股策略，历史测算持股41天左右获利概率达80.99%，按照策略买入并持有17天后该股获利20.38%。</p>
+                <p class="case-info">大****(6*****) | 日线 | 前复权</p>
+                <div class="chart-container">
+                    <div class="chart-canvas">
+                        <!-- 模拟K线图 -->
+                        <svg width="100%" height="100%" viewBox="0 0 300 180">
+                            <!-- 网格线 -->
+                            <line x1="0" y1="36" x2="300" y2="36" stroke="#eee" stroke-width="1"/>
+                            <line x1="0" y1="72" x2="300" y2="72" stroke="#eee" stroke-width="1"/>
+                            <line x1="0" y1="108" x2="300" y2="108" stroke="#eee" stroke-width="1"/>
+                            <line x1="0" y1="144" x2="300" y2="144" stroke="#eee" stroke-width="1"/>
+                            <!-- K线模拟 -->
+                            <rect x="20" y="100" width="6" height="30" fill="#22c55e"/>
+                            <line x1="23" y1="90" x2="23" y2="140" stroke="#22c55e" stroke-width="1"/>
+                            <rect x="40" y="95" width="6" height="25" fill="#ff4757"/>
+                            <line x1="43" y1="85" x2="43" y2="130" stroke="#ff4757" stroke-width="1"/>
+                            <!-- 更多K线... -->
+                            <rect x="200" y="60" width="6" height="40" fill="#ff4757"/>
+                            <line x1="203" y1="50" x2="203" y2="110" stroke="#ff4757" stroke-width="1"/>
+                            <rect x="220" y="50" width="6" height="35" fill="#ff4757"/>
+                            <line x1="223" y1="40" x2="223" y2="95" stroke="#ff4757" stroke-width="1"/>
+                            <!-- 均线 -->
+                            <polyline points="20,120 60,110 100,100 140,90 180,80 220,60 260,50" fill="none" stroke="#445bde" stroke-width="1.5"/>
+                            <polyline points="20,125 60,115 100,105 140,95 180,85 220,70 260,55" fill="none" stroke="#ffa726" stroke-width="1.5"/>
+                        </svg>
+                        <div class="chart-annotation entry" style="left: 15%; top: 65%;">进场</div>
+                    </div>
+                </div>
+                <p class="note">注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。</p>
+            </div>
+            <!-- 主力密码 -->
+            <div class="feature-detail">
+                <div class="feature-header">
+                    <h3 class="feature-name">主力密码</h3>
+                    <span class="feature-subtitle">
+                        洞悉主力，把握先机
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#445bde">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </span>
+                </div>
+                <p style="font-size: 14px; color: #333; line-height: 1.8; margin-bottom: 16px;">
+                    主力密码通过五大决策因子构建智能分析模型，对个股的历史逐笔成交数据做全量计算，并通过分析当天因子数据与历史回测结果的匹配度，判断主力的"进场"、"加仓"、"离场"、"减仓"行为。
+                </p>
+                <div class="case-title">实战案例</div>
+                <p class="case-info">太**（6*****），2023年7月25日主力密码提示"进场"，随后股价上涨51.87%；自2023年8月2日起在高位连续提示"减仓"、"离场"，股价回落这波行情上涨结束。</p>
+                <p class="case-info">太****(6*****) | 日线 | 前复权</p>
+                <div class="chart-container">
+                    <div class="chart-canvas">
+                        <svg width="100%" height="100%" viewBox="0 0 300 180">
+                            <!-- 网格线 -->
+                            <line x1="0" y1="36" x2="300" y2="36" stroke="#eee" stroke-width="1"/>
+                            <line x1="0" y1="72" x2="300" y2="72" stroke="#eee" stroke-width="1"/>
+                            <line x1="0" y1="108" x2="300" y2="108" stroke="#eee" stroke-width="1"/>
+                            <line x1="0" y1="144" x2="300" y2="144" stroke="#eee" stroke-width="1"/>
+                            <!-- K线 -->
+                            <rect x="30" y="110" width="6" height="20" fill="#22c55e"/>
+                            <line x1="33" y1="100" x2="33" y2="140" stroke="#22c55e" stroke-width="1"/>
+                            <rect x="180" y="50" width="6" height="30" fill="#ff4757"/>
+                            <line x1="183" y1="40" x2="183" y2="90" stroke="#ff4757" stroke-width="1"/>
+                            <rect x="220" y="60" width="6" height="25" fill="#22c55e"/>
+                            <line x1="223" y1="50" x2="223" y2="95" stroke="#22c55e" stroke-width="1"/>
+                            <!-- 均线 -->
+                            <polyline points="20,130 80,120 140,100 200,70 260,65" fill="none" stroke="#445bde" stroke-width="1.5"/>
+                        </svg>
+                        <div class="chart-annotation entry">进场</div>
+                        <div class="chart-annotation reduce">减仓</div>
+                    </div>
+                </div>
+                <p class="note">注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。</p>
+            </div>
+            <!-- 异动揭秘 -->
+            <div class="feature-detail">
+                <div class="feature-header">
+                    <h3 class="feature-name">异动揭秘</h3>
+                    <span class="feature-subtitle">
+                        洞察主力成本，追踪吸筹轨迹
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#445bde">
+                            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                        </svg>
+                    </span>
+                </div>
+                <div class="anomaly-grid">
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">
+                            <svg viewBox="0 0 24 24" fill="#445bde">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span>主力跟踪</span>
+                    </div>
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">
+                            <svg viewBox="0 0 24 24" fill="#445bde">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span>资金博弈</span>
+                    </div>
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">
+                            <svg viewBox="0 0 24 24" fill="#445bde">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span>拖拉机单</span>
+                    </div>
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">
+                            <svg viewBox="0 0 24 24" fill="#445bde">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span>顶级挂单</span>
+                    </div>
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">
+                            <svg viewBox="0 0 24 24" fill="#445bde">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span>主力撤单</span>
+                    </div>
+                    <div class="anomaly-item">
+                        <div class="anomaly-icon">
+                            <svg viewBox="0 0 24 24" fill="#445bde">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <span>涨停承压</span>
+                    </div>
+                </div>
+            </div>
+            <!-- VIP快讯 -->
+            <div class="feature-detail">
+                <div class="feature-header">
+                    <h3 class="feature-name">VIP快讯</h3>
+                    <span class="feature-subtitle">
+                        海量信息源 + 行业专家分析
+                    </span>
+                </div>
+                <p style="font-size: 15px; font-weight: 600; color: #333; margin: 16px 0 12px;">实时推送市场重要快讯。</p>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                    <div style="width: 4px; height: 16px; background: #445bde; border-radius: 2px;"></div>
+                    <span style="font-size: 14px; font-weight: 600; color: #333;">2026年第一季度案例</span>
+                </div>
+                <table class="news-table">
+                    <thead>
+                        <tr>
+                            <th>VIP快讯<br / />时点</th>
+                            <th>普通快讯<br / />时点</th>
+                            <th>个股</th>
+                            <th>截止普通<br / />快讯时点<br / />涨幅</th>
+                            <th>VIP快讯原文</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="vip-time">2月10日<br / />10:23</td>
+                            <td class="normal-time">2月12日<br / />13:58</td>
+                            <td class="stock-code">****</td>
+                            <td class="rise">涨超15%</td>
+                            <td class="news-content">近日宣布投入千万美金专项资金全面加码海外AI短剧赛道，同步启动"百万美金-剧启AI" DramaWaveAI短剧创作扶持计划。</td>
+                        </tr>
+                        <tr>
+                            <td class="vip-time">2月3日<br / />10:04</td>
+                            <td class="normal-time">2月3日<br / />13:08</td>
+                            <td class="stock-code">****</td>
+                            <td class="rise">涨幅4%</td>
+                            <td class="news-content">参股企业宜确半导体在国内低轨卫星通信核心器件领域取得重要突破，其自主研发的相控阵芯片元器件已成功打破海外巨头长期技术垄断。</td>
+                        </tr>
+                        <tr>
+                            <td class="vip-time">1月29日<br / />09:04</td>
+                            <td class="normal-time">1月29日<br / />09:46</td>
+                            <td class="stock-code">****</td>
+                            <td class="rise">61.81%</td>
+                            <td class="news-content">公司与京东签署深度战略合作协议，将围绕佰维全系消费级存储产品展开全面协作，从产品推广到营销创新深度融合，共同应对AI技术普及带来的市场变革。</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="note">注：本案例仅做功能用法示例，不作为具体证券买卖的操作建议。</p>
+            </div>
+            <!-- 收费方式 -->
+            <div class="pricing-section">
+                <h2 class="section-title">收费方式</h2>
+                <div class="pricing-cards">
+                    <div class="pricing-card">
+                        <span class="pricing-tag">大家爱选</span>
+                        <div class="pricing-title">单笔交易固定收费</div>
+                        <div>
+                            <span class="pricing-price">8.8</span>
+                            <span class="pricing-unit">元/笔</span>
+                        </div>
+                        <p class="pricing-desc">自签约生效日起，您使用在本公司开立...</p>
+                        <span class="pricing-link">
+                            查看详情
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#445bde">
+                                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="pricing-card">
+                        <div class="pricing-title">约定周期固定收费</div>
+                        <div>
+                            <span class="pricing-price">3888</span>
+                            <span class="pricing-unit">元/30天</span>
+                        </div>
+                        <p class="pricing-desc">自签约生效日起，本公司将按照证券投...</p>
+                        <span class="pricing-link">
+                            查看详情
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#445bde">
+                                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <!-- 风险提示 -->
+            <div class="risk-notice">
+                <div class="risk-title">风险揭示</div>
+                <p>本产品所展示的资讯信息、标的、数据不作为具体证券买卖的操作建议。本产品所提供的策略工具可能由于数据源、算法等存在一定的局限性，相关数据来自历史统计，不代表对未来投资表现的预测。签约前请您务必关注本产品特殊收费规则，明确并同意可能在您无法获取投资收益的情况下，银河证券仍将依据合同约定提高卖出操作佣金收费设置。股市有风险，投资需谨慎。请审慎结合自身风险承受能力及投资目标，选择与自身相匹配的产品及服务。</p>
+            </div>
+            <!-- 底部留白，避免被固定按钮遮挡 -->
+            <div style="height: 80px;"></div>
+        </div>
+        <!-- 底部固定按钮 -->
+        <div class="bottom-action">
+            <button class="action-btn">登录查看</button>
+        </div>
+    </div>
+</body>
+</html>
