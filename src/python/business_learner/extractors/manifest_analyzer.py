@@ -466,28 +466,3 @@ class ManifestAnalyzer:
         
         return errors
 
-
-if __name__ == "__main__":
-    # 测试
-    import sys
-    if len(sys.argv) > 1:
-        analyzer = ManifestAnalyzer(sys.argv[1])
-        result = analyzer.analyze()
-        
-        print("\n=== Manifest分析结果 ===")
-        print(f"总事件数: {result.total_events}")
-        print(f"用户意图数: {len(result.user_intents)}")
-        print(f"业务流程数: {len(result.business_flows)}")
-        print(f"页面访问数: {len(result.page_visits)}")
-        print(f"错误事件数: {len(result.error_events)}")
-        
-        print("\n=== 用户意图序列 ===")
-        for intent in result.user_intents[:5]:
-            print(f"  [{intent.intent_type}] {intent.description}")
-        
-        print("\n=== 业务流程 ===")
-        for flow in result.business_flows:
-            print(f"\n  流程: {flow.name}")
-            print(f"    描述: {flow.description}")
-            print(f"    步骤数: {len(flow.steps)}")
-            print(f"    持续时间: {flow.total_duration_ms}ms")

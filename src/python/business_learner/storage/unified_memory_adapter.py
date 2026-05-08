@@ -186,16 +186,21 @@ class UnifiedMemoryAdapter:
             "name": metadata.task_name,
             "description": metadata.task_description,
             "recorded_by": metadata.recorder.user_id,
+            "operator_name": metadata.recorder.operator_name,  # 操作人姓名（用于冲突解决）
             "recorded_at": metadata.recorder.recorded_at,
             "target_system": metadata.target_system.name,
             "pages_count": len(task_result.pages),
             "entities_count": len(task_result.entities)
         })
         
+        # 使用 operator_name 作为 source（如果存在），否则使用默认值
+        source = metadata.recorder.operator_name if metadata.recorder.operator_name else "sentinel-learner"
+        
         success, output = self._run_skill_command(
             "create",
             "--type", "TaskRecording",
             "--props", props,
+            "--source", source,  # 记录操作人作为数据来源
             "--authority", "observation"  # Task数据用observation等级
         )
         
@@ -386,12 +391,3 @@ class UnifiedMemoryAdapter:
             "recordings": [r.get("properties", {}).get("task_id", "") for r in recordings],
             "pages": [p.get("properties", {}).get("url", "") for p in pages[:5]]
         }
-
-
-if __name__ == "__main__":
-    # 测试
-    adapter = UnifiedMemoryAdapter(mode="local")
-    
-    # 测试查询
-    summary = adapter.get_system_knowledge_summary("中国银河证券官方网站")
-    print(json.dumps(summary, ensure_ascii=False, indent=2))

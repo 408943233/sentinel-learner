@@ -461,6 +461,9 @@ class PageStructureExtractor:
         # 提取事件处理器
         event_handlers = self._extract_event_handlers(attributes)
         
+        # 提取bounding box
+        bounding_box = node.get('boundingBox', {})
+        
         return ComponentInfo(
             id=f"comp_{node_id}",
             type=component_type,
@@ -470,7 +473,8 @@ class PageStructureExtractor:
             styles=styles,
             text_content=text_content,
             is_interactive=is_interactive,
-            event_handlers=event_handlers
+            event_handlers=event_handlers,
+            bounding_box=bounding_box
         )
     
     def _apply_default_styles(self, styles: StyleInfo, tag: str):

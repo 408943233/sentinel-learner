@@ -176,20 +176,3 @@ class DOMExtractor:
         
         return '未知'
 
-
-if __name__ == "__main__":
-    # 测试
-    snapshot_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731/dom/snapshot_initial.json"
-    
-    extractor = DOMExtractor(snapshot_path)
-    
-    page_info = extractor.extract_page_info()
-    if page_info:
-        print(f"页面: {page_info.title}")
-        print(f"URL: {page_info.url}")
-        print(f"类型: {page_info.page_type}")
-    
-    interactive = extractor.extract_interactive_elements()
-    print(f"\n交互式元素: {len(interactive)}")
-    for elem in interactive[:5]:
-        print(f"  - {elem.tag}: {elem.text_content[:30]}")

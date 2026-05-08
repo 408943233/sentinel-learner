@@ -436,31 +436,3 @@ class TemporalAligner:
         
         return result
 
-
-if __name__ == "__main__":
-    # 测试
-    aligner = TemporalAligner(tolerance_ms=500)
-    
-    # 测试数据
-    video_events = [
-        {'timestamp': 1000, 'event_type': 'page_load', 'data': {}},
-        {'timestamp': 3000, 'event_type': 'click', 'data': {}}
-    ]
-    
-    manifest_events = [
-        {'timestamp': 1778034753537, 'event_details': {'action': 'page-load'}, 'video_time': '00:00:01.000'},
-        {'timestamp': 1778034755537, 'event_details': {'action': 'click'}, 'video_time': '00:00:03.000'}
-    ]
-    
-    api_events = [
-        {'timestamp': 1778034753600, 'url': '/api/data'},
-        {'timestamp': 1778034755600, 'url': '/api/click'}
-    ]
-    
-    result = aligner.align(video_events, manifest_events, api_events)
-    
-    print("\n=== 时间对齐结果 ===")
-    print(f"对齐事件数: {len(result.aligned_events)}")
-    print(f"锚点数: {len(result.anchor_points)}")
-    print(f"\n漂移分析:")
-    print(json.dumps(result.drift_analysis, indent=2))

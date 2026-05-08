@@ -165,21 +165,3 @@ class ImageStitcherSkill:
         """
         return self.stitch_vertical(image_paths, output_path)
 
-
-if __name__ == "__main__":
-    # 测试
-    stitcher = ImageStitcherSkill()
-    
-    # 测试图片路径
-    test_images = [
-        "/path/to/image1.jpg",
-        "/path/to/image2.jpg",
-        "/path/to/image3.jpg"
-    ]
-    
-    result = stitcher.stitch_vertical(test_images, "/path/to/output.jpg")
-    
-    if result.success:
-        print(f"拼接成功: {result.output_path}")
-    else:
-        print(f"拼接失败: {result.error_message}")

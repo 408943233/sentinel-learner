@@ -372,24 +372,3 @@ class LLMIntegrationModule:
             results.append(result)
         return results
 
-
-if __name__ == "__main__":
-    # 测试
-    llm = LLMIntegrationModule()
-    
-    # 测试页面结构理解
-    test_page = {
-        "url": "https://example.com/products",
-        "title": "产品列表",
-        "page_type": "list"
-    }
-    test_elements = [
-        {"tag": "nav", "text": "首页 产品 关于"},
-        {"tag": "h1", "text": "产品列表"},
-        {"tag": "div", "class": "product-item", "text": "产品A - $100"},
-        {"tag": "div", "class": "product-item", "text": "产品B - $200"}
-    ]
-    
-    result = llm.understand_page_structure(test_page, test_elements)
-    print("页面结构理解结果:")
-    print(json.dumps(result.parsed_data, ensure_ascii=False, indent=2))

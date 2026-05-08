@@ -425,35 +425,3 @@ class ConflictResolver:
         
         current[parts[-1]] = value
 
-
-if __name__ == "__main__":
-    # 测试
-    resolver = ConflictResolver()
-    
-    # 测试数据
-    test_sources = {
-        DataSource.VIDEO: {
-            "page_type": "product_list",
-            "title": "产品列表",
-            "item_count": 10
-        },
-        DataSource.API: {
-            "page_type": "product",
-            "title": "产品列表页",
-            "item_count": 10,
-            "api_version": "v2"
-        },
-        DataSource.DOM: {
-            "page_type": "product_list",
-            "title": "产品列表",
-            "dom_loaded": True
-        }
-    }
-    
-    result = resolver.detect_and_resolve(test_sources)
-    
-    print("\n=== 冲突解决结果 ===")
-    print(f"总冲突数: {result.total_conflicts}")
-    print(f"已解决: {result.resolved_conflicts}")
-    print(f"\n最终数据:")
-    print(json.dumps(result.final_data, ensure_ascii=False, indent=2))

@@ -34,6 +34,7 @@ class RecorderInfo:
     """录制者信息"""
     user_id: str
     user_name: str = ""
+    operator_name: str = ""  # 操作人姓名（用于冲突解决）
     department: str = ""
     recorded_at: str = field(default_factory=lambda: datetime.now().isoformat())
     recorder_version: str = "sentinel-browser-v1.0.0"
@@ -163,9 +164,11 @@ class TaskMetadataManager:
         """从原始metadata.json构建完整元数据"""
         task_id = raw_data.get('task_id', self.task_path.name)
         
-        # 构建录制者信息
+        # 构建录制者信息（支持 operator_name）
         recorder = RecorderInfo(
             user_id=raw_data.get('user_id', 'anonymous'),
+            user_name=raw_data.get('user_name', ''),
+            operator_name=raw_data.get('operator_name', ''),  # 从 metadata.json 读取操作人姓名
             recorded_at=raw_data.get('created_at', datetime.now().isoformat()),
             recorder_version=f"sentinel-browser-v{raw_data.get('browser_version', '1.0.0')}"
         )
@@ -315,19 +318,3 @@ class TaskMetadataManager:
             }
         }
 
-
-if __name__ == "__main__":
-    # 测试
-    task_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731"
-    
-    manager = TaskMetadataManager(task_path)
-    metadata = manager.load_metadata()
-    
-    if metadata:
-        print(f"Task ID: {metadata.task_id}")
-        print(f"Task Name: {metadata.task_name}")
-        print(f"Target System: {metadata.target_system.name}")
-        print(f"Domain: {metadata.target_system.domain}")
-        print(f"Recorded By: {metadata.recorder.user_id}")
-        print(f"Recorded At: {metadata.recorder.recorded_at}")
-        print(f"Status: {metadata.processing.status}")

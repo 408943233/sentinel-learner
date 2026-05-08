@@ -284,24 +284,3 @@ class APITrafficAnalyzer:
         # 按频次排序
         return dict(sorted(domains.items(), key=lambda x: x[1], reverse=True))
 
-
-if __name__ == "__main__":
-    # 测试
-    import sys
-    if len(sys.argv) > 1:
-        analyzer = APITrafficAnalyzer(sys.argv[1])
-        result = analyzer.analyze()
-        
-        print("\n=== API Traffic分析结果 ===")
-        print(f"总请求数: {result.total_requests}")
-        print(f"唯一端点数: {result.unique_endpoints}")
-        print(f"错误请求数: {len(result.error_requests)}")
-        
-        print("\n=== 域名分布 ===")
-        for domain, count in list(result.domain_distribution.items())[:5]:
-            print(f"  {domain}: {count}")
-        
-        print("\n=== 数据流向 (Top 5) ===")
-        for flow in result.data_flows[:5]:
-            print(f"  {flow.source} -> {flow.target}")
-            print(f"    类型: {flow.data_type}, 频次: {flow.frequency}")

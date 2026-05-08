@@ -266,16 +266,3 @@ class VisionAnalyzer:
         
         return parsed
 
-
-if __name__ == "__main__":
-    # 测试
-    analyzer = VisionAnalyzer()
-    
-    # 测试图片路径
-    test_image = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731/analysis/keyframes/frame_0000_page-load_0.000.jpg"
-    
-    if Path(test_image).exists():
-        result = analyzer.analyze_image(test_image)
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-    else:
-        print(f"测试图片不存在: {test_image}")

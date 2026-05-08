@@ -405,16 +405,3 @@ class ServerBusinessLearningEngine:
             self.metadata.target_system.name
         )
 
-
-if __name__ == "__main__":
-    # 测试
-    task_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731"
-    
-    # 本地模式
-    engine = ServerBusinessLearningEngine(task_path, mode="local")
-    result = engine.run()
-    
-    # 获取系统摘要
-    summary = engine.get_system_summary()
-    print("\n系统知识摘要:")
-    print(json.dumps(summary, ensure_ascii=False, indent=2))

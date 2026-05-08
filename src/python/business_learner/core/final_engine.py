@@ -721,10 +721,3 @@ class FinalBusinessLearningEngine:
         except Exception as e:
             print(f"  ⚠️ 存储到知识图谱失败: {e}")
 
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) > 1:
-        engine = FinalBusinessLearningEngine(sys.argv[1])
-        result = engine.run(use_llm_vision=False, create_long_screenshots=True)
-        print("\n✅ 分析完成!")

@@ -376,23 +376,3 @@ class KimiClient:
         
         return result
 
-
-if __name__ == '__main__':
-    # 测试客户端
-    import sys
-    
-    # 测试简单对话
-    client = KimiClient()
-    
-    messages = [
-        {"role": "user", "content": "你好，请简单介绍一下自己"}
-    ]
-    
-    result = client.chat(messages)
-    
-    if result['success']:
-        print("响应内容:")
-        print(result['content'])
-        print(f"\nToken 使用: {result['usage']}")
-    else:
-        print(f"错误: {result['error']}")

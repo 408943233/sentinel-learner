@@ -210,25 +210,3 @@ class BusinessUnderstander:
         
         return findings
 
-
-if __name__ == "__main__":
-    # 测试
-    understander = BusinessUnderstander()
-    
-    # 创建测试数据
-    from ..utils.models import PageInfo, APIEntity, ConfidenceLevel
-    
-    page = PageUnderstanding(
-        page_info=PageInfo(
-            url="https://example.com",
-            title="招聘页面",
-            page_type="recruitment",
-            business_domain="招聘系统"
-        ),
-        api_entities=[
-            APIEntity(entity_type="job", name="软件工程师", attributes={}, source_url="")
-        ]
-    )
-    
-    understanding = understander.understand_page(page)
-    print(json.dumps(understanding, ensure_ascii=False, indent=2))

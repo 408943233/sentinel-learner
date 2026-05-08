@@ -337,23 +337,3 @@ class LogsAnalyzer:
         
         return recommendations
 
-
-if __name__ == "__main__":
-    # 测试
-    import sys
-    if len(sys.argv) > 1:
-        analyzer = LogsAnalyzer(sys.argv[1])
-        result = analyzer.analyze()
-        
-        print("\n=== 日志分析结果 ===")
-        print(f"控制台错误数: {len(result.console_errors)}")
-        print(f"JS错误数: {len(result.js_errors)}")
-        print(f"系统健康度: {result.system_health.stability_score:.1f}/100")
-        
-        print("\n=== 错误模式 ===")
-        for pattern in result.error_patterns[:5]:
-            print(f"  [{pattern.severity}] {pattern.pattern}: {pattern.count} 次")
-        
-        print("\n=== 优化建议 ===")
-        for rec in result.recommendations[:5]:
-            print(f"  - {rec}")

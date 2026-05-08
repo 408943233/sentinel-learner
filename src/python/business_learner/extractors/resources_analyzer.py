@@ -349,22 +349,3 @@ class ResourcesAnalyzer:
                                            for p in patterns))
         }
 
-
-if __name__ == "__main__":
-    # 测试
-    import sys
-    if len(sys.argv) > 1:
-        analyzer = ResourcesAnalyzer(sys.argv[1])
-        result = analyzer.analyze()
-        
-        print("\n=== 资源分析结果 ===")
-        print(f"总资源数: {result.stats.total_count}")
-        print(f"总大小: {result.stats.total_size / 1024 / 1024:.2f} MB")
-        
-        print("\n=== 资源类型分布 ===")
-        for rtype, data in result.stats.by_type.items():
-            print(f"  {rtype}: {data['count']} 个, {data['size']/1024:.2f} KB")
-        
-        print("\n=== 优化建议 ===")
-        for suggestion in result.performance.optimization_suggestions:
-            print(f"  - {suggestion}")

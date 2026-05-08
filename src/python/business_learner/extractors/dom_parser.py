@@ -322,22 +322,3 @@ class DOMParser:
                 nav_elements.append(element)
         return nav_elements
 
-
-if __name__ == "__main__":
-    # 测试代码
-    snapshot_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731/dom/snapshot_initial.json"
-    
-    parser = DOMParser(snapshot_path)
-    snapshot = parser.parse()
-    
-    if snapshot:
-        print(f"[DOMParser] 页面: {snapshot.title}")
-        print(f"[DOMParser] URL: {snapshot.url}")
-        print(f"[DOMParser] 类型: {snapshot.page_type}")
-        print(f"[DOMParser] 元素数: {len(snapshot.elements_map)}")
-        
-        # 提取交互式元素
-        interactive = parser.extract_interactive_elements(snapshot)
-        print(f"[DOMParser] 交互式元素: {len(interactive)}")
-        for elem in interactive[:5]:
-            print(f"  - {elem.tag}: {elem.text_content[:30]} (业务含义: {elem.business_meaning})")

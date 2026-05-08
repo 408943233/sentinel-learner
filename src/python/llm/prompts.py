@@ -310,26 +310,3 @@ class PromptTemplates:
         
         return prompt
 
-
-if __name__ == '__main__':
-    # 测试模板
-    test_data = {
-        'task_id': 'test_001',
-        'domain': 'example.com',
-        'events': [],
-        'pages': {
-            'home': {
-                'visit_count': 5,
-                'page_types': ['home'],
-                'actions': {'click': 10, 'scroll': 3}
-            }
-        },
-        'actions': {'click': 20, 'scroll': 5},
-        'navigation_flows': [],
-        'api_endpoints': set(['/api/data'])
-    }
-    
-    prompt = PromptTemplates.website_knowledge_analysis(test_data)
-    print("生成的 Prompt 长度:", len(prompt))
-    print("\nPrompt 预览:")
-    print(prompt[:500] + "...")

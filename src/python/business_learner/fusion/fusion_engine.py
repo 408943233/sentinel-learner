@@ -215,27 +215,3 @@ class FusionEngine:
             groups[strategy] += 1
         return groups
 
-
-if __name__ == "__main__":
-    # 测试
-    from ..utils.models import PageInfo
-    
-    engine = FusionEngine()
-    
-    page_info = PageInfo(
-        url="https://example.com",
-        title="测试页面",
-        page_type="test",
-        business_domain="测试"
-    )
-    
-    # 模拟数据
-    visual = [{"event_type": "click", "timestamp": 1.0}]
-    api = [APIEntity(entity_type="test", name="测试实体", attributes={}, source_url="")]
-    dom = [DOMElement(id=1, tag="button", element_type=ElementType.BUTTON, text_content="提交", is_interactive=True)]
-    
-    result = engine.fuse_page_data(page_info, visual, api, dom)
-    
-    print(f"融合元素数: {len(result.fused_elements)}")
-    print(f"冲突数: {len(result.conflicts)}")
-    print(f"可信度: {result.overall_confidence.value}")

@@ -170,16 +170,3 @@ class APIExtractor:
         
         return summary
 
-
-if __name__ == "__main__":
-    # 测试
-    api_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731/network/api_responses.json"
-    
-    extractor = APIExtractor(api_path)
-    entities = extractor.extract_entities()
-    
-    summary = extractor.get_entity_summary(entities)
-    print("\n实体统计:")
-    for entity_type, info in summary.items():
-        print(f"  {entity_type}: {info['count']} 个")
-        print(f"    示例: {', '.join(info['examples'][:3])}")

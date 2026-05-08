@@ -620,25 +620,3 @@ class EnhancedVideoAnalyzerFixed:
         if self.cap:
             self.cap.release()
 
-
-if __name__ == "__main__":
-    # 测试
-    video_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731/video/raw_record.mp4"
-    manifest_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731/training_manifest.jsonl"
-    output_dir = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731/analysis/enhanced_fixed"
-    
-    # 需要设置API密钥才能使用LLM功能
-    api_key = None  # 或从环境变量获取: os.getenv("OPENAI_API_KEY")
-    
-    analyzer = EnhancedVideoAnalyzerFixed(video_path, manifest_path, api_key=api_key)
-    
-    results = analyzer.extract_and_analyze(
-        output_dir=output_dir,
-        use_llm=False,  # 测试时先不使用LLM
-        create_long_screenshots=True
-    )
-    
-    print("\n分析结果:")
-    print(json.dumps(results, ensure_ascii=False, indent=2, default=str))
-    
-    analyzer.release()
