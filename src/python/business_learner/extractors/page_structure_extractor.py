@@ -1196,7 +1196,8 @@ class PageStructureExtractor:
                     id=f"section_{section_id}",
                     type=layout_type,
                     name=self._generate_section_name(comp, layout_type),
-                    component_ids=[comp.id]
+                    component_ids=[comp.id],
+                    bounding_box=comp.bounding_box  # 从组件继承 bounding_box
                 )
                 sections.append(section)
                 section_id += 1

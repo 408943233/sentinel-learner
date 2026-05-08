@@ -1,0 +1,41 @@
+{
+  "llm": {
+    "provider": "kimi",
+    "api_key": "YOUR_KIMI_API_KEY",
+    "model": "kimi-k2.5",
+    "base_url": "https://api.moonshot.cn/v1",
+    "max_tokens": 4096,
+    "temperature": 0.3
+  },
+  "paths": {
+    "tasks_dir": "../.trae/skills/sentinel-browser/output/collections",
+    "output_dir": "./output",
+    "temp_dir": "./.temp"
+  },
+  "learning": {
+    "max_events_per_batch": 50,
+    "max_dom_depth": 10,
+    "similarity_threshold": 0.85,
+    "min_action_confidence": 0.7
+  },
+  "mock_server": {
+    "port": 3456,
+    "host": "localhost",
+    "cors_enabled": true,
+    "delay_range": [50, 200]
+  },
+  "evaluation": {
+    "metrics": [
+      "action_sequence_similarity",
+      "dom_structure_similarity",
+      "network_request_similarity",
+      "timing_similarity"
+    ],
+    "weights": {
+      "action_sequence": 0.4,
+      "dom_structure": 0.3,
+      "network_request": 0.2,
+      "timing": 0.1
+    }
+  }
+}
