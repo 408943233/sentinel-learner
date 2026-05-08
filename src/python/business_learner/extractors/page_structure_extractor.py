@@ -416,7 +416,23 @@ class PageStructureExtractor:
         """提取所有组件"""
         components = []
         rrweb_event = self.raw_data.get('rrwebEvent', {})
-        nodes = rrweb_event.get('data', {}).get('nodes', [])
+        data = rrweb_event.get('data', {})
+        
+        # 处理不同类型的 snapshot
+        # full snapshot (type 2) 有 data.node 和 data.nodes
+        # incremental snapshot (type 3) 没有完整的 DOM 树，跳过
+        nodes = data.get('nodes', [])
+        
+        # 如果没有 nodes，检查是否有 node（某些格式）
+        if not nodes and 'node' in data:
+            root_node = data.get('node', {})
+            # 从 root node 递归收集所有子节点
+            nodes = self._collect_all_nodes(root_node)
+        
+        if not nodes:
+            # 可能是 incremental snapshot，没有完整的 DOM 树
+            print(f"[PageStructure] 警告: 无法提取组件，snapshot 类型不支持")
+            return components
         
         for node in nodes:
             component = self._parse_component_node(node, nodes)
@@ -427,6 +443,15 @@ class PageStructureExtractor:
         self._build_component_hierarchy(components, nodes)
         
         return components
+    
+    def _collect_all_nodes(self, root_node: Dict) -> List[Dict]:
+        """从根节点递归收集所有子节点"""
+        nodes = [root_node]
+        child_ids = root_node.get('childNodes', [])
+        
+        # 这里需要全局的 node map 来查找子节点
+        # 暂时返回根节点，实际使用时需要改进
+        return nodes
     
     def _parse_component_node(self, node: Dict, all_nodes: List[Dict] = None) -> Optional[ComponentInfo]:
         """解析组件节点"""

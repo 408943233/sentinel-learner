@@ -318,6 +318,21 @@ class FinalBusinessLearningEngine:
         page_structures = []
         
         for snapshot_file in snapshot_files:
+            # 检查是否为 full snapshot (type 2)
+            # 只有 full snapshot 才有完整的 DOM 树
+            try:
+                with open(snapshot_file, 'r', encoding='utf-8') as f:
+                    snapshot_data = json.load(f)
+                rrweb_event = snapshot_data.get('rrwebEvent', {})
+                event_type = rrweb_event.get('type')
+                
+                # 只处理 full snapshot (type 2)
+                if event_type != 2:
+                    continue
+            except Exception as e:
+                print(f"  ⚠️ 读取 snapshot 失败: {snapshot_file.name} - {e}")
+                continue
+            
             # 基础DOM分析
             extractor = DOMExtractor(str(snapshot_file))
             page_info = extractor.extract_page_info()
