@@ -14,7 +14,13 @@
     "lint": "eslint src/",
     "postinstall": "electron-builder install-app-deps"
   },
-  "keywords": ["electron", "browser", "data-collection", "vla", "automation"],
+  "keywords": [
+    "electron",
+    "browser",
+    "data-collection",
+    "vla",
+    "automation"
+  ],
   "author": "Sentinel Team",
   "license": "MIT",
   "devDependencies": {
@@ -24,8 +30,8 @@
     "jest": "^29.7.0"
   },
   "dependencies": {
-    "electron-log": "^5.0.1",
-    "archiver": "^6.0.1"
+    "archiver": "^6.0.1",
+    "electron-log": "^5.0.1"
   },
   "build": {
     "appId": "com.sentinel.browser",
@@ -45,7 +51,9 @@
       {
         "from": "bin/",
         "to": "bin/",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "asar": true,
@@ -57,11 +65,17 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "assets/icon.icns"
@@ -70,11 +84,16 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "ia32"]
+          "arch": [
+            "x64",
+            "ia32"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon_256x256.png"
