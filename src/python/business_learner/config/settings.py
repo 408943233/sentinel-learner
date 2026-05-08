@@ -2,16 +2,29 @@
 配置文件
 """
 
+import os
 from pathlib import Path
 
 # 项目根目录
 PROJECT_ROOT = Path(__file__).parent.parent
 
-# 数据路径配置
-DEFAULT_TASK_PATH = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731"
+# 数据路径配置（可通过环境变量覆盖）
+DEFAULT_TASK_PATH = os.environ.get(
+    "SENTINEL_TASK_PATH",
+    "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731"
+)
 
-# OpenClaw Memory Skill 路径
-MEMORY_SKILL_PATH = "/Users/gaoyiwei/Documents/trae_projects/openclaw/openclaw-memory-skill"
+# OpenClaw Memory Skill 路径（可通过环境变量覆盖）
+MEMORY_SKILL_PATH = os.environ.get(
+    "OPENCLAW_MEMORY_PATH",
+    "/Users/gaoyiwei/Documents/trae_projects/openclaw/openclaw-memory-skill"
+)
+
+# Image Stitch Skill 路径（可通过环境变量覆盖）
+IMAGE_STITCH_SKILL_PATH = os.environ.get(
+    "IMAGE_STITCH_SKILL_PATH",
+    "/Users/gaoyiwei/Documents/trae_projects/openclaw/.trae/skills/image-stitch/stitch.py"
+)
 
 # 视频分析配置
 VIDEO_CONFIG = {

@@ -2,6 +2,7 @@
 长图拼接模块 - 使用 image-stitch skill
 """
 
+import os
 import subprocess
 from pathlib import Path
 from typing import List, Tuple, Optional
@@ -20,10 +21,19 @@ class StitchResult:
 class ImageStitcherSkill:
     """图像拼接器 - 调用 image-stitch skill"""
     
-    def __init__(self):
-        """初始化拼接器"""
-        # skill 路径
-        self.skill_path = Path("/Users/gaoyiwei/Documents/trae_projects/openclaw/.trae/skills/image-stitch/stitch.py")
+    def __init__(self, skill_path: Optional[str] = None):
+        """
+        初始化拼接器
+        
+        Args:
+            skill_path: image-stitch skill 脚本路径，默认从环境变量 IMAGE_STITCH_SKILL_PATH 读取
+        """
+        # skill 路径（优先使用传入参数，其次环境变量，最后默认路径）
+        if skill_path:
+            self.skill_path = Path(skill_path)
+        else:
+            default_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/.trae/skills/image-stitch/stitch.py"
+            self.skill_path = Path(os.environ.get("IMAGE_STITCH_SKILL_PATH", default_path))
     
     def stitch_vertical(self, image_paths: List[str], 
                        output_path: Optional[str] = None) -> StitchResult:

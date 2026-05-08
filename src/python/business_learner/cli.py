@@ -10,8 +10,12 @@ Options:
     --task-path     Task数据目录路径
     --output-dir    输出目录（可选）
     --verbose       详细输出
+
+环境变量:
+    SENTINEL_TASK_PATH: 默认task路径
 """
 
+import os
 import sys
 import argparse
 from pathlib import Path
@@ -73,9 +77,10 @@ def main():
     task_path = args.task_path or args.task_path_opt
     
     if not task_path:
-        # 使用默认路径
-        task_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731"
-        print(f"未指定task路径，使用默认路径: {task_path}")
+        # 使用环境变量或默认路径
+        default_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731"
+        task_path = os.environ.get("SENTINEL_TASK_PATH", default_path)
+        print(f"未指定task路径，使用: {task_path}")
     
     task_path = Path(task_path)
     
