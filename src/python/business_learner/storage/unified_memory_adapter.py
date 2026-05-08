@@ -129,9 +129,17 @@ class UnifiedMemoryAdapter:
             properties={"recorded_at": metadata.recorder.recorded_at}
         )
         
-        # 4. 存储页面知识
+        # 4. 存储页面知识（包含详细结构）
         for page in task_result.pages:
-            self._store_page_knowledge(page, task_entity["id"], system_entity["id"])
+            page_entity = self._store_page_knowledge(page, task_entity["id"], system_entity["id"])
+            
+            # 4.1 存储页面详细结构（组件、布局、样式等）
+            if page_entity:
+                self._store_page_structure_detailed(
+                    page, 
+                    page_entity["id"], 
+                    metadata_manager.task_path
+                )
         
         # 5. 存储业务实体
         for entity in task_result.entities:
@@ -214,8 +222,8 @@ class UnifiedMemoryAdapter:
             print(f"  创建Task失败: {output}")
             return {"id": metadata.task_id, "type": "TaskRecording"}
     
-    def _store_page_knowledge(self, page: PageUnderstanding, 
-                             task_id: str, system_id: str):
+    def _store_page_knowledge(self, page: PageUnderstanding,
+                             task_id: str, system_id: str) -> Optional[Dict]:
         """存储页面知识"""
         # 处理不同类型的confidence
         if hasattr(page.overall_confidence, 'value'):
@@ -224,7 +232,7 @@ class UnifiedMemoryAdapter:
             confidence_value = str(page.overall_confidence.overall_confidence)
         else:
             confidence_value = str(page.overall_confidence)
-        
+
         page_props = json.dumps({
             "url": page.page_info.url,
             "title": page.page_info.title,
@@ -232,14 +240,14 @@ class UnifiedMemoryAdapter:
             "domain": page.page_info.business_domain,
             "confidence": confidence_value
         })
-        
+
         success, output = self._run_skill_command(
             "create",
             "--type", "WebPage",
             "--props", page_props,
             "--authority", "observation"
         )
-        
+
         if success:
             try:
                 page_entity = json.loads(output)
@@ -255,9 +263,263 @@ class UnifiedMemoryAdapter:
                     rel_type="has_page",
                     to_id=page_entity["id"]
                 )
+                return page_entity
             except:
                 pass
-    
+        return None
+
+    def _store_page_structure_detailed(self, page: PageUnderstanding,
+                                       page_entity_id: str, task_path: Path):
+        """
+        存储页面详细结构（组件、布局、样式等）
+
+        读取 page_structure.json 并存储：
+        1. Component 实体
+        2. LayoutSection 实体
+        3. StyleSystem 实体（CSS规则聚合）
+        4. DesignToken 实体（颜色/字号/字体）
+        """
+        # 查找 page_structure.json
+        structure_file = task_path / "analysis" / "page_structure.json"
+
+        if not structure_file.exists():
+            print(f"    ⚠️ 未找到页面结构文件: {structure_file}")
+            return
+
+        try:
+            with open(structure_file, 'r', encoding='utf-8') as f:
+                structure_data = json.load(f)
+        except Exception as e:
+            print(f"    ⚠️ 读取页面结构文件失败: {e}")
+            return
+
+        print(f"    📄 存储页面详细结构...")
+
+        # 1. 存储组件
+        components = structure_data.get('components', [])
+        if components:
+            print(f"      - 存储 {len(components)} 个组件...")
+            self._store_components(components, page_entity_id)
+
+        # 2. 存储布局区块
+        layout_sections = structure_data.get('layout_sections', [])
+        if layout_sections:
+            print(f"      - 存储 {len(layout_sections)} 个布局区块...")
+            self._store_layout_sections(layout_sections, page_entity_id, components)
+
+        # 3. 存储样式系统
+        css_rules = structure_data.get('external_css_rules', {})
+        if css_rules:
+            print(f"      - 存储 {len(css_rules)} 条CSS规则...")
+            self._store_style_system(css_rules, page_entity_id)
+
+        # 4. 存储设计令牌（颜色/字号/字体）
+        color_palette = structure_data.get('color_palette', [])
+        typography = structure_data.get('typography', {})
+        if color_palette or typography:
+            print(f"      - 存储设计令牌...")
+            self._store_design_tokens(color_palette, typography, page_entity_id)
+
+    def _store_components(self, components: List[Dict], page_entity_id: str):
+        """存储组件实体"""
+        for comp in components:
+            try:
+                # 构建组件属性
+                comp_props = {
+                    "tag": comp.get('tag', ''),
+                    "type": comp.get('type', 'unknown'),
+                    "text_content": comp.get('text_content', '')[:200],  # 限制长度
+                    "is_interactive": comp.get('is_interactive', False),
+                }
+
+                # 添加类名
+                class_names = comp.get('class_names', [])
+                if class_names:
+                    comp_props["classes"] = ' '.join(class_names[:10])  # 限制数量
+
+                # 添加 bounding_box
+                bbox = comp.get('bounding_box', {})
+                if bbox:
+                    comp_props["x"] = bbox.get('x', 0)
+                    comp_props["y"] = bbox.get('y', 0)
+                    comp_props["width"] = bbox.get('width', 0)
+                    comp_props["height"] = bbox.get('height', 0)
+
+                # 添加样式（简化）
+                styles = comp.get('styles', {})
+                if styles:
+                    comp_props["display"] = styles.get('display', '')
+                    comp_props["position"] = styles.get('position', '')
+                    comp_props["color"] = styles.get('color', '')
+                    comp_props["background_color"] = styles.get('background_color', '')
+
+                success, output = self._run_skill_command(
+                    "create",
+                    "--type", "Component",
+                    "--props", json.dumps(comp_props),
+                    "--authority", "observation"
+                )
+
+                if success:
+                    comp_entity = json.loads(output)
+                    # 建立关系：Page --contains--> Component
+                    self._create_relation(
+                        from_id=page_entity_id,
+                        rel_type="contains",
+                        to_id=comp_entity["id"]
+                    )
+            except Exception as e:
+                print(f"        ⚠️ 存储组件失败: {e}")
+                continue
+
+    def _store_layout_sections(self, sections: List[Dict], page_entity_id: str, components: List[Dict]):
+        """存储布局区块实体"""
+        # 创建组件ID到实体ID的映射（简化处理）
+        for section in sections:
+            try:
+                section_props = {
+                    "section_type": section.get('type', 'unknown'),
+                    "name": section.get('name', '')[:100],
+                }
+
+                # 添加 bounding_box
+                bbox = section.get('bounding_box', {})
+                if bbox:
+                    section_props["x"] = bbox.get('x', 0)
+                    section_props["y"] = bbox.get('y', 0)
+                    section_props["width"] = bbox.get('width', 0)
+                    section_props["height"] = bbox.get('height', 0)
+
+                success, output = self._run_skill_command(
+                    "create",
+                    "--type", "LayoutSection",
+                    "--props", json.dumps(section_props),
+                    "--authority", "observation"
+                )
+
+                if success:
+                    section_entity = json.loads(output)
+                    # 建立关系：Page --has_layout--> LayoutSection
+                    self._create_relation(
+                        from_id=page_entity_id,
+                        rel_type="has_layout",
+                        to_id=section_entity["id"]
+                    )
+            except Exception as e:
+                print(f"        ⚠️ 存储布局区块失败: {e}")
+                continue
+
+    def _store_style_system(self, css_rules: Dict, page_entity_id: str):
+        """存储样式系统实体（CSS规则聚合）"""
+        try:
+            # 统计CSS规则
+            rule_count = len(css_rules)
+            selector_samples = list(css_rules.keys())[:20]  # 取样前20个选择器
+
+            style_props = {
+                "rule_count": rule_count,
+                "selector_samples": json.dumps(selector_samples),
+                "source": "external_css"
+            }
+
+            success, output = self._run_skill_command(
+                "create",
+                "--type", "StyleSystem",
+                "--props", json.dumps(style_props),
+                "--authority", "observation"
+            )
+
+            if success:
+                style_entity = json.loads(output)
+                # 建立关系：Page --uses_styles--> StyleSystem
+                self._create_relation(
+                    from_id=page_entity_id,
+                    rel_type="uses_styles",
+                    to_id=style_entity["id"]
+                )
+        except Exception as e:
+            print(f"        ⚠️ 存储样式系统失败: {e}")
+
+    def _store_design_tokens(self, color_palette: List, typography: Dict, page_entity_id: str):
+        """存储设计令牌实体（颜色/字号/字体）"""
+        try:
+            # 存储颜色
+            for color in color_palette[:50]:  # 限制数量
+                if color:
+                    token_props = {
+                        "token_type": "color",
+                        "value": color,
+                        "name": f"color_{color.replace('#', '')}"
+                    }
+
+                    success, output = self._run_skill_command(
+                        "create",
+                        "--type", "DesignToken",
+                        "--props", json.dumps(token_props),
+                        "--authority", "observation"
+                    )
+
+                    if success:
+                        token_entity = json.loads(output)
+                        self._create_relation(
+                            from_id=page_entity_id,
+                            rel_type="has_design_token",
+                            to_id=token_entity["id"]
+                        )
+
+            # 存储字号
+            font_sizes = typography.get('font_sizes', [])
+            for size in font_sizes[:20]:  # 限制数量
+                if size:
+                    token_props = {
+                        "token_type": "font_size",
+                        "value": str(size),
+                        "name": f"font_size_{size}"
+                    }
+
+                    success, output = self._run_skill_command(
+                        "create",
+                        "--type", "DesignToken",
+                        "--props", json.dumps(token_props),
+                        "--authority", "observation"
+                    )
+
+                    if success:
+                        token_entity = json.loads(output)
+                        self._create_relation(
+                            from_id=page_entity_id,
+                            rel_type="has_design_token",
+                            to_id=token_entity["id"]
+                        )
+
+            # 存储字体
+            font_families = typography.get('font_families', [])
+            for font in font_families[:10]:  # 限制数量
+                if font:
+                    token_props = {
+                        "token_type": "font_family",
+                        "value": font,
+                        "name": f"font_{font.replace(' ', '_')[:30]}"
+                    }
+
+                    success, output = self._run_skill_command(
+                        "create",
+                        "--type", "DesignToken",
+                        "--props", json.dumps(token_props),
+                        "--authority", "observation"
+                    )
+
+                    if success:
+                        token_entity = json.loads(output)
+                        self._create_relation(
+                            from_id=page_entity_id,
+                            rel_type="has_design_token",
+                            to_id=token_entity["id"]
+                        )
+
+        except Exception as e:
+            print(f"        ⚠️ 存储设计令牌失败: {e}")
+
     def _store_business_entity(self, entity: APIEntity, system_id: str):
         """存储业务实体"""
         entity_props = json.dumps({
