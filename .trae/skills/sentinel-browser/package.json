@@ -87,6 +87,12 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon_256x256.png"
@@ -107,6 +113,9 @@
       "installerHeaderIcon": "assets/icon_256x256.png",
       "menuCategory": false,
       "include": "build/installer.nsh"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
     },
     "publish": null
   }
