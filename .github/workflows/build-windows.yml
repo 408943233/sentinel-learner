@@ -18,15 +18,13 @@ env:
 jobs:
   build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: .trae/skills/sentinel-browser
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          .trae/skills/sentinel-browser
-          .github
-        sparse-checkout-cone-mode: false
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -36,17 +34,13 @@ jobs:
         cache-dependency-path: '.trae/skills/sentinel-browser/package-lock.json'
     
     - name: Install dependencies
-      working-directory: .trae/skills/sentinel-browser
       run: npm ci
       
     - name: Update version (if specified)
       if: github.event.inputs.version != ''
-      working-directory: .trae/skills/sentinel-browser
-      run: |
-        npm version ${{ github.event.inputs.version }} --no-git-tag-version
+      run: npm version ${{ github.event.inputs.version }} --no-git-tag-version
       
     - name: Build Windows installer
-      working-directory: .trae/skills/sentinel-browser
       run: npm run build:win
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,16 +49,14 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: windows-installer
-        path: |
-          .trae/skills/sentinel-browser/dist/*.exe
+        path: .trae/skills/sentinel-browser/dist/*.exe
         retention-days: 30
     
     - name: Create Release (if tag pushed)
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          .trae/skills/sentinel-browser/dist/*.exe
+        files: .trae/skills/sentinel-browser/dist/*.exe
         draft: false
         prerelease: false
         generate_release_notes: true
