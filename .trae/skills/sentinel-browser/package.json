@@ -89,7 +89,7 @@
           ]
         }
       ],
-      "icon": "assets/icon_256x256.png"
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": true,
@@ -102,9 +102,6 @@
       "deleteAppDataOnUninstall": false,
       "warningsAsErrors": false,
       "runAfterFinish": true,
-      "installerIcon": "assets/icon_256x256.png",
-      "uninstallerIcon": "assets/icon_256x256.png",
-      "installerHeaderIcon": "assets/icon_256x256.png",
       "menuCategory": false,
       "include": "build/installer.nsh"
     },
