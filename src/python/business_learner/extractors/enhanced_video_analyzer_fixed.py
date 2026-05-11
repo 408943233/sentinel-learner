@@ -593,8 +593,83 @@ class EnhancedVideoAnalyzerFixed:
             "long_screenshots_created": len([r for r in self.long_screenshots.values() if r.success]),
             "pages_analyzed": len(self.visual_analysis),
             "visual_elements": self._extract_visual_elements(),
-            "page_understandings": self.visual_analysis
+            "page_understandings": self.visual_analysis,
+            "performance_metrics": self._extract_performance_metrics()
         }
+
+    def _extract_performance_metrics(self) -> Dict:
+        """提取性能指标"""
+        metrics = {
+            "video_duration_seconds": round(self.duration, 2),
+            "total_frames": self.total_frames,
+            "fps": round(self.fps, 2) if self.fps > 0 else 0,
+            "event_density": round(len(self.events) / self.duration, 2) if self.duration > 0 else 0,
+            "scroll_sequences": 0,
+            "scroll_behavior": {
+                "total_scroll_events": 0,
+                "scroll_duration_total_ms": 0,
+                "avg_scroll_duration_ms": 0,
+                "scroll_directions": {"up": 0, "down": 0, "left": 0, "right": 0}
+            },
+            "page_load_times": [],
+            "interaction_latency": []
+        }
+
+        # 分析滚动行为
+        scroll_sequences = set()
+        scroll_durations = []
+
+        for event in self.events:
+            event_type = event.get('type', '')
+            metadata = event.get('data', {}).get('_metadata', {})
+
+            # 统计滚动序列
+            if event_type in ['scroll-start', 'scroll', 'scroll-end']:
+                metrics["scroll_behavior"]["total_scroll_events"] += 1
+                seq_id = metadata.get('scrollSequenceId')
+                if seq_id:
+                    scroll_sequences.add(seq_id)
+
+                # 滚动持续时间
+                duration = metadata.get('scrollDuration')
+                if duration:
+                    scroll_durations.append(duration)
+
+                # 滚动方向
+                direction = metadata.get('direction')
+                if direction and direction in metrics["scroll_behavior"]["scroll_directions"]:
+                    metrics["scroll_behavior"]["scroll_directions"][direction] += 1
+
+            # 页面加载时间（如果有）
+            if event_type == 'page-load':
+                load_time = metadata.get('loadTime')
+                if load_time:
+                    metrics["page_load_times"].append({
+                        "url": event.get('url', ''),
+                        "load_time_ms": load_time,
+                        "timestamp": event.get('timestamp', 0)
+                    })
+
+        metrics["scroll_sequences"] = len(scroll_sequences)
+
+        # 计算平均滚动持续时间
+        if scroll_durations:
+            metrics["scroll_behavior"]["scroll_duration_total_ms"] = sum(scroll_durations)
+            metrics["scroll_behavior"]["avg_scroll_duration_ms"] = round(sum(scroll_durations) / len(scroll_durations), 2)
+
+        # 计算交互延迟（事件间的时间间隔）
+        timestamps = [e.get('timestamp', 0) for e in self.events if e.get('timestamp')]
+        if len(timestamps) > 1:
+            latencies = [timestamps[i] - timestamps[i-1] for i in range(1, len(timestamps))]
+            if latencies:
+                metrics["interaction_latency"] = {
+                    "avg_ms": round(sum(latencies) / len(latencies), 2),
+                    "min_ms": min(latencies),
+                    "max_ms": max(latencies),
+                    "total_interactions": len(latencies)
+                }
+
+        return metrics
     
     def _extract_visual_elements(self) -> List[Dict]:
         """提取视觉元素汇总"""

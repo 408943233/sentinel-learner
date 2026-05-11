@@ -269,34 +269,137 @@ class DOMParser:
                     element.business_meaning = self._infer_business_meaning(text)
     
     def _infer_business_meaning(self, text: str) -> str:
-        """从文本推断业务含义"""
+        """从文本推断业务含义 - 增强版"""
         text = text.strip().lower()
-        
-        # 常见业务语义映射
+
+        # 扩展的业务语义映射
         meaning_map = {
+            # 基础操作
             '提交': 'submit_action',
             '保存': 'save_action',
             '取消': 'cancel_action',
             '删除': 'delete_action',
             '编辑': 'edit_action',
+            '修改': 'edit_action',
             '查看': 'view_action',
+            '详情': 'view_action',
             '搜索': 'search_action',
+            '查询': 'search_action',
             '登录': 'login_action',
+            '登陆': 'login_action',
             '注册': 'register_action',
             '下载': 'download_action',
             '上传': 'upload_action',
             '返回': 'back_navigation',
+            '后退': 'back_navigation',
             '下一步': 'next_step',
             '上一步': 'previous_step',
             '首页': 'home_navigation',
+            '主页': 'home_navigation',
             '更多': 'more_options',
+            '展开': 'expand_action',
+            '收起': 'collapse_action',
+            '关闭': 'close_action',
+            '确认': 'confirm_action',
+            '确定': 'confirm_action',
+            '申请': 'apply_action',
+            '预约': 'book_action',
+            '预订': 'book_action',
+            '收藏': 'favorite_action',
+            '分享': 'share_action',
+            '点赞': 'like_action',
+            '评论': 'comment_action',
+            '转发': 'forward_action',
+            '打印': 'print_action',
+            '导出': 'export_action',
+            '导入': 'import_action',
+            '刷新': 'refresh_action',
+            '重置': 'reset_action',
+            '清空': 'clear_action',
+            '筛选': 'filter_action',
+            '排序': 'sort_action',
+            '新增': 'create_action',
+            '添加': 'create_action',
+            '创建': 'create_action',
+            # 招聘相关
+            '投递': 'apply_job_action',
+            '应聘': 'apply_job_action',
+            '职位': 'job_position',
+            '招聘': 'recruitment',
+            '校招': 'campus_recruitment',
+            '社招': 'social_recruitment',
+            '实习': 'internship',
+            '简历': 'resume',
+            '面试': 'interview',
+            '笔试': 'written_test',
+            # 电商相关
+            '购买': 'purchase_action',
+            '立即购买': 'buy_now_action',
+            '加入购物车': 'add_to_cart_action',
+            '结算': 'checkout_action',
+            '支付': 'payment_action',
+            '优惠券': 'coupon',
+            '促销': 'promotion',
+            '折扣': 'discount',
         }
-        
+
         for keyword, meaning in meaning_map.items():
             if keyword in text:
                 return meaning
-                
+
         return ''
+
+    def extract_layout_info(self, snapshot: DOMSnapshot) -> Dict:
+        """提取布局信息"""
+        layout_info = {
+            'total_elements': len(snapshot.elements_map),
+            'element_types': {},
+            'interactive_elements': [],
+            'forms': [],
+            'navigation': [],
+            'content_sections': [],
+            'business_actions': []
+        }
+
+        for element in snapshot.elements_map.values():
+            # 统计元素类型
+            elem_type = element.element_type.value
+            layout_info['element_types'][elem_type] = layout_info['element_types'].get(elem_type, 0) + 1
+
+            # 收集交互元素
+            if element.is_interactive and element.text_content.strip():
+                layout_info['interactive_elements'].append({
+                    'id': element.id,
+                    'tag': element.tag,
+                    'text': element.text_content[:50],
+                    'type': element.element_type.value,
+                    'business_meaning': element.business_meaning
+                })
+
+            # 收集表单
+            if element.element_type == ElementType.FORM:
+                layout_info['forms'].append({
+                    'id': element.id,
+                    'children_count': len(element.children)
+                })
+
+            # 收集导航
+            if element.element_type in [ElementType.NAV, ElementType.HEADER]:
+                layout_info['navigation'].append({
+                    'id': element.id,
+                    'type': element.element_type.value,
+                    'text': element.text_content[:100]
+                })
+
+            # 收集业务动作
+            if element.business_meaning:
+                layout_info['business_actions'].append({
+                    'id': element.id,
+                    'text': element.text_content[:50],
+                    'action': element.business_meaning
+                })
+
+        return layout_info
     
     def extract_interactive_elements(self, snapshot: DOMSnapshot) -> List[DOMElement]:
         """提取所有交互式元素"""

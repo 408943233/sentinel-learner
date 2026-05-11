@@ -409,44 +409,164 @@ class ManifestAnalyzer:
         return visits
     
     def _analyze_interaction_patterns(self) -> Dict[str, Any]:
-        """分析交互模式"""
+        """分析交互模式 - 增强版，包含热力图和停留时间"""
         patterns = {
             "total_clicks": 0,
             "total_scrolls": 0,
             "total_page_loads": 0,
+            "total_inputs": 0,
             "unique_pages": set(),
             "action_sequence": [],
             "most_clicked_elements": {},
-            "scroll_depths": []
+            "scroll_depths": [],
+            # 新增：热力图数据
+            "click_heatmap": [],
+            # 新增：停留时间分析
+            "dwell_times": [],
+            "element_dwell_times": {},
+            # 新增：鼠标轨迹
+            "mouse_trajectory": [],
+            # 新增：交互时序
+            "interaction_timeline": []
         }
-        
-        for event in self.events:
+
+        prev_event_time = None
+        prev_element = None
+        element_entry_time = None
+
+        for i, event in enumerate(self.events):
             action = event.get("event_details", {}).get("action", "")
             url = event.get("window_context", {}).get("url", "")
             semantic = event.get("event_details", {}).get("semantic_label", "")
-            
+            timestamp = event.get("timestamp", 0)
+
+            # 坐标信息
+            coordinates = event.get("event_details", {}).get("coordinates") or {}
+            x = coordinates.get("x", 0)
+            y = coordinates.get("y", 0)
+
             patterns["action_sequence"].append(action)
             patterns["unique_pages"].add(url)
-            
+
+            # 交互时序
+            patterns["interaction_timeline"].append({
+                "timestamp": timestamp,
+                "action": action,
+                "element": semantic,
+                "coordinates": {"x": x, "y": y},
+                "url": url
+            })
+
             if action == "click":
                 patterns["total_clicks"] += 1
                 patterns["most_clicked_elements"][semantic] = \
                     patterns["most_clicked_elements"].get(semantic, 0) + 1
+
+                # 记录点击热力图
+                patterns["click_heatmap"].append({
+                    "x": x,
+                    "y": y,
+                    "element": semantic,
+                    "timestamp": timestamp,
+                    "url": url
+                })
+
+                # 计算上一个元素的停留时间
+                if element_entry_time and prev_element:
+                    dwell_time = timestamp - element_entry_time
+                    if prev_element not in patterns["element_dwell_times"]:
+                        patterns["element_dwell_times"][prev_element] = []
+                    patterns["element_dwell_times"][prev_element].append(dwell_time)
+
+                element_entry_time = timestamp
+                prev_element = semantic
+
             elif action == "scroll":
                 patterns["total_scrolls"] += 1
+                scroll_data = event.get("event_details", {}).get("scroll_data", {})
+                patterns["scroll_depths"].append({
+                    "timestamp": timestamp,
+                    "scroll_x": scroll_data.get("scrollX", 0),
+                    "scroll_y": scroll_data.get("scrollY", 0),
+                    "url": url
+                })
+
             elif action == "page-load":
                 patterns["total_page_loads"] += 1
-        
+
+            elif action in ["input", "change"]:
+                patterns["total_inputs"] += 1
+
+            # 鼠标轨迹（记录所有有坐标的事件）
+            if x or y:
+                patterns["mouse_trajectory"].append({
+                    "x": x,
+                    "y": y,
+                    "timestamp": timestamp,
+                    "action": action
+                })
+
+            prev_event_time = timestamp
+
         # 转换set为list以便JSON序列化
         patterns["unique_pages"] = list(patterns["unique_pages"])
-        
+
         # 排序最常点击的元素
         patterns["most_clicked_elements"] = dict(
-            sorted(patterns["most_clicked_elements"].items(), 
+            sorted(patterns["most_clicked_elements"].items(),
                    key=lambda x: x[1], reverse=True)[:10]
         )
-        
+
+        # 计算平均停留时间
+        avg_dwell_times = {}
+        for element, times in patterns["element_dwell_times"].items():
+            if times:
+                avg_dwell_times[element] = {
+                    "avg_ms": sum(times) / len(times),
+                    "count": len(times),
+                    "total_ms": sum(times)
+                }
+        patterns["element_dwell_times"] = dict(
+            sorted(avg_dwell_times.items(),
+                   key=lambda x: x[1]["avg_ms"], reverse=True)[:10]
+        )
+
+        # 生成热力图网格（简化版）
+        patterns["heatmap_grid"] = self._generate_heatmap_grid(patterns["click_heatmap"])
+
         return patterns
+
+    def _generate_heatmap_grid(self, click_heatmap: List[Dict], grid_size: int = 10) -> List[Dict]:
+        """生成热力图网格数据"""
+        if not click_heatmap:
+            return []
+
+        # 找出边界
+        max_x = max(c["x"] for c in click_heatmap) if click_heatmap else 1000
+        max_y = max(c["y"] for c in click_heatmap) if click_heatmap else 1000
+
+        # 创建网格
+        grid = {}
+        for click in click_heatmap:
+            grid_x = int(click["x"] / max_x * grid_size) if max_x > 0 else 0
+            grid_y = int(click["y"] / max_y * grid_size) if max_y > 0 else 0
+            key = f"{grid_x},{grid_y}"
+            if key not in grid:
+                grid[key] = {"x": grid_x, "y": grid_y, "count": 0, "elements": set()}
+            grid[key]["count"] += 1
+            grid[key]["elements"].add(click["element"])
+
+        # 转换为列表并序列化set
+        result = []
+        for cell in grid.values():
+            result.append({
+                "x": cell["x"],
+                "y": cell["y"],
+                "count": cell["count"],
+                "elements": list(cell["elements"])
+            })
+
+        return sorted(result, key=lambda x: x["count"], reverse=True)
     
     def _extract_error_events(self) -> List[Dict]:
         """提取错误事件"""

@@ -15,6 +15,7 @@ from pathlib import Path
 
 # 添加项目路径
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from business_learner.core.final_engine import FinalBusinessLearningEngine
 from business_learner.storage.unified_memory_adapter import UnifiedMemoryAdapter
