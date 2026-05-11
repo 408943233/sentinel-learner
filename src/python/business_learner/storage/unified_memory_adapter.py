@@ -38,12 +38,13 @@ class UnifiedMemoryAdapter:
         """
         self.mode = mode
         
-        # 读取环境变量或使用默认值
+        # 读取环境变量或使用默认值（优先从settings读取）
+        from ..config.settings import MEMORY_SKILL_PATH
         self.workspace_base = Path(
             os.environ.get("SENTINEL_WORKSPACE", Path.home() / ".openclaw" / "workspace")
         )
         self.script_base = Path(
-            os.environ.get("OPENCLAW_SKILL_PATH", Path.home() / ".openclaw" / "extensions" / "openclaw-memory-skill")
+            os.environ.get("OPENCLAW_SKILL_PATH", MEMORY_SKILL_PATH)
         )
         
         if mode == "server":
