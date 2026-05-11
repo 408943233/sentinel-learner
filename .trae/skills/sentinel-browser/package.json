@@ -85,13 +85,6 @@
         {
           "target": "nsis",
           "arch": [
-            "x64",
-            "ia32"
-          ]
-        },
-        {
-          "target": "portable",
-          "arch": [
             "x64"
           ]
         }
@@ -99,11 +92,20 @@
       "icon": "assets/icon_256x256.png"
     },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
+      "oneClick": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Sentinel Browser",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "deleteAppDataOnUninstall": false,
+      "warningsAsErrors": false,
+      "runAfterFinish": true,
+      "installerIcon": "assets/icon_256x256.png",
+      "uninstallerIcon": "assets/icon_256x256.png",
+      "installerHeaderIcon": "assets/icon_256x256.png",
+      "menuCategory": false,
       "include": "build/installer.nsh"
     },
     "publish": null

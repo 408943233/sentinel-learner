@@ -6,6 +6,75 @@ const log = require('electron-log');
 const { spawn } = require('child_process');
 const archiver = require('archiver');
 
+// Windows 依赖检查和启动错误处理
+if (process.platform === 'win32') {
+  // 检查 Visual C++ Redistributable
+  function checkVCRedist() {
+    try {
+      const { execSync } = require('child_process');
+      // 检查注册表
+      const checkReg = (key) => {
+        try {
+          execSync(`reg query "${key}" /v Installed`, { stdio: 'pipe' });
+          return true;
+        } catch {
+          return false;
+        }
+      };
+      
+      // 检查多个可能的注册表位置
+      const keys = [
+        'HKLM\\SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64',
+        'HKLM\\SOFTWARE\\WOW6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64'
+      ];
+      
+      return keys.some(checkReg);
+    } catch (error) {
+      console.error('检查 VC++ Redist 失败:', error);
+      return false;
+    }
+  }
+  
+  // 在 app ready 之前检查依赖
+  const vcInstalled = checkVCRedist();
+  if (!vcInstalled) {
+    console.warn('Visual C++ Redistributable 未安装');
+    // 记录到日志，但不阻止启动（让用户在启动后看到提示）
+    global.vcRedistMissing = true;
+  }
+
+  // 捕获未处理的异常，防止静默崩溃
+  process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    const errorLogPath = path.join(os.tmpdir(), 'sentinel-browser-error.log');
+    fs.writeFileSync(errorLogPath, `Uncaught Exception: ${error.stack || error.message}\n`, { flag: 'a' });
+    
+    // 检查是否是 VC++ 相关的错误
+    const errorMsg = error.message || '';
+    const isVCRelated = errorMsg.includes('dll') || 
+                        errorMsg.includes('DLL') || 
+                        errorMsg.includes('module') ||
+                        errorMsg.includes('找不到');
+    
+    if (isVCRelated && !vcInstalled) {
+      dialog.showErrorBox('缺少系统组件', 
+        '应用程序无法启动，因为缺少必需的系统组件：Visual C++ Redistributable\n\n' +
+        '请下载并安装：\n' +
+        'https://aka.ms/vs/17/release/vc_redist.x64.exe\n\n' +
+        '安装后重新启动应用程序。');
+    } else {
+      dialog.showErrorBox('启动错误', `应用程序启动失败:\n${error.message}\n\n详细错误已保存到:\n${errorLogPath}`);
+    }
+    app.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    const errorLogPath = path.join(os.tmpdir(), 'sentinel-browser-error.log');
+    fs.writeFileSync(errorLogPath, `Unhandled Rejection: ${reason}\n`, { flag: 'a' });
+  });
+}
+
 // 全局变量，用于存储当前事件的 apiRequests，绕过参数传递问题
 let currentApiRequests = null;
 
@@ -104,23 +173,35 @@ function clearDynamicResources() {
   log.info('Dynamic resources cleared');
 }
 
-// 存储路径配置 - 使用项目目录下的 output 文件夹（非隐藏）
-const getStoragePath = () => {
-  // 使用项目目录，避免权限问题
-  return path.join('/Users/gaoyiwei/Documents/trae_projects/openclaw', 'output', 'collections');
+// 存储路径配置 - Mac/Linux 使用默认路径，Windows 由用户选择
+let STORAGE_PATH = null;
+
+const getDefaultStoragePath = () => {
+  return path.join(app.getPath('documents'), 'SentinelBrowser', 'collections');
 };
 
-const STORAGE_PATH = getStoragePath();
+// 选择存储目录（Windows 在启动任务时调用）
+async function selectStorageDirectory(mainWindow) {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openDirectory'],
+    title: '选择录制文件保存位置',
+    defaultPath: app.getPath('documents'),
+    buttonLabel: '选择此文件夹'
+  });
 
-// 确保存储目录存在
-try {
-  if (!fs.existsSync(STORAGE_PATH)) {
-    fs.mkdirSync(STORAGE_PATH, { recursive: true });
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
   }
-} catch (err) {
-  console.error('Failed to create storage directory:', err);
-  // 使用当前目录作为备选
-  process.exit(1);
+
+  const selectedPath = result.filePaths[0];
+  const collectionsPath = path.join(selectedPath, 'SentinelBrowser', 'collections');
+
+  // 确保目录存在
+  if (!fs.existsSync(collectionsPath)) {
+    fs.mkdirSync(collectionsPath, { recursive: true });
+  }
+
+  return collectionsPath;
 }
 
 // 初始化管理器
@@ -265,6 +346,28 @@ function createMainWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    
+    // Windows: 如果缺少 VC++ Redistributable，显示友好提示
+    if (process.platform === 'win32' && global.vcRedistMissing) {
+      setTimeout(() => {
+        dialog.showMessageBox(mainWindow, {
+          type: 'warning',
+          title: '系统组件检查',
+          message: '检测到可能缺少系统组件',
+          detail: '为了获得最佳体验，建议安装 Visual C++ Redistributable。\n\n' +
+                  '如果应用程序运行正常，可以忽略此提示。\n\n' +
+                  '是否现在下载安装？',
+          buttons: ['下载安装', '暂时忽略'],
+          defaultId: 0,
+          cancelId: 1
+        }).then(result => {
+          if (result.response === 0) {
+            // 打开下载链接
+            shell.openExternal('https://aka.ms/vs/17/release/vc_redist.x64.exe');
+          }
+        });
+      }, 1000); // 延迟1秒显示，避免遮挡启动画面
+    }
   });
 
   // 窗口关闭处理
@@ -1064,6 +1167,24 @@ async function startRecording(taskConfig = {}) {
     throw new Error('Recording already in progress');
   }
 
+  // Windows 平台：让用户选择存储目录
+  if (process.platform === 'win32' && !STORAGE_PATH) {
+    const mainWindow = globalState.windows[0]?.window;
+    const selectedPath = await selectStorageDirectory(mainWindow);
+    if (!selectedPath) {
+      throw new Error('未选择存储目录');
+    }
+    STORAGE_PATH = selectedPath;
+  }
+
+  // Mac/Linux 平台：使用默认路径
+  if (!STORAGE_PATH) {
+    STORAGE_PATH = getDefaultStoragePath();
+    if (!fs.existsSync(STORAGE_PATH)) {
+      fs.mkdirSync(STORAGE_PATH, { recursive: true });
+    }
+  }
+
   // 检查磁盘空间
   if (!checkDiskSpace()) {
     throw new Error('Insufficient disk space');
@@ -1073,13 +1194,13 @@ async function startRecording(taskConfig = {}) {
   const timestamp = Date.now();
   // 如果提供了 id，直接使用；否则生成新的 task_id
   const taskId = taskConfig.id || `task_${timestamp}`;
-  
+
   // 构建友好的目录名：task_{任务名称}_{网页地址}_{taskId}
   // 清理任务名称和URL，移除非法字符
   const safeTaskName = (taskConfig.name || 'unnamed').replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_').substring(0, 30);
   const safeUrl = (taskConfig.url || 'no-url').replace(/^https?:\/\//, '').replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 30);
   const shortTaskId = taskId.replace(/^task_/, '').substring(0, 13); // 使用timestamp部分
-  
+
   const taskDirName = `task_${safeTaskName}_${safeUrl}_${shortTaskId}`;
   const taskDir = path.join(STORAGE_PATH, taskDirName);
 
@@ -3512,6 +3633,19 @@ ipcMain.handle('start-replay', async (event, { taskId, url }) => {
 
 // 应用生命周期
 app.whenReady().then(() => {
+  // 记录启动日志（帮助诊断 Windows 启动问题）
+  log.info('========================================');
+  log.info('Sentinel Browser 启动');
+  log.info(`平台: ${process.platform} ${os.release()}`);
+  log.info(`架构: ${process.arch}`);
+  log.info(`Electron: ${process.versions.electron}`);
+  log.info(`Node: ${process.versions.node}`);
+  log.info(`用户数据目录: ${app.getPath('userData')}`);
+  log.info(`当前工作目录: ${process.cwd()}`);
+  log.info(`应用路径: ${app.getAppPath()}`);
+  log.info(`是否打包: ${app.isPackaged}`);
+  log.info('========================================');
+
   // 确保在应用 ready 时初始化管理器
   initializeManagers();
   createMainWindow();

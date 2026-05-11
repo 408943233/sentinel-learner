@@ -15,7 +15,9 @@ from dataclasses import asdict
 
 from ..extractors.enhanced_video_analyzer_fixed import EnhancedVideoAnalyzerFixed
 from ..extractors.api_extractor import APIExtractor
+from ..extractors.api_schema_extractor import APISchemaExtractor
 from ..extractors.dom_extractor import DOMExtractor
+from ..extractors.dom_parser import DOMParser
 from ..extractors.manifest_analyzer import ManifestAnalyzer
 from ..extractors.api_traffic_analyzer import APITrafficAnalyzer
 from ..extractors.resources_analyzer import ResourcesAnalyzer
@@ -70,6 +72,10 @@ class FinalBusinessLearningEngine:
         self.resources_dir = self.task_path / "network" / "resources"
         self.logs_dir = self.task_path / "logs"
         self.dom_dir = self.task_path / "dom"
+        self.page_structure_path = self.task_path / "page_structure.json"
+        self.rrweb_events_path = self.task_path / "dom" / "rrweb_events.json"
+        self.browser_state_path = self.task_path / "sandbox" / "browser_state.json"
+        self.lineage_path = self.task_path / "sandbox" / "lineage.json"
         
         # 输出路径
         self.output_dir = self.task_path / "analysis"
@@ -160,44 +166,59 @@ class FinalBusinessLearningEngine:
             print("\n" + "=" * 60)
             print("📊 P1 辅助数据分析")
             print("=" * 60)
-            
-            # 4. DOM结构分析
-            print("\n[4/9] 🏗️ DOM结构分析...")
+
+            # 4. Page Structure 分析
+            print("\n[4/9] 📄 Page Structure 分析...")
+            page_structure_result = self._analyze_page_structure()
+            self.all_analysis_results['page_structure'] = page_structure_result
+
+            # 5. rrweb events 分析
+            print("\n[5/9] 🎬 rrweb events 分析...")
+            rrweb_result = self._analyze_rrweb_events()
+            self.all_analysis_results['rrweb_events'] = rrweb_result
+
+            # 6. Browser State 分析
+            print("\n[6/9] 🍪 Browser State 分析...")
+            browser_state_result = self._analyze_browser_state()
+            self.all_analysis_results['browser_state'] = browser_state_result
+
+            # 7. DOM结构分析
+            print("\n[7/9] 🏗️ DOM结构分析...")
             dom_result = self._analyze_dom()
             self.all_analysis_results['dom'] = dom_result
             
-            # 5. API流量分析
-            print("\n[5/9] 🌊 API流量分析（数据流向）...")
+            # 8. API流量分析
+            print("\n[8/12] 🌊 API流量分析（数据流向）...")
             api_traffic_result = self._analyze_api_traffic()
             self.all_analysis_results['api_traffic'] = api_traffic_result
-            
+
             # ========== P2 补充数据分析 ==========
             print("\n" + "=" * 60)
             print("📊 P2 补充数据分析")
             print("=" * 60)
-            
-            # 6. 静态资源分析
-            print("\n[6/9] 📦 静态资源分析...")
+
+            # 9. 静态资源分析
+            print("\n[9/12] 📦 静态资源分析...")
             resources_result = self._analyze_resources()
             self.all_analysis_results['resources'] = resources_result
-            
-            # 7. 日志错误分析
-            print("\n[7/9] 🐛 日志错误分析...")
+
+            # 10. 日志错误分析
+            print("\n[10/12] 🐛 日志错误分析...")
             logs_result = self._analyze_logs()
             self.all_analysis_results['logs'] = logs_result
-            
+
             # ========== 融合与对齐 ==========
             print("\n" + "=" * 60)
             print("🔄 数据融合与对齐")
             print("=" * 60)
-            
-            # 8. 时间对齐
-            print("\n[8/9] ⏱️ 时间对齐...")
+
+            # 11. 时间对齐
+            print("\n[11/12] ⏱️ 时间对齐...")
             alignment_result = self._perform_temporal_alignment()
             self.all_analysis_results['alignment'] = alignment_result
-            
-            # 9. 冲突检测与解决
-            print("\n[9/9] ⚖️ 冲突检测与解决...")
+
+            # 12. 冲突检测与解决
+            print("\n[12/12] ⚖️ 冲突检测与解决...")
             conflict_result = self._resolve_conflicts()
             self.all_analysis_results['conflict_resolution'] = conflict_result
             
@@ -293,30 +314,50 @@ class FinalBusinessLearningEngine:
             'total_duration_ms': flow.total_duration_ms
         }
     
-    def _extract_api_entities(self) -> List[APIEntity]:
-        """提取API业务实体"""
+    def _extract_api_entities(self) -> Dict:
+        """提取API业务实体和Schema"""
         if not self.api_path.exists():
             print("  ⚠️ API响应文件不存在")
-            return []
-        
+            return {'entities': [], 'schemas': []}
+
+        # 提取业务实体
         self.api_extractor = APIExtractor(str(self.api_path))
-        return self.api_extractor.extract_entities()
+        entities = self.api_extractor.extract_entities()
+
+        # 提取API Schema（深层解析）
+        schema_extractor = APISchemaExtractor(str(self.api_path))
+        schemas = schema_extractor.extract_schemas()
+
+        # 打印统计信息
+        schema_summary = schema_extractor.get_schema_summary(schemas)
+        print(f"    业务实体: {len(entities)} 个")
+        print(f"    API Schema: {len(schemas)} 个")
+        print(f"    业务类型: {list(schema_summary['business_entities'].keys())}")
+
+        return {
+            'entities': entities,
+            'schemas': schemas,
+            'schema_summary': schema_summary,
+            'openapi_spec': schema_extractor.export_openapi_spec(schemas)
+        }
     
     def _analyze_dom(self) -> Dict:
         """分析DOM结构（包含页面结构和样式）"""
         if not self.dom_dir.exists():
             print("  ⚠️ DOM目录不存在")
             return {}
-        
+
         # 查找所有snapshot文件
         snapshot_files = list(self.dom_dir.glob("snapshot_*.json"))
         if not snapshot_files:
             print("  ⚠️ 未找到DOM snapshot文件")
             return {}
-        
+
         results = []
         page_structures = []
-        
+        full_snapshots = 0
+        incremental_snapshots = 0
+
         for snapshot_file in snapshot_files:
             # 检查是否为 full snapshot (type 2)
             # 只有 full snapshot 才有完整的 DOM 树
@@ -325,49 +366,68 @@ class FinalBusinessLearningEngine:
                     snapshot_data = json.load(f)
                 rrweb_event = snapshot_data.get('rrwebEvent', {})
                 event_type = rrweb_event.get('type')
-                
-                # 只处理 full snapshot (type 2)
-                if event_type != 2:
-                    continue
+
+                # 统计 snapshot 类型
+                if event_type == 2:
+                    full_snapshots += 1
+                elif event_type == 3:
+                    incremental_snapshots += 1
+                    continue  # 跳过增量 snapshot
+                else:
+                    continue  # 跳过其他类型
             except Exception as e:
                 print(f"  ⚠️ 读取 snapshot 失败: {snapshot_file.name} - {e}")
                 continue
-            
-            # 基础DOM分析
-            extractor = DOMExtractor(str(snapshot_file))
-            page_info = extractor.extract_page_info()
-            elements = extractor.extract_elements()
-            interactive = extractor.extract_interactive_elements()
-            
-            # 页面结构和样式提取
-            resources_path = self.task_path / 'network' / 'resources'
-            structure_extractor = PageStructureExtractor(
-                str(snapshot_file),
-                str(resources_path) if resources_path.exists() else None
-            )
-            page_structure = structure_extractor.extract()
-            if page_structure:
-                page_structures.append(page_structure.to_dict())
-                # 保存页面结构
-                structure_extractor.save(self.output_dir)
-            
-            results.append({
-                'file': snapshot_file.name,
-                'page_info': {
-                    'url': page_info.url if page_info else '',
-                    'title': page_info.title if page_info else '',
-                    'page_type': page_info.page_type if page_info else 'unknown'
-                },
-                'element_count': len(elements),
-                'interactive_count': len(interactive),
-                'has_structure': page_structure is not None
-            })
-        
+
+            # 使用 DOMParser 进行完整的 DOM 分析
+            parser = DOMParser(str(snapshot_file))
+            snapshot = parser.parse()
+
+            if snapshot:
+                # 计算树深度
+                tree_depth = self._calc_tree_depth(snapshot.root)
+
+                # 提取布局信息
+                layout_info = parser.extract_layout_info(snapshot)
+
+                results.append({
+                    'file': snapshot_file.name,
+                    'page_info': {
+                        'url': snapshot.url,
+                        'title': snapshot.title,
+                        'page_type': snapshot.page_type
+                    },
+                    'element_count': len(snapshot.elements_map),
+                    'interactive_count': sum(1 for e in snapshot.elements_map.values() if e.is_interactive),
+                    'tree_depth': tree_depth,
+                    'has_structure': True,
+                    'layout_info': layout_info,
+                    'business_actions': layout_info.get('business_actions', [])
+                })
+
+        print(f"    Full snapshots: {full_snapshots}")
+        print(f"    Incremental snapshots: {incremental_snapshots} (skipped)")
+        if results:
+            print(f"    Elements in first snapshot: {results[0]['element_count']}")
+            print(f"    Interactive elements: {results[0]['interactive_count']}")
+
         return {
             'total_snapshots': len(results),
+            'full_snapshots': full_snapshots,
+            'incremental_snapshots': incremental_snapshots,
             'snapshots': results,
             'page_structures': page_structures
         }
+
+    def _calc_tree_depth(self, node, depth=0) -> int:
+        """计算DOM树深度"""
+        if not node.children:
+            return depth
+        max_child_depth = 0
+        for child in node.children:
+            child_depth = self._calc_tree_depth(child, depth + 1)
+            max_child_depth = max(max_child_depth, child_depth)
+        return max_child_depth
     
     def _analyze_api_traffic(self) -> Dict:
         """分析API流量"""
@@ -404,15 +464,155 @@ class FinalBusinessLearningEngine:
             'optimization_suggestions': result.performance.optimization_suggestions
         }
     
+    def _analyze_page_structure(self) -> Dict:
+        """分析 page_structure.json"""
+        if not self.page_structure_path.exists():
+            print("  ⚠️ page_structure.json 不存在")
+            return {}
+
+        try:
+            with open(self.page_structure_path, 'r', encoding='utf-8') as f:
+                page_structure = json.load(f)
+
+            # 提取关键信息
+            components = page_structure.get('components', [])
+            layout_sections = page_structure.get('layoutSections', [])
+            css_rules = page_structure.get('cssRules', [])
+            responsive_breakpoints = page_structure.get('responsiveBreakpoints', [])
+
+            # 统计信息
+            component_types = {}
+            for comp in components:
+                comp_type = comp.get('type', 'unknown')
+                component_types[comp_type] = component_types.get(comp_type, 0) + 1
+
+            print(f"    组件数量: {len(components)}")
+            print(f"    布局区块: {len(layout_sections)}")
+            print(f"    CSS规则: {len(css_rules)}")
+            print(f"    响应式断点: {len(responsive_breakpoints)}")
+
+            return {
+                'total_components': len(components),
+                'total_layout_sections': len(layout_sections),
+                'total_css_rules': len(css_rules),
+                'responsive_breakpoints': responsive_breakpoints,
+                'component_types': component_types,
+                'components_summary': [
+                    {'id': c.get('id'), 'type': c.get('type'), 'name': c.get('name')}
+                    for c in components[:10]  # 只返回前10个
+                ]
+            }
+        except Exception as e:
+            print(f"  ⚠️ 读取 page_structure.json 失败: {e}")
+            return {}
+
+    def _analyze_rrweb_events(self) -> Dict:
+        """分析 rrweb_events.json"""
+        if not self.rrweb_events_path.exists():
+            print("  ⚠️ rrweb_events.json 不存在")
+            return {}
+
+        try:
+            with open(self.rrweb_events_path, 'r', encoding='utf-8') as f:
+                events = json.load(f)
+
+            if not isinstance(events, list):
+                print("  ⚠️ rrweb_events.json 格式不正确")
+                return {}
+
+            # 统计事件类型
+            event_types = {}
+            timestamps = []
+
+            for event in events:
+                event_type = event.get('type')
+                event_types[event_type] = event_types.get(event_type, 0) + 1
+                if 'timestamp' in event:
+                    timestamps.append(event['timestamp'])
+
+            # 事件类型映射
+            type_names = {
+                0: 'DomContentLoaded',
+                1: 'Load',
+                2: 'FullSnapshot',
+                3: 'IncrementalSnapshot',
+                4: 'Meta',
+                5: 'Custom'
+            }
+
+            event_summary = {type_names.get(k, f'Type_{k}'): v for k, v in event_types.items()}
+
+            # 计算时间范围
+            duration = 0
+            if timestamps:
+                duration = max(timestamps) - min(timestamps)
+
+            print(f"    总事件数: {len(events)}")
+            print(f"    Full snapshots: {event_types.get(2, 0)}")
+            print(f"    Incremental snapshots: {event_types.get(3, 0)}")
+            print(f"    录制时长: {duration/1000:.1f}s")
+
+            return {
+                'total_events': len(events),
+                'event_types': event_summary,
+                'duration_ms': duration,
+                'duration_seconds': duration / 1000 if duration else 0
+            }
+        except Exception as e:
+            print(f"  ⚠️ 读取 rrweb_events.json 失败: {e}")
+            return {}
+
+    def _analyze_browser_state(self) -> Dict:
+        """分析 browser_state.json"""
+        if not self.browser_state_path.exists():
+            print("  ⚠️ browser_state.json 不存在")
+            return {}
+
+        try:
+            with open(self.browser_state_path, 'r', encoding='utf-8') as f:
+                browser_state = json.load(f)
+
+            cookies = browser_state.get('cookies', [])
+            local_storage = browser_state.get('localStorage', {})
+            session_storage = browser_state.get('sessionStorage', {})
+
+            # 分析 cookie 域名
+            cookie_domains = set()
+            for cookie in cookies:
+                domain = cookie.get('domain', '')
+                if domain:
+                    cookie_domains.add(domain)
+
+            # 分析 localStorage keys
+            local_storage_keys = list(local_storage.keys())
+
+            print(f"    Cookies: {len(cookies)} (domains: {len(cookie_domains)})")
+            print(f"    LocalStorage: {len(local_storage_keys)} keys")
+            print(f"    SessionStorage: {len(session_storage)} keys")
+
+            return {
+                'cookie_count': len(cookies),
+                'cookie_domains': list(cookie_domains),
+                'local_storage_keys': local_storage_keys,
+                'local_storage_count': len(local_storage_keys),
+                'session_storage_count': len(session_storage),
+                'has_auth_cookies': any('auth' in c.get('name', '').lower() or
+                                        'token' in c.get('name', '').lower()
+                                        for c in cookies)
+            }
+        except Exception as e:
+            print(f"  ⚠️ 读取 browser_state.json 失败: {e}")
+            return {}
+
     def _analyze_logs(self) -> Dict:
         """分析日志"""
         if not self.logs_dir.exists():
             print("  ⚠️ Logs目录不存在")
             return {}
-        
+
         self.logs_analyzer = LogsAnalyzer(str(self.logs_dir))
         result = self.logs_analyzer.analyze()
-        
+
         return {
             'console_error_count': len(result.console_errors),
             'js_error_count': len(result.js_errors),
@@ -487,8 +687,10 @@ class FinalBusinessLearningEngine:
         
         # API数据
         if self.api_extractor:
+            api_data = self.all_analysis_results.get('api_entities', {})
+            entities = api_data.get('entities', []) if isinstance(api_data, dict) else []
             data_sources[DataSource.API] = {
-                'entities': [e.__dict__ for e in self.all_analysis_results.get('api_entities', [])]
+                'entities': [e.__dict__ for e in entities]
             }
         
         # DOM数据

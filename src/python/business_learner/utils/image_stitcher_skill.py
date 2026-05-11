@@ -28,12 +28,12 @@ class ImageStitcherSkill:
         Args:
             skill_path: image-stitch skill 脚本路径，默认从环境变量 IMAGE_STITCH_SKILL_PATH 读取
         """
-        # skill 路径（优先使用传入参数，其次环境变量，最后默认路径）
+        # skill 路径（优先使用传入参数，其次环境变量，最后从settings读取）
+        from ..config.settings import IMAGE_STITCH_SKILL_PATH
         if skill_path:
             self.skill_path = Path(skill_path)
         else:
-            default_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/.trae/skills/image-stitch/stitch.py"
-            self.skill_path = Path(os.environ.get("IMAGE_STITCH_SKILL_PATH", default_path))
+            self.skill_path = Path(os.environ.get("IMAGE_STITCH_SKILL_PATH", IMAGE_STITCH_SKILL_PATH))
     
     def stitch_vertical(self, image_paths: List[str], 
                        output_path: Optional[str] = None) -> StitchResult:
