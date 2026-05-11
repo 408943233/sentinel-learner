@@ -65,19 +65,11 @@ Function CheckAndInstallVCRedist
       MessageBox MB_OK "Visual C++ Redistributable 已安装，但可能需要重启计算机才能生效。"
     ${Else}
       DetailPrint "Visual C++ Redistributable 安装失败，错误码: $1"
-      MessageBox MB_OK "警告：Visual C++ Redistributable 自动安装失败。$
-$
-应用程序可能无法正常启动。$
-$
-如果启动失败，请手动下载安装：$
-https://aka.ms/vs/17/release/vc_redist.x64.exe"
+      MessageBox MB_OK "警告：Visual C++ Redistributable 自动安装失败。请手动下载安装：https://aka.ms/vs/17/release/vc_redist.x64.exe"
     ${EndIf}
   ${Else}
     DetailPrint "下载失败: $0"
-    MessageBox MB_OK "警告：无法自动下载 Visual C++ Redistributable。$
-$
-如果应用程序启动失败，请手动下载安装：$
-https://aka.ms/vs/17/release/vc_redist.x64.exe"
+    MessageBox MB_OK "警告：无法自动下载 Visual C++ Redistributable。如果启动失败，请手动下载安装：https://aka.ms/vs/17/release/vc_redist.x64.exe"
   ${EndIf}
   
   ; 清理临时文件
