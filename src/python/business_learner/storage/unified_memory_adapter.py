@@ -7,9 +7,11 @@
 import json
 import os
 import subprocess
+import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from dataclasses import asdict
+from datetime import datetime
 
 from ..utils.models import TaskUnderstanding, PageUnderstanding, APIEntity
 from ..utils.task_metadata import TaskMetadata, TaskMetadataManager
@@ -64,6 +66,10 @@ class UnifiedMemoryAdapter:
         
         # 确保数据目录存在
         self.graph_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # 批量写入模式：在内存中构建所有实体
+        self._batch_entities: List[Dict] = []
+        self._batch_relations: List[Dict] = []
     
     def _run_skill_command(self, *args) -> tuple[bool, str]:
         """
@@ -104,26 +110,111 @@ class UnifiedMemoryAdapter:
         except Exception as e:
             return False, str(e)
     
+    def _generate_id(self, entity_type: str) -> str:
+        """生成实体ID"""
+        return f"{entity_type.lower()}_{uuid.uuid4().hex[:12]}"
+    
+    def _create_entity_batch(self, entity_type: str, properties: Dict, 
+                             source: str = "sentinel-learner",
+                             authority: str = "observation") -> Dict:
+        """
+        在内存中创建实体（批量模式）
+        
+        Returns:
+            实体字典（包含id）
+        """
+        entity = {
+            "id": self._generate_id(entity_type),
+            "type": entity_type,
+            "properties": properties,
+            "source": source,
+            "authority": authority,
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
+        self._batch_entities.append(entity)
+        return entity
+    
+    def _create_relation_batch(self, from_id: str, rel_type: str, to_id: str,
+                               properties: Optional[Dict] = None):
+        """在内存中创建关系（批量模式）"""
+        relation = {
+            "from": from_id,
+            "type": rel_type,
+            "to": to_id,
+            "properties": properties or {},
+            "created_at": datetime.now().isoformat()
+        }
+        self._batch_relations.append(relation)
+    
+    def _flush_batch(self) -> bool:
+        """
+        将内存中的所有实体和关系一次性写入graph.jsonl
+        
+        Returns:
+            是否成功
+        """
+        if not self._batch_entities and not self._batch_relations:
+            return True
+        
+        try:
+            # 确保目录存在
+            self.graph_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # 追加写入graph.jsonl
+            with open(self.graph_path, 'a', encoding='utf-8') as f:
+                # 写入实体
+                for entity in self._batch_entities:
+                    f.write(json.dumps(entity, ensure_ascii=False) + '\n')
+                
+                # 写入关系（也作为实体存储，带from/to）
+                for relation in self._batch_relations:
+                    rel_entity = {
+                        "id": self._generate_id("relation"),
+                        "type": "Relation",
+                        "properties": relation,
+                        "source": "sentinel-learner",
+                        "authority": "system",
+                        "created_at": relation.get("created_at", datetime.now().isoformat()),
+                        "updated_at": datetime.now().isoformat()
+                    }
+                    f.write(json.dumps(rel_entity, ensure_ascii=False) + '\n')
+            
+            print(f"  ✅ 批量写入完成: {len(self._batch_entities)} 实体, {len(self._batch_relations)} 关系")
+            
+            # 清空批量缓存
+            self._batch_entities.clear()
+            self._batch_relations.clear()
+            
+            return True
+        except Exception as e:
+            print(f"  ❌ 批量写入失败: {e}")
+            return False
+    
     def store_task_knowledge(self, task_result: TaskUnderstanding, 
                             metadata_manager: TaskMetadataManager):
         """
-        存储Task知识到知识图谱
+        存储Task知识到知识图谱（批量写入模式）
         
         Args:
             task_result: 任务理解结果
             metadata_manager: 元数据管理器
         """
-        print(f"\n[UnifiedMemoryAdapter] 存储Task知识 (模式: {self.mode})...")
+        print(f"\n[UnifiedMemoryAdapter] 存储Task知识 (模式: {self.mode}, 批量写入)...")
+        
+        # 清空之前的批量缓存
+        self._batch_entities.clear()
+        self._batch_relations.clear()
         
         # 1. 获取或创建目标系统实体
         metadata = metadata_manager.load_metadata()
-        system_entity = self._get_or_create_system(metadata)
+        system_entity = self._get_or_create_system_batch(metadata)
         
         # 2. 创建Task记录实体
-        task_entity = self._create_task_entity(metadata, task_result)
+        task_entity = self._create_task_entity_batch(metadata, task_result)
         
         # 3. 建立系统-Task关系
-        self._create_relation(
+        self._create_relation_batch(
             from_id=system_entity["id"],
             rel_type="has_recording",
             to_id=task_entity["id"],
@@ -132,11 +223,11 @@ class UnifiedMemoryAdapter:
         
         # 4. 存储页面知识（包含详细结构）
         for page in task_result.pages:
-            page_entity = self._store_page_knowledge(page, task_entity["id"], system_entity["id"])
+            page_entity = self._store_page_knowledge_batch(page, task_entity["id"], system_entity["id"])
             
             # 4.1 存储页面详细结构（组件、布局、样式等）
             if page_entity:
-                self._store_page_structure_detailed(
+                self._store_page_structure_detailed_batch(
                     page, 
                     page_entity["id"], 
                     metadata_manager.task_path
@@ -144,15 +235,48 @@ class UnifiedMemoryAdapter:
         
         # 5. 存储业务实体
         for entity in task_result.entities:
-            self._store_business_entity(entity, system_entity["id"])
+            self._store_business_entity_batch(entity, system_entity["id"])
         
         # 6. 解决冲突
         self._resolve_system_conflicts(system_entity["id"])
         
-        print(f"[UnifiedMemoryAdapter] Task知识存储完成")
+        # 7. 一次性批量写入所有数据
+        success = self._flush_batch()
+        
+        if success:
+            print(f"[UnifiedMemoryAdapter] Task知识存储完成")
+        else:
+            print(f"[UnifiedMemoryAdapter] Task知识存储失败")
+    
+    def _get_or_create_system_batch(self, metadata) -> Dict:
+        """批量模式：获取或创建系统实体"""
+        system_name = metadata.target_system.name
+        system_domain = metadata.target_system.domain
+        
+        # 查询是否已存在（从已批量创建的实体中查找）
+        for entity in self._batch_entities:
+            if entity["type"] == "System" and entity["properties"].get("name") == system_name:
+                print(f"  系统已存在(批量缓存): {system_name}")
+                return entity
+        
+        # 创建新系统实体（批量模式）
+        props = {
+            "name": system_name,
+            "domain": system_domain,
+            "system_type": metadata.target_system.system_type,
+            "description": f"目标系统: {system_name}"
+        }
+        
+        entity = self._create_entity_batch(
+            entity_type="System",
+            properties=props,
+            authority="reference"
+        )
+        print(f"  创建系统实体(批量): {system_name}")
+        return entity
     
     def _get_or_create_system(self, metadata) -> Dict:
-        """获取或创建系统实体"""
+        """获取或创建系统实体（旧版，保留用于兼容）"""
         system_name = metadata.target_system.name
         system_domain = metadata.target_system.domain
         
@@ -188,29 +312,54 @@ class UnifiedMemoryAdapter:
             print(f"  创建系统失败: {output}")
             return {"id": f"sys_{system_domain}", "type": "System"}
     
+    def _create_task_entity_batch(self, metadata, task_result) -> Dict:
+        """批量模式：创建Task实体"""
+        # 使用 operator_name 作为 source（如果存在），否则使用默认值
+        source = metadata.recorder.operator_name if metadata.recorder.operator_name else "sentinel-learner"
+        
+        props = {
+            "task_id": metadata.task_id,
+            "name": metadata.task_name,
+            "description": metadata.task_description,
+            "recorded_by": metadata.recorder.user_id,
+            "operator_name": metadata.recorder.operator_name,
+            "recorded_at": metadata.recorder.recorded_at,
+            "target_system": metadata.target_system.name,
+            "pages_count": len(task_result.pages),
+            "entities_count": len(task_result.entities)
+        }
+        
+        entity = self._create_entity_batch(
+            entity_type="TaskRecording",
+            properties=props,
+            source=source,
+            authority="observation"
+        )
+        print(f"  创建Task实体(批量): {metadata.task_id}")
+        return entity
+    
     def _create_task_entity(self, metadata, task_result) -> Dict:
-        """创建Task实体"""
+        """创建Task实体（旧版，保留用于兼容）"""
         props = json.dumps({
             "task_id": metadata.task_id,
             "name": metadata.task_name,
             "description": metadata.task_description,
             "recorded_by": metadata.recorder.user_id,
-            "operator_name": metadata.recorder.operator_name,  # 操作人姓名（用于冲突解决）
+            "operator_name": metadata.recorder.operator_name,
             "recorded_at": metadata.recorder.recorded_at,
             "target_system": metadata.target_system.name,
             "pages_count": len(task_result.pages),
             "entities_count": len(task_result.entities)
         })
         
-        # 使用 operator_name 作为 source（如果存在），否则使用默认值
         source = metadata.recorder.operator_name if metadata.recorder.operator_name else "sentinel-learner"
         
         success, output = self._run_skill_command(
             "create",
             "--type", "TaskRecording",
             "--props", props,
-            "--source", source,  # 记录操作人作为数据来源
-            "--authority", "observation"  # Task数据用observation等级
+            "--source", source,
+            "--authority", "observation"
         )
         
         if success:
@@ -223,9 +372,48 @@ class UnifiedMemoryAdapter:
             print(f"  创建Task失败: {output}")
             return {"id": metadata.task_id, "type": "TaskRecording"}
     
+    def _store_page_knowledge_batch(self, page: PageUnderstanding,
+                                     task_id: str, system_id: str) -> Optional[Dict]:
+        """批量模式：存储页面知识"""
+        # 处理不同类型的confidence
+        if hasattr(page.overall_confidence, 'value'):
+            confidence_value = page.overall_confidence.value
+        elif hasattr(page.overall_confidence, 'overall_confidence'):
+            confidence_value = str(page.overall_confidence.overall_confidence)
+        else:
+            confidence_value = str(page.overall_confidence)
+
+        page_props = {
+            "url": page.page_info.url,
+            "title": page.page_info.title,
+            "page_type": page.page_info.page_type,
+            "domain": page.page_info.business_domain,
+            "confidence": confidence_value
+        }
+
+        page_entity = self._create_entity_batch(
+            entity_type="WebPage",
+            properties=page_props,
+            authority="observation"
+        )
+
+        # 建立关系：Task --recorded--> Page
+        self._create_relation_batch(
+            from_id=task_id,
+            rel_type="recorded",
+            to_id=page_entity["id"]
+        )
+        # 建立关系：System --has_page--> Page
+        self._create_relation_batch(
+            from_id=system_id,
+            rel_type="has_page",
+            to_id=page_entity["id"]
+        )
+        return page_entity
+
     def _store_page_knowledge(self, page: PageUnderstanding,
                              task_id: str, system_id: str) -> Optional[Dict]:
-        """存储页面知识"""
+        """存储页面知识（旧版，保留用于兼容）"""
         # 处理不同类型的confidence
         if hasattr(page.overall_confidence, 'value'):
             confidence_value = page.overall_confidence.value
@@ -268,6 +456,60 @@ class UnifiedMemoryAdapter:
             except:
                 pass
         return None
+
+    def _store_page_structure_detailed_batch(self, page: PageUnderstanding,
+                                              page_entity_id: str, task_path: Path):
+        """
+        批量模式：存储页面详细结构
+        简化版本 - 只存储关键信息到页面实体的属性中
+        """
+        # 查找 page_structure.json
+        structure_file = task_path / "analysis" / "page_structure.json"
+
+        if not structure_file.exists():
+            return
+
+        try:
+            with open(structure_file, 'r', encoding='utf-8') as f:
+                structure_data = json.load(f)
+        except Exception as e:
+            return
+
+        # 提取关键统计信息并添加到页面实体
+        components = structure_data.get('components', [])
+        layout_sections = structure_data.get('layout_sections', [])
+        css_rules = structure_data.get('cssRules', [])
+        
+        # 创建页面结构摘要实体
+        structure_summary = {
+            "page_id": page_entity_id,
+            "component_count": len(components),
+            "layout_section_count": len(layout_sections),
+            "css_rule_count": len(css_rules),
+            "component_types": {},
+            "has_responsive_breakpoints": bool(structure_data.get('responsiveBreakpoints')),
+            "viewport": structure_data.get('viewport', {})
+        }
+        
+        # 统计组件类型
+        for comp in components[:100]:  # 最多统计100个
+            comp_type = comp.get('type', 'unknown')
+            structure_summary["component_types"][comp_type] = \
+                structure_summary["component_types"].get(comp_type, 0) + 1
+        
+        # 创建页面结构实体
+        self._create_entity_batch(
+            entity_type="PageStructure",
+            properties=structure_summary,
+            authority="observation"
+        )
+        
+        # 建立关系：Page --has_structure--> PageStructure
+        self._create_relation_batch(
+            from_id=page_entity_id,
+            rel_type="has_structure",
+            to_id=self._batch_entities[-1]["id"]
+        )
 
     def _store_page_structure_detailed(self, page: PageUnderstanding,
                                        page_entity_id: str, task_path: Path):
@@ -1037,16 +1279,39 @@ class UnifiedMemoryAdapter:
 
         print(f"        ✅ 成功存储 {stored_count} 个断点")
 
+    def _store_business_entity_batch(self, entity: APIEntity, system_id: str):
+        """批量模式：存储业务实体"""
+        entity_props = {
+            "name": entity.name,
+            "entity_type": entity.entity_type,
+            "source_url": entity.source_url,
+            "attributes": json.dumps(entity.attributes, ensure_ascii=False)[:500]
+        }
+        
+        entity_type = self._map_entity_type(entity.entity_type)
+        
+        entity_obj = self._create_entity_batch(
+            entity_type=entity_type,
+            properties=entity_props,
+            authority="observation"
+        )
+        
+        # 建立关系：System --has_entity--> Entity
+        self._create_relation_batch(
+            from_id=system_id,
+            rel_type="has_entity",
+            to_id=entity_obj["id"]
+        )
+
     def _store_business_entity(self, entity: APIEntity, system_id: str):
-        """存储业务实体"""
+        """存储业务实体（旧版，保留用于兼容）"""
         entity_props = json.dumps({
             "name": entity.name,
             "entity_type": entity.entity_type,
             "source_url": entity.source_url,
-            "attributes": json.dumps(entity.attributes, ensure_ascii=False)[:500]  # 限制长度
+            "attributes": json.dumps(entity.attributes, ensure_ascii=False)[:500]
         })
         
-        # 根据实体类型选择类型
         entity_type = self._map_entity_type(entity.entity_type)
         
         success, output = self._run_skill_command(
@@ -1059,7 +1324,6 @@ class UnifiedMemoryAdapter:
         if success:
             try:
                 entity_obj = json.loads(output)
-                # 建立关系：System --has_entity--> Entity
                 self._create_relation(
                     from_id=system_id,
                     rel_type="has_entity",
