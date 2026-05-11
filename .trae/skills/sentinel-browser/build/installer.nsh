@@ -25,7 +25,7 @@
 ; 宏：自定义卸载
 !macro customUnInstall
   ; 卸载时询问是否删除用户数据
-  MessageBox MB_YESNO "是否删除用户数据目录？$\r$\n这将会删除所有已保存的任务数据。" IDNO skipDeleteData
+  MessageBox MB_YESNO "是否删除用户数据目录？这将会删除所有已保存的任务数据。" IDNO skipDeleteData
     RMDir /r "$INSTDIR\userdata"
     RMDir /r "$INSTDIR\output"
   skipDeleteData:
@@ -65,11 +65,11 @@ Function CheckAndInstallVCRedist
       MessageBox MB_OK "Visual C++ Redistributable 已安装，但可能需要重启计算机才能生效。"
     ${Else}
       DetailPrint "Visual C++ Redistributable 安装失败，错误码: $1"
-      MessageBox MB_OK "警告：Visual C++ Redistributable 自动安装失败。请手动下载安装：https://aka.ms/vs/17/release/vc_redist.x64.exe"
+      MessageBox MB_OK "警告：Visual C++ Redistributable 自动安装失败。请手动下载安装。"
     ${EndIf}
   ${Else}
     DetailPrint "下载失败: $0"
-    MessageBox MB_OK "警告：无法自动下载 Visual C++ Redistributable。如果启动失败，请手动下载安装：https://aka.ms/vs/17/release/vc_redist.x64.exe"
+    MessageBox MB_OK "警告：无法自动下载 Visual C++ Redistributable。如果启动失败，请手动下载安装。"
   ${EndIf}
   
   ; 清理临时文件
