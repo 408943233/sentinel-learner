@@ -12,6 +12,9 @@ on:
         required: false
         default: ''
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -19,11 +22,16 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          .trae/skills/sentinel-browser
+          .github
+        sparse-checkout-cone-mode: false
       
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '24'
         cache: 'npm'
         cache-dependency-path: '.trae/skills/sentinel-browser/package-lock.json'
     
@@ -49,7 +57,6 @@ jobs:
         name: windows-installer
         path: |
           .trae/skills/sentinel-browser/dist/*.exe
-          .trae/skills/sentinel-browser/dist/*.zip
         retention-days: 30
     
     - name: Create Release (if tag pushed)
@@ -58,7 +65,6 @@ jobs:
       with:
         files: |
           .trae/skills/sentinel-browser/dist/*.exe
-          .trae/skills/sentinel-browser/dist/*.zip
         draft: false
         prerelease: false
         generate_release_notes: true
