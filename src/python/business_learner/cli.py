@@ -20,7 +20,7 @@ import sys
 import argparse
 from pathlib import Path
 
-from business_learner.core.engine import BusinessLearningEngine
+from business_learner.core.final_engine import FinalBusinessLearningEngine
 
 
 def create_parser():
@@ -77,10 +77,11 @@ def main():
     task_path = args.task_path or args.task_path_opt
     
     if not task_path:
-        # 使用环境变量或默认路径
-        default_path = "/Users/gaoyiwei/Documents/trae_projects/openclaw/output/collections/task_11_www.chinastock.com.cn_1778034751731"
+        # 使用环境变量或默认路径（相对路径，非硬编码）
+        default_path = str(Path.cwd() / "data" / "tasks")
         task_path = os.environ.get("SENTINEL_TASK_PATH", default_path)
         print(f"未指定task路径，使用: {task_path}")
+        print(f"提示: 可通过环境变量 SENTINEL_TASK_PATH 或命令行参数指定路径")
     
     task_path = Path(task_path)
     

@@ -1,6 +1,13 @@
 """
-DOM解析模块
-从rrweb snapshot中提取DOM信息
+DOM提取模块 - 兼容层
+
+此模块现在作为 DOMParser 的薄包装，保持向后兼容。
+新代码应直接使用 DOMParser。
+
+迁移指南:
+- DOMExtractor(snapshot_path) -> DOMParser(snapshot_path)
+- extract_page_info() -> parse() 获取完整结构
+- extract_elements() -> parse() 后访问 elements
 """
 
 import json
@@ -11,9 +18,14 @@ from ..utils.models import DOMElement, ElementType, PageInfo
 
 
 class DOMExtractor:
-    """DOM提取器"""
+    """
+    DOM提取器 - 兼容层
     
-    # 标签到元素类型的映射
+    此类现在内部使用 DOMParser，保持 API 兼容。
+    建议新代码直接使用 DOMParser 以获取更完整的功能。
+    """
+    
+    # 标签到元素类型的映射（保留以兼容旧代码）
     TAG_TYPE_MAP = {
         'button': ElementType.BUTTON,
         'a': ElementType.LINK,
@@ -45,6 +57,15 @@ class DOMExtractor:
         """
         self.snapshot_path = Path(snapshot_path)
         self.raw_data = self._load_snapshot()
+        
+        # 内部使用 DOMParser
+        try:
+            from .dom_parser import DOMParser
+            self._parser = DOMParser(snapshot_path)
+            self._parsed = None
+        except ImportError:
+            self._parser = None
+            self._parsed = None
     
     def _load_snapshot(self) -> Dict:
         """加载snapshot文件"""
@@ -54,8 +75,26 @@ class DOMExtractor:
         with open(self.snapshot_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     
+    def _ensure_parsed(self):
+        """确保数据已解析"""
+        if self._parser and self._parsed is None:
+            self._parsed = self._parser.parse()
+    
     def extract_page_info(self) -> Optional[PageInfo]:
         """提取页面基本信息"""
+        self._ensure_parsed()
+        
+        if self._parsed:
+            page_info = self._parsed.get('page_info', {})
+            return PageInfo(
+                url=page_info.get('url', ''),
+                title=page_info.get('title', ''),
+                page_type=page_info.get('page_type', 'generic'),
+                business_domain=page_info.get('business_domain', '未知'),
+                timestamp=page_info.get('timestamp', 0)
+            )
+        
+        # 降级到旧实现
         if not self.raw_data:
             return None
             
@@ -69,6 +108,18 @@ class DOMExtractor:
     
     def extract_elements(self) -> List[DOMElement]:
         """提取所有DOM元素"""
+        self._ensure_parsed()
+        
+        if self._parsed:
+            elements_data = self._parsed.get('elements', [])
+            elements = []
+            for elem_data in elements_data:
+                element = self._convert_to_dom_element(elem_data)
+                if element:
+                    elements.append(element)
+            return elements
+        
+        # 降级到旧实现
         elements = []
         
         rrweb_event = self.raw_data.get('rrwebEvent', {})
@@ -81,6 +132,23 @@ class DOMExtractor:
         
         return elements
     
+    def _convert_to_dom_element(self, elem_data: Dict) -> Optional[DOMElement]:
+        """将 DOMParser 的元素格式转换为 DOMElement"""
+        try:
+            tag = elem_data.get('tag', '')
+            element_type = self.TAG_TYPE_MAP.get(tag, ElementType.CONTAINER)
+            
+            return DOMElement(
+                id=elem_data.get('id', 0),
+                tag=tag,
+                element_type=element_type,
+                attributes=elem_data.get('attributes', {}),
+                text_content=elem_data.get('text_content', ''),
+                is_interactive=elem_data.get('is_interactive', False)
+            )
+        except Exception:
+            return None
+    
     def extract_interactive_elements(self) -> List[DOMElement]:
         """提取交互式元素"""
         all_elements = self.extract_elements()
@@ -88,6 +156,12 @@ class DOMExtractor:
     
     def extract_text_content(self) -> str:
         """提取所有文本内容"""
+        self._ensure_parsed()
+        
+        if self._parsed:
+            return self._parsed.get('text_content', '')
+        
+        # 降级到旧实现
         elements = self.extract_elements()
         texts = []
         
@@ -98,7 +172,7 @@ class DOMExtractor:
         return ' '.join(texts)
     
     def _parse_node(self, node: Dict) -> Optional[DOMElement]:
-        """解析单个节点"""
+        """解析单个节点（旧实现，用于降级）"""
         node_type = node.get('type')
         node_id = node.get('id')
         
@@ -175,4 +249,28 @@ class DOMExtractor:
             return '银河证券-官网'
         
         return '未知'
-
+    
+    # 新增方法：直接访问底层 DOMParser 的功能
+    def get_full_structure(self) -> Dict:
+        """
+        获取完整的页面结构（使用 DOMParser）
+        
+        Returns:
+            包含 components, layout_sections, styles 等的完整结构
+        """
+        self._ensure_parsed()
+        return self._parsed or {}
+    
+    def get_components(self) -> List[Dict]:
+        """获取组件列表（使用 DOMParser）"""
+        self._ensure_parsed()
+        if self._parsed:
+            return self._parsed.get('components', [])
+        return []
+    
+    def get_layout_sections(self) -> List[Dict]:
+        """获取布局区块（使用 DOMParser）"""
+        self._ensure_parsed()
+        if self._parsed:
+            return self._parsed.get('layout_sections', [])
+        return []

@@ -207,18 +207,23 @@ class FinalBusinessLearningEngine:
             logs_result = self._analyze_logs()
             self.all_analysis_results['logs'] = logs_result
 
+            # 11. Lineage 血缘分析
+            print("\n[11/12] 🔗 Lineage 血缘分析...")
+            lineage_result = self._analyze_lineage()
+            self.all_analysis_results['lineage'] = lineage_result
+
             # ========== 融合与对齐 ==========
             print("\n" + "=" * 60)
             print("🔄 数据融合与对齐")
             print("=" * 60)
 
-            # 11. 时间对齐
-            print("\n[11/12] ⏱️ 时间对齐...")
+            # 12. 时间对齐
+            print("\n[12/13] ⏱️ 时间对齐...")
             alignment_result = self._perform_temporal_alignment()
             self.all_analysis_results['alignment'] = alignment_result
 
-            # 12. 冲突检测与解决
-            print("\n[12/12] ⚖️ 冲突检测与解决...")
+            # 13. 冲突检测与解决
+            print("\n[13/13] ⚖️ 冲突检测与解决...")
             conflict_result = self._resolve_conflicts()
             self.all_analysis_results['conflict_resolution'] = conflict_result
             
@@ -227,13 +232,13 @@ class FinalBusinessLearningEngine:
             print("🧠 生成业务理解")
             print("=" * 60)
             
-            # 10. LLM深度理解（如果启用）
+            # 14. LLM深度理解（如果启用）
             if use_llm_vision and self.llm_api_key:
-                print("\n[10] 🤖 LLM深度理解...")
+                print("\n[14] 🤖 LLM深度理解...")
                 self._perform_llm_understanding()
             
-            # 11. 生成最终任务理解
-            print("\n[11] 📝 生成最终任务理解...")
+            # 15. 生成最终任务理解
+            print("\n[15] 📝 生成最终任务理解...")
             task = self._generate_final_understanding()
             
             # 12. 保存结果
@@ -620,7 +625,57 @@ class FinalBusinessLearningEngine:
             'error_patterns': [asdict(p) for p in result.error_patterns[:5]],
             'recommendations': result.recommendations
         }
-    
+
+    def _analyze_lineage(self) -> Dict:
+        """分析 lineage.json（页面血缘关系）"""
+        if not self.lineage_path.exists():
+            print("  ⚠️ lineage.json 不存在")
+            return {}
+
+        try:
+            with open(self.lineage_path, 'r', encoding='utf-8') as f:
+                lineage_data = json.load(f)
+
+            # 提取页面跳转关系
+            page_transitions = lineage_data.get('page_transitions', [])
+            navigation_graph = lineage_data.get('navigation_graph', {})
+            entry_points = lineage_data.get('entry_points', [])
+
+            # 分析跳转路径
+            transition_summary = []
+            for transition in page_transitions[:20]:  # 最多分析20个跳转
+                summary = {
+                    'from_page': transition.get('from_page', ''),
+                    'to_page': transition.get('to_page', ''),
+                    'trigger': transition.get('trigger', 'unknown'),
+                    'timestamp': transition.get('timestamp', 0)
+                }
+                transition_summary.append(summary)
+
+            # 分析导航图节点和边
+            nodes = navigation_graph.get('nodes', [])
+            edges = navigation_graph.get('edges', [])
+
+            print(f"    页面跳转: {len(page_transitions)} 次")
+            print(f"    导航节点: {len(nodes)} 个")
+            print(f"    导航边: {len(edges)} 条")
+            print(f"    入口点: {len(entry_points)} 个")
+
+            return {
+                'page_transition_count': len(page_transitions),
+                'navigation_node_count': len(nodes),
+                'navigation_edge_count': len(edges),
+                'entry_points': entry_points,
+                'transitions': transition_summary,
+                'navigation_graph': {
+                    'nodes': nodes[:10],  # 限制返回数量
+                    'edges': edges[:20]
+                }
+            }
+        except Exception as e:
+            print(f"  ⚠️ 读取 lineage.json 失败: {e}")
+            return {}
+
     def _perform_temporal_alignment(self) -> Dict:
         """执行时间对齐"""
         # 准备各源事件
@@ -726,13 +781,20 @@ class FinalBusinessLearningEngine:
         business_system = self._infer_business_system()
         business_domain = self._infer_business_domain()
         
+        # 修复：api_entities 是字典，需要提取其中的 entities 列表
+        api_entities_data = self.all_analysis_results.get('api_entities', {})
+        if isinstance(api_entities_data, dict):
+            entities = api_entities_data.get('entities', [])
+        else:
+            entities = api_entities_data if isinstance(api_entities_data, list) else []
+        
         task = TaskUnderstanding(
             task_id=self.metadata.task_id,
             business_system=business_system,
             business_domain=business_domain,
             pages=pages,
             processes=processes,
-            entities=self.all_analysis_results.get('api_entities', [])
+            entities=entities
         )
         
         # 生成摘要
@@ -855,6 +917,43 @@ class FinalBusinessLearningEngine:
         """保存完整结果（包含原型Demo）"""
         result_file = self.output_dir / "final_comprehensive_analysis.json"
 
+        # 自定义JSON序列化函数，处理dataclass对象
+        def serialize_obj(obj):
+            if hasattr(obj, '__dict__'):
+                return obj.__dict__
+            elif hasattr(obj, 'value'):
+                return obj.value
+            elif isinstance(obj, (set, frozenset)):
+                return list(obj)
+            elif isinstance(obj, bytes):
+                return obj.decode('utf-8', errors='ignore')
+            return str(obj)
+
+        # 深度转换analysis_results中的所有dataclass对象
+        def deep_convert(obj):
+            if isinstance(obj, dict):
+                return {k: deep_convert(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [deep_convert(item) for item in obj]
+            elif hasattr(obj, '__dict__'):
+                # 处理dataclass对象
+                result = {}
+                for k, v in obj.__dict__.items():
+                    # 跳过私有属性和方法
+                    if not k.startswith('_'):
+                        result[k] = deep_convert(v)
+                return result
+            elif hasattr(obj, 'value'):
+                # 处理枚举类型
+                return obj.value
+            elif isinstance(obj, (set, frozenset)):
+                return list(obj)
+            else:
+                return obj
+
+        # 转换analysis_results
+        converted_results = deep_convert(self.all_analysis_results)
+
         result_dict = {
             "task_id": task.task_id,
             "business_system": task.business_system,
@@ -871,9 +970,10 @@ class FinalBusinessLearningEngine:
                 "dom_analyzed": 'dom' in self.all_analysis_results,
                 "api_traffic_analyzed": 'api_traffic' in self.all_analysis_results,
                 "resources_analyzed": 'resources' in self.all_analysis_results,
-                "logs_analyzed": 'logs' in self.all_analysis_results
+                "logs_analyzed": 'logs' in self.all_analysis_results,
+                "lineage_analyzed": 'lineage' in self.all_analysis_results
             },
-            "analysis_results": self.all_analysis_results,
+            "analysis_results": converted_results,
             "pages": [
                 {
                     "url": p.page_info.url,
@@ -895,7 +995,7 @@ class FinalBusinessLearningEngine:
         }
 
         with open(result_file, 'w', encoding='utf-8') as f:
-            json.dump(result_dict, f, ensure_ascii=False, indent=2, default=str)
+            json.dump(result_dict, f, ensure_ascii=False, indent=2, default=serialize_obj)
 
         print(f"  ✅ 结果已保存: {result_file}")
 
