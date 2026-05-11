@@ -36,3 +36,9 @@ coverage/
 
 # Electron
 out/
+
+# User data (browser cache, cookies, etc.)
+userdata/
+userData/
+.task-*
+*.task

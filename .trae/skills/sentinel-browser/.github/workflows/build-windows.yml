@@ -12,6 +12,9 @@ on:
         required: false
         default: ''
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-windows:
     runs-on: windows-latest
@@ -23,22 +26,18 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '24'
         cache: 'npm'
-        cache-dependency-path: '.trae/skills/sentinel-browser/package-lock.json'
+        cache-dependency-path: 'package-lock.json'
     
     - name: Install dependencies
-      working-directory: .trae/skills/sentinel-browser
       run: npm ci
       
     - name: Update version (if specified)
       if: github.event.inputs.version != ''
-      working-directory: .trae/skills/sentinel-browser
-      run: |
-        npm version ${{ github.event.inputs.version }} --no-git-tag-version
+      run: npm version ${{ github.event.inputs.version }} --no-git-tag-version
       
     - name: Build Windows installer
-      working-directory: .trae/skills/sentinel-browser
       run: npm run build:win
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,8 +47,8 @@ jobs:
       with:
         name: windows-installer
         path: |
-          .trae/skills/sentinel-browser/dist/*.exe
-          .trae/skills/sentinel-browser/dist/*.zip
+          dist/*.exe
+          dist/*.zip
         retention-days: 30
     
     - name: Create Release (if tag pushed)
@@ -57,8 +56,8 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          .trae/skills/sentinel-browser/dist/*.exe
-          .trae/skills/sentinel-browser/dist/*.zip
+          dist/*.exe
+          dist/*.zip
         draft: false
         prerelease: false
         generate_release_notes: true
