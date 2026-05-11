@@ -89,7 +89,7 @@
           ]
         }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon_256x256.png"
     },
     "nsis": {
       "oneClick": true,
