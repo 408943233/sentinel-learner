@@ -53,10 +53,10 @@ class ServerConfig:
         if cls.is_server_mode():
             return cls.SERVER_MEMORY_PATH
         else:
-            # 本地模式：优先使用环境变量，其次使用默认路径
+            # 本地模式：优先使用环境变量，其次使用用户目录下的默认路径
             return os.getenv(
                 "OPENCLAW_MEMORY_PATH",
-                "/Users/gaoyiwei/Documents/trae_projects/openclaw/openclaw-memory-skill"
+                str(Path.home() / ".openclaw" / "extensions" / "openclaw-memory-skill")
             )
     
     @classmethod

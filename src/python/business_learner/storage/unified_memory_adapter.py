@@ -234,8 +234,20 @@ class UnifiedMemoryAdapter:
                 )
         
         # 5. 存储业务实体
-        for entity in task_result.entities:
-            self._store_business_entity_batch(entity, system_entity["id"])
+        print(f"  准备存储 {len(task_result.entities)} 个业务实体...")
+        for i, entity in enumerate(task_result.entities):
+            try:
+                # 类型检查
+                if isinstance(entity, str):
+                    print(f"    ⚠️ 实体 #{i} 是字符串而非对象: {entity[:50]}...")
+                    continue
+                if not hasattr(entity, 'name'):
+                    print(f"    ⚠️ 实体 #{i} 缺少 name 属性: {type(entity)}")
+                    continue
+                self._store_business_entity_batch(entity, system_entity["id"])
+            except Exception as e:
+                print(f"    ⚠️ 存储业务实体 #{i} 失败: {e}")
+                continue
         
         # 6. 解决冲突
         self._resolve_system_conflicts(system_entity["id"])
