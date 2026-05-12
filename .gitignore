@@ -47,3 +47,21 @@ config/config.json
 # Playwright
 playwright-report/
 test-results/
+
+# Large files and binaries
+*.pt
+*.pth
+*.onnx
+*.bin
+chromedriver*
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Sub-projects (these are separate repositories)
+.trae/skills/sentinel-browser/
+page-screenshot-to-html/scripts/chromedriver*
+page-screenshot-to-html/scripts/*.pt
+page-screenshot-to-html/scripts/*.pth
+page-screenshot-to-html/output/*.html
