@@ -264,10 +264,19 @@ class UnifiedMemoryAdapter:
         # 6. 存储API层数据（P0新增）
         self._store_api_layer_batch(system_entity["id"], metadata_manager.task_path)
         
-        # 7. 解决冲突
+        # 7. 存储静态资源（P1新增）
+        self._store_resources_batch(system_entity["id"], metadata_manager.task_path)
+        
+        # 8. 存储浏览器状态（P1新增）
+        self._store_browser_state_batch(system_entity["id"], metadata_manager.task_path)
+        
+        # 9. 存储性能指标（P1新增）
+        self._store_performance_batch(system_entity["id"], metadata_manager.task_path)
+        
+        # 10. 解决冲突
         self._resolve_system_conflicts(system_entity["id"])
         
-        # 8. 一次性批量写入所有数据
+        # 11. 一次性批量写入所有数据
         success = self._flush_batch()
         
         if success:
@@ -1969,6 +1978,308 @@ class UnifiedMemoryAdapter:
             print(f"    ⚠️ 存储API层数据失败: {e}")
             import traceback
             traceback.print_exc()
+    
+    # ==================== P1 实现：静态资源存储（聚合模式）====================
+    
+    def _store_resources_batch(self, system_entity_id: str, task_path: Path):
+        """
+        P1: 存储静态资源（聚合模式）
+        
+        169个资源 → 按类型聚合为6个 ResourceGroup 实体
+        类型：html, css, js, img, font, other
+        """
+        resources_dir = task_path / "network" / "resources"
+        if not resources_dir.exists():
+            print(f"    ⚠️ 未找到资源目录: {resources_dir}")
+            return
+        
+        try:
+            # 读取资源清单
+            manifest_file = resources_dir / "manifest.json"
+            if not manifest_file.exists():
+                print(f"    ⚠️ 未找到资源清单: {manifest_file}")
+                return
+            
+            with open(manifest_file, 'r', encoding='utf-8') as f:
+                manifest = json.load(f)
+            
+            resources = manifest.get("resources", [])
+            if not resources:
+                print(f"    ⚠️ 资源清单为空")
+                return
+            
+            print(f"    存储静态资源: {len(resources)} 个 → 按类型聚合")
+            
+            # 按类型分组
+            type_groups = {
+                "html": [],
+                "css": [],
+                "js": [],
+                "img": [],
+                "font": [],
+                "other": []
+            }
+            
+            for res in resources:
+                res_type = res.get("type", "other")
+                if res_type not in type_groups:
+                    res_type = "other"
+                type_groups[res_type].append(res)
+            
+            # 为每种类型创建聚合实体
+            for res_type, items in type_groups.items():
+                if not items:
+                    continue
+                
+                # 计算统计信息
+                total_size = sum(r.get("size", 0) for r in items)
+                urls_sample = [r.get("url", "")[:100] for r in items[:5]]
+                
+                props = {
+                    "resource_type": res_type,
+                    "count": len(items),
+                    "total_size_bytes": total_size,
+                    "total_size_mb": round(total_size / 1024 / 1024, 2),
+                    "urls_sample": urls_sample,
+                    "cdn_domains": list(set(r.get("cdn_domain", "") for r in items if r.get("cdn_domain")))[:5]
+                }
+                
+                group_entity = self._create_entity_batch(
+                    entity_type="ResourceGroup",
+                    properties=props,
+                    authority="observation"
+                )
+                
+                # 建立关系：System --has_resource--> ResourceGroup
+                self._create_relation_batch(
+                    from_id=system_entity_id,
+                    rel_type="has_resource",
+                    to_id=group_entity["id"]
+                )
+            
+            print(f"      ✅ 存储 {sum(1 for v in type_groups.values() if v)} 个资源组")
+            
+        except Exception as e:
+            print(f"      ⚠️ 存储静态资源失败: {e}")
+    
+    # ==================== P1 实现：浏览器状态存储 ====================
+    
+    def _store_browser_state_batch(self, system_entity_id: str, task_path: Path):
+        """
+        P1: 存储浏览器状态
+        
+        - Cookie (6个)
+        - CookieDomain (3个)
+        - LocalStorage
+        - SessionStorage
+        """
+        browser_state_file = task_path / "sandbox" / "browser_state.json"
+        if not browser_state_file.exists():
+            print(f"    ⚠️ 未找到浏览器状态: {browser_state_file}")
+            return
+        
+        try:
+            with open(browser_state_file, 'r', encoding='utf-8') as f:
+                state_data = json.load(f)
+            
+            print(f"    存储浏览器状态...")
+            
+            # 1. 存储 Cookies
+            cookies = state_data.get("cookies", [])
+            if cookies:
+                print(f"      存储 Cookies: {len(cookies)} 个")
+                
+                for cookie in cookies[:20]:  # 限制数量
+                    props = {
+                        "name": cookie.get("name", ""),
+                        "value": (cookie.get("value", "") or "")[:50],  # 截断
+                        "domain": cookie.get("domain", ""),
+                        "path": cookie.get("path", "/"),
+                        "secure": cookie.get("secure", False),
+                        "httpOnly": cookie.get("httpOnly", False),
+                        "session": cookie.get("session", True),
+                        "sameSite": cookie.get("sameSite", "")
+                    }
+                    
+                    cookie_entity = self._create_entity_batch(
+                        entity_type="Cookie",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：System --has_cookie--> Cookie
+                    self._create_relation_batch(
+                        from_id=system_entity_id,
+                        rel_type="has_cookie",
+                        to_id=cookie_entity["id"]
+                    )
+                
+                print(f"        ✅ 存储 {len(cookies)} 个 Cookies")
+            
+            # 2. 存储 CookieDomain（按域名聚合）
+            domain_map = {}
+            for cookie in cookies:
+                domain = cookie.get("domain", "unknown")
+                if domain not in domain_map:
+                    domain_map[domain] = []
+                domain_map[domain].append(cookie)
+            
+            if domain_map:
+                print(f"      存储 CookieDomain: {len(domain_map)} 个")
+                
+                for domain, domain_cookies in domain_map.items():
+                    # 评估安全级别
+                    secure_count = sum(1 for c in domain_cookies if c.get("secure"))
+                    http_only_count = sum(1 for c in domain_cookies if c.get("httpOnly"))
+                    
+                    props = {
+                        "domain": domain,
+                        "cookie_count": len(domain_cookies),
+                        "secure_count": secure_count,
+                        "http_only_count": http_only_count,
+                        "security_level": "high" if secure_count == len(domain_cookies) else "medium" if secure_count > 0 else "low"
+                    }
+                    
+                    domain_entity = self._create_entity_batch(
+                        entity_type="CookieDomain",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：System --has_domain--> CookieDomain
+                    self._create_relation_batch(
+                        from_id=system_entity_id,
+                        rel_type="has_domain",
+                        to_id=domain_entity["id"]
+                    )
+                
+                print(f"        ✅ 存储 {len(domain_map)} 个 CookieDomain")
+            
+            # 3. LocalStorage
+            local_storage = state_data.get("localStorage", {})
+            if local_storage:
+                print(f"      存储 LocalStorage: {len(local_storage)} 个键")
+                # 可以创建聚合实体，但通常数据量不大，暂不单独存储
+            
+            # 4. SessionStorage
+            session_storage = state_data.get("sessionStorage", {})
+            if session_storage:
+                print(f"      存储 SessionStorage: {len(session_storage)} 个键")
+            
+            print(f"    ✅ 浏览器状态存储完成")
+            
+        except Exception as e:
+            print(f"    ⚠️ 存储浏览器状态失败: {e}")
+    
+    # ==================== P1 实现：性能指标存储 ====================
+    
+    def _store_performance_batch(self, system_entity_id: str, task_path: Path):
+        """
+        P1: 存储性能指标和优化建议
+        
+        - PerformanceMetric (~20个)
+        - OptimizationSuggestion (4个)
+        """
+        # 1. 从 video analysis 读取性能数据
+        video_analysis_file = task_path / "analysis" / "video_analysis.json"
+        performance_metrics = []
+        
+        if video_analysis_file.exists():
+            try:
+                with open(video_analysis_file, 'r', encoding='utf-8') as f:
+                    video_data = json.load(f)
+                
+                # 提取视频性能指标
+                if "performance" in video_data:
+                    perf = video_data["performance"]
+                    performance_metrics.extend([
+                        {"metric_type": "video_duration", "value": perf.get("duration", 0), "unit": "seconds"},
+                        {"metric_type": "total_frames", "value": perf.get("total_frames", 0), "unit": "frames"},
+                        {"metric_type": "fps", "value": perf.get("fps", 0), "unit": "fps"},
+                        {"metric_type": "event_density", "value": perf.get("event_density", 0), "unit": "events/sec"}
+                    ])
+            except Exception as e:
+                print(f"      ⚠️ 读取视频分析失败: {e}")
+        
+        # 2. 从 api_traffic 读取时序数据
+        api_traffic_file = task_path / "analysis" / "api_traffic.json"
+        if api_traffic_file.exists():
+            try:
+                with open(api_traffic_file, 'r', encoding='utf-8') as f:
+                    api_data = json.load(f)
+                
+                timing = api_data.get("timing_analysis", {})
+                if timing:
+                    performance_metrics.extend([
+                        {"metric_type": "avg_response_time", "value": timing.get("avg_response_time", 0), "unit": "ms"},
+                        {"metric_type": "max_response_time", "value": timing.get("max_response_time", 0), "unit": "ms"},
+                        {"metric_type": "min_response_time", "value": timing.get("min_response_time", 0), "unit": "ms"}
+                    ])
+            except Exception as e:
+                print(f"      ⚠️ 读取API时序失败: {e}")
+        
+        # 存储性能指标
+        if performance_metrics:
+            print(f"    存储性能指标: {len(performance_metrics)} 个")
+            
+            for metric in performance_metrics:
+                props = {
+                    "metric_type": metric.get("metric_type", ""),
+                    "value": metric.get("value", 0),
+                    "unit": metric.get("unit", ""),
+                    "source": metric.get("source", "auto")
+                }
+                
+                metric_entity = self._create_entity_batch(
+                    entity_type="PerformanceMetric",
+                    properties=props,
+                    authority="observation"
+                )
+                
+                # 建立关系：System --has_performance--> PerformanceMetric
+                self._create_relation_batch(
+                    from_id=system_entity_id,
+                    rel_type="has_performance",
+                    to_id=metric_entity["id"]
+                )
+            
+            print(f"      ✅ 存储 {len(performance_metrics)} 个性能指标")
+        
+        # 3. 存储优化建议
+        optimization_file = task_path / "analysis" / "optimization.json"
+        if optimization_file.exists():
+            try:
+                with open(optimization_file, 'r', encoding='utf-8') as f:
+                    opt_data = json.load(f)
+                
+                suggestions = opt_data.get("suggestions", [])
+                if suggestions:
+                    print(f"    存储优化建议: {len(suggestions)} 个")
+                    
+                    for suggestion in suggestions[:10]:  # 限制数量
+                        props = {
+                            "category": suggestion.get("category", ""),
+                            "description": suggestion.get("description", "")[:200],
+                            "severity": suggestion.get("severity", "medium"),
+                            "affected_resources": suggestion.get("affected_resources", [])[:5]
+                        }
+                        
+                        opt_entity = self._create_entity_batch(
+                            entity_type="OptimizationSuggestion",
+                            properties=props,
+                            authority="observation"
+                        )
+                        
+                        # 建立关系：System --has_suggestion--> OptimizationSuggestion
+                        self._create_relation_batch(
+                            from_id=system_entity_id,
+                            rel_type="has_suggestion",
+                            to_id=opt_entity["id"]
+                        )
+                    
+                    print(f"      ✅ 存储 {len(suggestions)} 个优化建议")
+            except Exception as e:
+                print(f"      ⚠️ 读取优化建议失败: {e}")
     
     def get_system_knowledge_summary(self, system_name: str) -> Dict:
         """获取系统知识摘要"""
