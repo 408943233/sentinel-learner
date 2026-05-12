@@ -273,10 +273,13 @@ class UnifiedMemoryAdapter:
         # 9. 存储性能指标（P1新增）
         self._store_performance_batch(system_entity["id"], metadata_manager.task_path)
         
-        # 10. 解决冲突
+        # 10. 存储视觉资产（P2新增）
+        self._store_visual_assets_batch(task_entity["id"], system_entity["id"], metadata_manager.task_path)
+        
+        # 11. 解决冲突
         self._resolve_system_conflicts(system_entity["id"])
         
-        # 11. 一次性批量写入所有数据
+        # 12. 一次性批量写入所有数据
         success = self._flush_batch()
         
         if success:
@@ -2280,6 +2283,145 @@ class UnifiedMemoryAdapter:
                     print(f"      ✅ 存储 {len(suggestions)} 个优化建议")
             except Exception as e:
                 print(f"      ⚠️ 读取优化建议失败: {e}")
+    
+    # ==================== P2 实现：视觉资产存储 ====================
+    
+    def _store_visual_assets_batch(self, task_entity_id: str, system_entity_id: str, task_path: Path):
+        """
+        P2: 存储视觉资产
+        
+        - KeyframeCollection (53个关键帧聚合)
+        - LongScreenshot (2个)
+        - PrototypeDemo (1个)
+        """
+        print(f"    存储视觉资产...")
+        
+        # 1. 存储关键帧集合
+        keyframes_dir = task_path / "analysis" / "enhanced_final" / "keyframes"
+        if keyframes_dir.exists():
+            try:
+                keyframe_files = list(keyframes_dir.glob("frame_*.jpg"))
+                if keyframe_files:
+                    print(f"      存储关键帧: {len(keyframe_files)} 个")
+                    
+                    # 提取关键帧信息
+                    keyframes_info = []
+                    for kf_file in keyframe_files[:60]:  # 限制数量
+                        # 从文件名解析信息: frame_0000_page-load_0.000.jpg
+                        parts = kf_file.stem.split('_')
+                        if len(parts) >= 4:
+                            keyframes_info.append({
+                                "index": parts[1],
+                                "event_type": parts[2],
+                                "timestamp": parts[3],
+                                "file_path": f"analysis/enhanced_final/keyframes/{kf_file.name}"
+                            })
+                    
+                    props = {
+                        "total_keyframes": len(keyframe_files),
+                        "keyframes_sample": keyframes_info[:20],
+                        "directory": "analysis/enhanced_final/keyframes"
+                    }
+                    
+                    kf_collection_entity = self._create_entity_batch(
+                        entity_type="KeyframeCollection",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：Task --has_keyframe--> KeyframeCollection
+                    self._create_relation_batch(
+                        from_id=task_entity_id,
+                        rel_type="has_keyframe",
+                        to_id=kf_collection_entity["id"]
+                    )
+                    
+                    print(f"        ✅ 存储关键帧集合")
+            except Exception as e:
+                print(f"        ⚠️ 存储关键帧失败: {e}")
+        
+        # 2. 存储长截图
+        try:
+            long_screenshots = []
+            enhanced_dir = task_path / "analysis" / "enhanced_final"
+            
+            if enhanced_dir.exists():
+                # 查找长截图文件（通常包含 long_screenshot 或 full_page 在文件名中）
+                for ss_file in enhanced_dir.glob("*.png"):
+                    if "long" in ss_file.name.lower() or "full" in ss_file.name.lower() or "stitched" in ss_file.name.lower():
+                        long_screenshots.append(ss_file)
+                
+                # 如果没找到，尝试查找任何大尺寸截图
+                if not long_screenshots:
+                    for ss_file in enhanced_dir.glob("*.png"):
+                        long_screenshots.append(ss_file)
+                        if len(long_screenshots) >= 2:
+                            break
+            
+            if long_screenshots:
+                print(f"      存储长截图: {len(long_screenshots)} 个")
+                
+                for ss_file in long_screenshots[:5]:  # 限制数量
+                    props = {
+                        "file_name": ss_file.name,
+                        "file_path": f"analysis/enhanced_final/{ss_file.name}",
+                        "page_url": "",  # 可以从文件名或关联数据推断
+                        "scroll_count": 0  # 可以从分析数据获取
+                    }
+                    
+                    ss_entity = self._create_entity_batch(
+                        entity_type="LongScreenshot",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：Task --has_screenshot--> LongScreenshot
+                    self._create_relation_batch(
+                        from_id=task_entity_id,
+                        rel_type="has_screenshot",
+                        to_id=ss_entity["id"]
+                    )
+                
+                print(f"        ✅ 存储 {len(long_screenshots)} 个长截图")
+        except Exception as e:
+            print(f"        ⚠️ 存储长截图失败: {e}")
+        
+        # 3. 存储原型Demo
+        try:
+            prototype_files = list((task_path / "analysis").glob("prototype_*.html"))
+            if prototype_files:
+                print(f"      存储原型Demo: {len(prototype_files)} 个")
+                
+                for proto_file in prototype_files[:3]:  # 限制数量
+                    # 获取文件大小
+                    file_size = proto_file.stat().st_size if proto_file.exists() else 0
+                    
+                    props = {
+                        "file_name": proto_file.name,
+                        "file_path": f"analysis/{proto_file.name}",
+                        "html_size_bytes": file_size,
+                        "html_size_kb": round(file_size / 1024, 2),
+                        "generated_at": proto_file.stat().st_mtime if proto_file.exists() else 0
+                    }
+                    
+                    proto_entity = self._create_entity_batch(
+                        entity_type="PrototypeDemo",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：Task --has_prototype--> PrototypeDemo
+                    self._create_relation_batch(
+                        from_id=task_entity_id,
+                        rel_type="has_prototype",
+                        to_id=proto_entity["id"]
+                    )
+                
+                print(f"        ✅ 存储 {len(prototype_files)} 个原型Demo")
+        except Exception as e:
+            print(f"        ⚠️ 存储原型Demo失败: {e}")
+        
+        print(f"    ✅ 视觉资产存储完成")
     
     def get_system_knowledge_summary(self, system_name: str) -> Dict:
         """获取系统知识摘要"""
