@@ -261,10 +261,13 @@ class UnifiedMemoryAdapter:
                 print(f"    ⚠️ 存储业务实体 #{i} 失败: {e}")
                 continue
         
-        # 6. 解决冲突
+        # 6. 存储API层数据（P0新增）
+        self._store_api_layer_batch(system_entity["id"], metadata_manager.task_path)
+        
+        # 7. 解决冲突
         self._resolve_system_conflicts(system_entity["id"])
         
-        # 7. 一次性批量写入所有数据
+        # 8. 一次性批量写入所有数据
         success = self._flush_batch()
         
         if success:
@@ -1764,6 +1767,208 @@ class UnifiedMemoryAdapter:
         # 返回最常见的10个属性
         sorted_props = sorted(properties_count.items(), key=lambda x: x[1], reverse=True)
         return {k: v for k, v in sorted_props[:10]}
+    
+    # ==================== P0 实现：API层存储 ====================
+    
+    def _store_api_layer_batch(self, system_entity_id: str, task_path: Path):
+        """
+        P0: 存储API层数据
+        
+        包括：
+        - APIEndpoint (23个唯一端点)
+        - APIRequest (35个请求)
+        - APIResponse (26个响应)
+        - DataFlow (10个数据流)
+        - APISchema (22个Schema)
+        """
+        # 1. 读取 API 流量数据
+        api_traffic_file = task_path / "analysis" / "api_traffic.json"
+        if not api_traffic_file.exists():
+            print(f"    ⚠️ 未找到 API 流量数据: {api_traffic_file}")
+            return
+        
+        try:
+            with open(api_traffic_file, 'r', encoding='utf-8') as f:
+                api_data = json.load(f)
+            
+            print(f"    存储API层数据...")
+            
+            # 2. 存储 API Endpoint（按URL去重）
+            endpoints = api_data.get("endpoints", [])
+            endpoint_entities = {}  # URL -> entity_id 映射
+            
+            if endpoints:
+                print(f"      存储 API Endpoint: {len(endpoints)} 个")
+                for endpoint in endpoints[:30]:  # 限制数量
+                    url = endpoint.get("url", "")
+                    if not url:
+                        continue
+                    
+                    props = {
+                        "url": url,
+                        "method": endpoint.get("method", "GET"),
+                        "domain": endpoint.get("domain", ""),
+                        "path": endpoint.get("path", ""),
+                        "parameter_names": endpoint.get("parameter_names", []),
+                        "response_schema_summary": json.dumps(endpoint.get("response_schema", {}))[:500]
+                    }
+                    
+                    endpoint_entity = self._create_entity_batch(
+                        entity_type="APIEndpoint",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    endpoint_entities[url] = endpoint_entity["id"]
+                    
+                    # 建立关系：System --has_api--> APIEndpoint
+                    self._create_relation_batch(
+                        from_id=system_entity_id,
+                        rel_type="has_api",
+                        to_id=endpoint_entity["id"]
+                    )
+                
+                print(f"        ✅ 存储 {len(endpoint_entities)} 个 Endpoint")
+            
+            # 3. 存储 API Request
+            requests = api_data.get("requests", [])
+            if requests:
+                print(f"      存储 API Request: {len(requests)} 个")
+                stored_count = 0
+                
+                for req in requests[:40]:  # 限制数量
+                    url = req.get("url", "")
+                    endpoint_id = endpoint_entities.get(url)
+                    
+                    props = {
+                        "timestamp": req.get("timestamp", 0),
+                        "url": url,
+                        "method": req.get("method", "GET"),
+                        "status": req.get("status", 0),
+                        "resource_type": req.get("resourceType", ""),
+                        "response_body_summary": (req.get("response_body", "") or "")[:200]
+                    }
+                    
+                    request_entity = self._create_entity_batch(
+                        entity_type="APIRequest",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：Endpoint --has_request--> APIRequest
+                    if endpoint_id:
+                        self._create_relation_batch(
+                            from_id=endpoint_id,
+                            rel_type="has_request",
+                            to_id=request_entity["id"]
+                        )
+                    
+                    stored_count += 1
+                
+                print(f"        ✅ 存储 {stored_count} 个 Request")
+            
+            # 4. 存储 API Response（从 responses 或 requests 中提取）
+            responses = api_data.get("responses", [])
+            if responses:
+                print(f"      存储 API Response: {len(responses)} 个")
+                stored_count = 0
+                
+                for resp in responses[:30]:  # 限制数量
+                    url = resp.get("url", "")
+                    endpoint_id = endpoint_entities.get(url)
+                    
+                    props = {
+                        "url": url,
+                        "status": resp.get("status", 0),
+                        "headers_summary": json.dumps(resp.get("headers", {}))[:200],
+                        "body_structure": resp.get("body_structure", {}),
+                        "body_file_path": resp.get("body_file_path", "")
+                    }
+                    
+                    response_entity = self._create_entity_batch(
+                        entity_type="APIResponse",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：Endpoint --has_response--> APIResponse
+                    if endpoint_id:
+                        self._create_relation_batch(
+                            from_id=endpoint_id,
+                            rel_type="has_response",
+                            to_id=response_entity["id"]
+                        )
+                    
+                    stored_count += 1
+                
+                print(f"        ✅ 存储 {stored_count} 个 Response")
+            
+            # 5. 存储 DataFlow
+            data_flows = api_data.get("data_flows", [])
+            if data_flows:
+                print(f"      存储 DataFlow: {len(data_flows)} 个")
+                
+                for flow in data_flows[:15]:  # 限制数量
+                    props = {
+                        "source": flow.get("source", ""),
+                        "target": flow.get("target", ""),
+                        "flow_type": flow.get("flow_type", ""),
+                        "endpoint_urls": flow.get("endpoint_urls", [])[:10]
+                    }
+                    
+                    flow_entity = self._create_entity_batch(
+                        entity_type="DataFlow",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：System --has_data_flow--> DataFlow
+                    self._create_relation_batch(
+                        from_id=system_entity_id,
+                        rel_type="has_data_flow",
+                        to_id=flow_entity["id"]
+                    )
+                
+                print(f"        ✅ 存储 {len(data_flows)} 个 DataFlow")
+            
+            # 6. 存储 API Schema
+            schemas = api_data.get("schemas", [])
+            if schemas:
+                print(f"      存储 API Schema: {len(schemas)} 个")
+                
+                for schema in schemas[:25]:  # 限制数量
+                    endpoint_url = schema.get("endpoint_url", "")
+                    endpoint_id = endpoint_entities.get(endpoint_url)
+                    
+                    props = {
+                        "endpoint_url": endpoint_url,
+                        "field_types": schema.get("field_types", {}),
+                        "constraints": schema.get("constraints", []),
+                        "dependencies": schema.get("dependencies", [])
+                    }
+                    
+                    schema_entity = self._create_entity_batch(
+                        entity_type="APISchema",
+                        properties=props,
+                        authority="observation"
+                    )
+                    
+                    # 建立关系：Endpoint --has_schema--> APISchema
+                    if endpoint_id:
+                        self._create_relation_batch(
+                            from_id=endpoint_id,
+                            rel_type="has_schema",
+                            to_id=schema_entity["id"]
+                        )
+                
+                print(f"        ✅ 存储 {len(schemas)} 个 Schema")
+            
+            print(f"    ✅ API层数据存储完成")
+            
+        except Exception as e:
+            print(f"    ⚠️ 存储API层数据失败: {e}")
+            import traceback
+            traceback.print_exc()
     
     def get_system_knowledge_summary(self, system_name: str) -> Dict:
         """获取系统知识摘要"""
