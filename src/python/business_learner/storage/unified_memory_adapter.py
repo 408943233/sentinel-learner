@@ -276,10 +276,25 @@ class UnifiedMemoryAdapter:
         # 10. 存储视觉资产（P2新增）
         self._store_visual_assets_batch(task_entity["id"], system_entity["id"], metadata_manager.task_path)
         
-        # 11. 解决冲突
+        # 11. 存储用户意图（P0缺失功能）
+        self._store_user_intents_batch(task_entity["id"], metadata_manager.task_path)
+        
+        # 12. 存储业务流程和步骤（P0缺失功能）
+        self._store_business_flows_batch(task_entity["id"], system_entity["id"], metadata_manager.task_path)
+        
+        # 13. 存储JS错误（P0缺失功能）
+        self._store_errors_batch(system_entity["id"], metadata_manager.task_path)
+        
+        # 14. 存储锚点事件（P1缺失功能）
+        self._store_anchor_events_batch(task_entity["id"], metadata_manager.task_path)
+        
+        # 15. 存储rrweb事件（P1缺失功能）
+        self._store_rrweb_events_batch(task_entity["id"], metadata_manager.task_path)
+        
+        # 16. 解决冲突
         self._resolve_system_conflicts(system_entity["id"])
         
-        # 12. 一次性批量写入所有数据
+        # 17. 一次性批量写入所有数据
         success = self._flush_batch()
         
         if success:
@@ -2422,6 +2437,394 @@ class UnifiedMemoryAdapter:
             print(f"        ⚠️ 存储原型Demo失败: {e}")
         
         print(f"    ✅ 视觉资产存储完成")
+    
+    # ==================== P0 缺失功能：用户意图存储 ====================
+    
+    def _store_user_intents_batch(self, task_entity_id: str, task_path: Path):
+        """
+        P0: 存储用户意图
+        
+        从 analysis/final_comprehensive_analysis.json 或 manifest 分析结果读取
+        目标：40个用户意图实体
+        """
+        # 尝试多个可能的来源文件
+        possible_files = [
+            task_path / "analysis" / "final_comprehensive_analysis.json",
+            task_path / "analysis" / "user_intents.json",
+            task_path / "analysis" / "manifest_analysis.json"
+        ]
+        
+        intents_data = None
+        for file_path in possible_files:
+            if file_path.exists():
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        if "user_intents" in data or "intents" in data:
+                            intents_data = data
+                            break
+                except Exception:
+                    continue
+        
+        if not intents_data:
+            print(f"    ⚠️ 未找到用户意图数据")
+            return
+        
+        try:
+            intents = intents_data.get("user_intents", intents_data.get("intents", []))
+            if not intents:
+                print(f"    ⚠️ 用户意图数据为空")
+                return
+            
+            print(f"    存储用户意图: {len(intents)} 个")
+            
+            for intent in intents[:50]:  # 限制数量
+                props = {
+                    "timestamp": intent.get("timestamp", 0),
+                    "action_type": intent.get("action_type", ""),
+                    "target_element": intent.get("target_element", ""),
+                    "intent_description": intent.get("description", intent.get("intent_description", ""))[:200],
+                    "confidence": intent.get("confidence", 0.0),
+                    "page_url": intent.get("url", "")
+                }
+                
+                intent_entity = self._create_entity_batch(
+                    entity_type="UserIntent",
+                    properties=props,
+                    authority="observation"
+                )
+                
+                # 建立关系：Task --has_intent--> UserIntent
+                self._create_relation_batch(
+                    from_id=task_entity_id,
+                    rel_type="has_intent",
+                    to_id=intent_entity["id"]
+                )
+            
+            print(f"      ✅ 存储 {len(intents)} 个用户意图")
+            
+        except Exception as e:
+            print(f"      ⚠️ 存储用户意图失败: {e}")
+    
+    # ==================== P0 缺失功能：业务流程和步骤存储 ====================
+    
+    def _store_business_flows_batch(self, task_entity_id: str, system_entity_id: str, task_path: Path):
+        """
+        P0: 存储业务流程和步骤
+        
+        目标：5个业务流程 + ~20个流程步骤
+        """
+        # 尝试多个可能的来源文件
+        possible_files = [
+            task_path / "analysis" / "final_comprehensive_analysis.json",
+            task_path / "analysis" / "business_flows.json",
+            task_path / "analysis" / "manifest_analysis.json"
+        ]
+        
+        flows_data = None
+        for file_path in possible_files:
+            if file_path.exists():
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        if "business_flows" in data or "flows" in data:
+                            flows_data = data
+                            break
+                except Exception:
+                    continue
+        
+        if not flows_data:
+            print(f"    ⚠️ 未找到业务流程数据")
+            return
+        
+        try:
+            flows = flows_data.get("business_flows", flows_data.get("flows", []))
+            if not flows:
+                print(f"    ⚠️ 业务流程数据为空")
+                return
+            
+            print(f"    存储业务流程: {len(flows)} 个")
+            
+            for flow in flows[:10]:  # 限制数量
+                # 创建业务流程实体
+                flow_props = {
+                    "name": flow.get("name", ""),
+                    "description": flow.get("description", "")[:200],
+                    "start_url": flow.get("start_url", ""),
+                    "end_url": flow.get("end_url", ""),
+                    "steps_count": len(flow.get("steps", [])),
+                    "total_duration_ms": flow.get("duration", 0)
+                }
+                
+                flow_entity = self._create_entity_batch(
+                    entity_type="BusinessFlow",
+                    properties=flow_props,
+                    authority="observation"
+                )
+                
+                # 建立关系：Task --has_flow--> BusinessFlow
+                self._create_relation_batch(
+                    from_id=task_entity_id,
+                    rel_type="has_flow",
+                    to_id=flow_entity["id"]
+                )
+                
+                # 存储流程步骤
+                steps = flow.get("steps", [])
+                if steps:
+                    print(f"      存储流程步骤: {len(steps)} 个")
+                    
+                    for step in steps[:15]:  # 限制数量
+                        step_props = {
+                            "flow_id": flow_entity["id"],
+                            "step_index": step.get("index", step.get("step_index", 0)),
+                            "action": step.get("action", ""),
+                            "timestamp": step.get("timestamp", 0),
+                            "url": step.get("url", ""),
+                            "description": step.get("description", "")[:100]
+                        }
+                        
+                        step_entity = self._create_entity_batch(
+                            entity_type="FlowStep",
+                            properties=step_props,
+                            authority="observation"
+                        )
+                        
+                        # 建立关系：BusinessFlow --has_step--> FlowStep
+                        self._create_relation_batch(
+                            from_id=flow_entity["id"],
+                            rel_type="has_step",
+                            to_id=step_entity["id"]
+                        )
+            
+            print(f"      ✅ 存储 {len(flows)} 个业务流程")
+            
+        except Exception as e:
+            print(f"      ⚠️ 存储业务流程失败: {e}")
+    
+    # ==================== P0 缺失功能：JS错误存储 ====================
+    
+    def _store_errors_batch(self, system_entity_id: str, task_path: Path):
+        """
+        P0: 存储JS错误和日志错误
+        
+        从 logs/errors.json 或 analysis/error_analysis.json 读取
+        目标：3个错误实体
+        """
+        # 尝试多个可能的来源文件
+        possible_files = [
+            task_path / "logs" / "errors.json",
+            task_path / "analysis" / "error_analysis.json",
+            task_path / "analysis" / "console_errors.json"
+        ]
+        
+        errors_data = None
+        for file_path in possible_files:
+            if file_path.exists():
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        if "errors" in data or "js_errors" in data or "console_errors" in data:
+                            errors_data = data
+                            break
+                except Exception:
+                    continue
+        
+        if not errors_data:
+            print(f"    ⚠️ 未找到错误数据")
+            return
+        
+        try:
+            # 合并多种错误类型
+            errors = []
+            errors.extend(errors_data.get("errors", []))
+            errors.extend(errors_data.get("js_errors", []))
+            errors.extend(errors_data.get("console_errors", []))
+            
+            if not errors:
+                print(f"    ⚠️ 错误数据为空")
+                return
+            
+            print(f"    存储错误: {len(errors)} 个")
+            
+            for error in errors[:20]:  # 限制数量
+                props = {
+                    "type": error.get("type", error.get("error_type", "unknown")),
+                    "message": error.get("message", error.get("error_message", ""))[:200],
+                    "timestamp": error.get("timestamp", 0),
+                    "url": error.get("url", ""),
+                    "severity": error.get("severity", "error"),
+                    "stack_trace": (error.get("stack", "") or "")[:500]
+                }
+                
+                error_entity = self._create_entity_batch(
+                    entity_type="JSError",
+                    properties=props,
+                    authority="observation"
+                )
+                
+                # 建立关系：System --has_error--> JSError
+                self._create_relation_batch(
+                    from_id=system_entity_id,
+                    rel_type="has_error",
+                    to_id=error_entity["id"]
+                )
+            
+            print(f"      ✅ 存储 {len(errors)} 个错误")
+            
+        except Exception as e:
+            print(f"      ⚠️ 存储错误失败: {e}")
+    
+    # ==================== P1 缺失功能：锚点事件存储 ====================
+    
+    def _store_anchor_events_batch(self, task_entity_id: str, task_path: Path):
+        """
+        P1: 存储时间对齐锚点事件
+        
+        从 analysis/alignment.json 或 final_comprehensive_analysis.json 读取
+        目标：10个锚点事件
+        """
+        possible_files = [
+            task_path / "analysis" / "alignment.json",
+            task_path / "analysis" / "final_comprehensive_analysis.json",
+            task_path / "analysis" / "time_alignment.json"
+        ]
+        
+        anchor_data = None
+        for file_path in possible_files:
+            if file_path.exists():
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        if "anchor_points" in data or "anchors" in data or "alignment" in data:
+                            anchor_data = data
+                            break
+                except Exception:
+                    continue
+        
+        if not anchor_data:
+            print(f"    ⚠️ 未找到锚点事件数据")
+            return
+        
+        try:
+            # 尝试多种可能的键名
+            anchors = []
+            anchors.extend(anchor_data.get("anchor_points", []))
+            anchors.extend(anchor_data.get("anchors", []))
+            if "alignment" in anchor_data:
+                anchors.extend(anchor_data["alignment"].get("anchor_points", []))
+            
+            if not anchors:
+                print(f"    ⚠️ 锚点事件数据为空")
+                return
+            
+            print(f"    存储锚点事件: {len(anchors)} 个")
+            
+            for anchor in anchors[:15]:  # 限制数量
+                props = {
+                    "timestamp": anchor.get("timestamp", 0),
+                    "event_type": anchor.get("event_type", anchor.get("type", "")),
+                    "source": anchor.get("source", ""),
+                    "confidence": anchor.get("confidence", 1.0),
+                    "description": anchor.get("description", "")[:100]
+                }
+                
+                anchor_entity = self._create_entity_batch(
+                    entity_type="AnchorEvent",
+                    properties=props,
+                    authority="observation"
+                )
+                
+                # 建立关系：Task --has_anchor--> AnchorEvent
+                self._create_relation_batch(
+                    from_id=task_entity_id,
+                    rel_type="has_anchor",
+                    to_id=anchor_entity["id"]
+                )
+            
+            print(f"      ✅ 存储 {len(anchors)} 个锚点事件")
+            
+        except Exception as e:
+            print(f"      ⚠️ 存储锚点事件失败: {e}")
+    
+    # ==================== P1 缺失功能：rrweb事件聚合存储 ====================
+    
+    def _store_rrweb_events_batch(self, task_entity_id: str, task_path: Path):
+        """
+        P1: 存储rrweb事件（聚合模式）
+        
+        66个事件 → 聚合为2个 RrwebEventGroup（full / incremental）
+        """
+        rrweb_file = task_path / "dom" / "rrweb_events.json"
+        if not rrweb_file.exists():
+            print(f"    ⚠️ 未找到rrweb事件: {rrweb_file}")
+            return
+        
+        try:
+            with open(rrweb_file, 'r', encoding='utf-8') as f:
+                rrweb_data = json.load(f)
+            
+            events = rrweb_data.get("events", [])
+            if not events:
+                print(f"    ⚠️ rrweb事件为空")
+                return
+            
+            print(f"    存储rrweb事件: {len(events)} 个 → 聚合为2组")
+            
+            # 按类型分组
+            full_snapshots = [e for e in events if e.get("type") == 2]
+            incremental_snapshots = [e for e in events if e.get("type") == 3]
+            
+            # 存储 full snapshot 聚合
+            if full_snapshots:
+                props = {
+                    "event_type": "full_snapshot",
+                    "event_type_code": 2,
+                    "count": len(full_snapshots),
+                    "first_timestamp": full_snapshots[0].get("timestamp", 0) if full_snapshots else 0,
+                    "last_timestamp": full_snapshots[-1].get("timestamp", 0) if full_snapshots else 0,
+                    "file_path": "dom/rrweb_events.json"
+                }
+                
+                full_entity = self._create_entity_batch(
+                    entity_type="RrwebEventGroup",
+                    properties=props,
+                    authority="observation"
+                )
+                
+                self._create_relation_batch(
+                    from_id=task_entity_id,
+                    rel_type="has_rrweb_event",
+                    to_id=full_entity["id"]
+                )
+            
+            # 存储 incremental snapshot 聚合
+            if incremental_snapshots:
+                props = {
+                    "event_type": "incremental_snapshot",
+                    "event_type_code": 3,
+                    "count": len(incremental_snapshots),
+                    "first_timestamp": incremental_snapshots[0].get("timestamp", 0) if incremental_snapshots else 0,
+                    "last_timestamp": incremental_snapshots[-1].get("timestamp", 0) if incremental_snapshots else 0,
+                    "file_path": "dom/rrweb_events.json"
+                }
+                
+                inc_entity = self._create_entity_batch(
+                    entity_type="RrwebEventGroup",
+                    properties=props,
+                    authority="observation"
+                )
+                
+                self._create_relation_batch(
+                    from_id=task_entity_id,
+                    rel_type="has_rrweb_event",
+                    to_id=inc_entity["id"]
+                )
+            
+            print(f"      ✅ 存储 {len(full_snapshots)} full + {len(incremental_snapshots)} incremental 事件")
+            
+        except Exception as e:
+            print(f"      ⚠️ 存储rrweb事件失败: {e}")
     
     def get_system_knowledge_summary(self, system_name: str) -> Dict:
         """获取系统知识摘要"""
