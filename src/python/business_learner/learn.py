@@ -19,6 +19,7 @@ import sys
 import json
 import logging
 import subprocess
+import shutil
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,72 @@ def _report_skips():
             print(entry)
     else:
         print("\n  ✅ 无跳过项")
+
+
+def _backup_graph():
+    """录制前备份 graph.jsonl，用于快速回滚"""
+    graph_path = Path.home() / '.openclaw' / 'workspace' / 'memory' / 'ontology' / 'graph.jsonl'
+    if not graph_path.exists():
+        return None
+    backup = graph_path.with_suffix('.jsonl.bak')
+    shutil.copy2(graph_path, backup)
+    return backup
+
+
+def _report_governance(adapter):
+    """录制结束后打印治理层汇总"""
+    from datetime import datetime
+    print_section("治理层汇总")
+    graph_path = Path.home() / '.openclaw' / 'workspace' / 'memory' / 'ontology' / 'graph.jsonl'
+
+    # graph 变化
+    if graph_path.exists():
+        lines = 0
+        with open(graph_path) as f:
+            for line in f:
+                if line.strip():
+                    lines += 1
+        ents = adapter._load_entity_map_indexed()
+        stale = sum(1 for e in ents.values()
+                    if e.get('metadata', {}).get('stale') is True)
+        type_counts = {}
+        for e in ents.values():
+            t = e['type']; type_counts[t] = type_counts.get(t, 0) + 1
+
+        print(f"  graph.jsonl: {lines} 行, {len(ents)} 活实体")
+        print(f"  stale 标记: {stale} 实体")
+        print(f"  版本日志:   {_count_lines(Path.home() / '.openclaw' / 'workspace' / 'memory' / 'ontology' / 'version_log.jsonl')} 条")
+        print(f"  实体类型 Top 10:")
+        for t, c in sorted(type_counts.items(), key=lambda x: -x[1])[:10]:
+            print(f"    {t:25s} x{c}")
+    else:
+        print(f"  (首次录制, graph.jsonl 尚未生成)")
+
+    # 冲突/去重统计
+    fc = getattr(adapter, '_fail_counts', {})
+    if fc:
+        print(f"  存储失败计数: {dict(fc)}")
+    else:
+        print(f"  存储失败: 0")
+
+    version_log = Path.home() / '.openclaw' / 'workspace' / 'memory' / 'ontology' / 'version_log.jsonl'
+    if version_log.exists():
+        print(f"  版本追踪: {_count_lines(version_log)} 条页面版本记录")
+
+    contrib_log = Path.home() / '.openclaw' / 'workspace' / 'memory' / 'ontology' / 'contribution_map.jsonl'
+    if contrib_log.exists():
+        print(f"  贡献溯源: {_count_lines(contrib_log)} 条 task 贡献记录")
+
+    print(f"\n  💡 日志详情: LOG_LEVEL=DEBUG python learn.py ...")
+    print(f"  💡 回滚命令: cp graph.jsonl.bak graph.jsonl  (恢复录制前状态)")
+
+
+def _count_lines(path):
+    try:
+        with open(path) as f:
+            return sum(1 for _ in f)
+    except Exception:
+        return 0
 
 
 def _events_ts_from_filename(stem: str) -> int:
@@ -393,6 +460,7 @@ def main():
 
     # 存储到知识图谱
     if not no_store:
+        _backup_graph()
         store_to_knowledge_pipeline(task_path, output_dir, layer1_result,
                                     layer2_result, layer3_result)
 
@@ -528,6 +596,9 @@ def store_to_knowledge_pipeline(task_path: Path, output_dir: Path,
     _run_memory_maintenance(adapter)
 
     print("  ✅ 存储完成")
+
+    # 治理层汇总
+    _report_governance(adapter)
 
 
 def index_task_to_chromadb(task_path: str):
