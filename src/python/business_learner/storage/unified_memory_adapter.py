@@ -5,13 +5,33 @@
 """
 
 import json
+import time
 import os
+import logging
 import subprocess
 import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from dataclasses import asdict
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+def _get_commit_hash() -> str:
+    """获取当前代码仓库的 commit 版本号"""
+    try:
+        script_dir = Path(__file__).resolve().parent
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, cwd=str(script_dir), timeout=5
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except Exception:
+        pass
+    return "unknown"
+
+_APP_VERSION = _get_commit_hash()
 
 from ..utils.models import TaskUnderstanding, PageUnderstanding, APIEntity
 from ..utils.task_metadata import TaskMetadata, TaskMetadataManager
@@ -70,6 +90,42 @@ class UnifiedMemoryAdapter:
         # 批量写入模式：在内存中构建所有实体
         self._batch_entities: List[Dict] = []
         self._batch_relations: List[Dict] = []
+        self._skill_entity_manager = None
+        self._skill_relation_manager = None
+        self._skill_conflict_manager = None
+        self._skill_file_manager = None
+        self._init_skill_classes()
+        self._fail_counts: Dict[str, int] = {}
+        logger.info(f"UnifiedMemoryAdapter v{_APP_VERSION} init: mode={self.mode}")
+    
+    def _init_skill_classes(self):
+        if self._skill_entity_manager is not None:
+            return
+        import importlib.util
+        if not self.script_path.exists():
+            raise SystemExit(
+                f"❌ openclaw-memory-skill 脚本未找到: {self.script_path}\n"
+                f"   请确认 OPENCLAW_SKILL_PATH 或 OPENCLAW_MEMORY_PATH 环境变量指向正确路径"
+            )
+
+        spec = importlib.util.spec_from_file_location(
+            "ontology_optimized_adapter", self.script_path
+        )
+        ontology_module = importlib.util.module_from_spec(spec)
+        try:
+            spec.loader.exec_module(ontology_module)
+        except Exception as e:
+            raise SystemExit(
+                f"❌ openclaw-memory-skill 加载失败: {e}\n"
+                f"   脚本路径: {self.script_path}"
+            ) from e
+
+        self._skill_entity_manager = ontology_module.EntityManager
+        self._skill_relation_manager = ontology_module.RelationManager
+        self._skill_conflict_manager = ontology_module.ConflictManager
+        self._skill_file_manager = ontology_module.FileManager
+
+        print(f"[UnifiedMemoryAdapter] Skill 类导入成功: {self.script_path}")
     
     def _run_skill_command(self, *args) -> tuple[bool, str]:
         """
@@ -147,49 +203,140 @@ class UnifiedMemoryAdapter:
         }
         self._batch_relations.append(relation)
     
+    def _load_entity_map_indexed(self) -> Dict[str, Dict]:
+        entity_map = {}
+        if not self.graph_path.exists():
+            return entity_map
+
+        with open(self.graph_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                op = record.get("op")
+                if op == "create":
+                    e = record.get("entity", record)
+                    eid = e.get("id")
+                    if eid and e.get("type") != "Relation":
+                        entity_map[eid] = e
+                elif op == "update":
+                    eid = record.get("id")
+                    if eid and eid in entity_map:
+                        entity_map[eid]["properties"].update(record.get("properties", {}))
+                elif op == "delete":
+                    eid = record.get("id")
+                    entity_map.pop(eid, None)
+
+        return entity_map
+
+    def _find_matching_entity(self, new_entity: Dict, existing: Dict[str, Dict]) -> Optional[str]:
+        etype = new_entity.get("type", "")
+        props = new_entity.get("properties", {})
+        new_name = props.get("name", "")
+        new_url = props.get("url", "")
+
+        for eid, e in existing.items():
+            if e.get("type") != etype:
+                continue
+            ep = e.get("properties", {})
+            if new_name and ep.get("name") == new_name:
+                return eid
+            if new_url and ep.get("url") == new_url:
+                return eid
+
+        return None
+
+    def _flush_via_skill(self):
+        graph_path_str = str(self.graph_path)
+        existing_entities = self._load_entity_map_indexed()
+        logger.debug(f"_flush_via_skill: {len(self._batch_entities)} entities + {len(self._batch_relations)} relations")
+        print(f"\n  ┌─ _flush_via_skill: {len(self._batch_entities)} 实体 + {len(self._batch_relations)} 关系")
+
+        updated_entity_ids = {}
+        created_count = 0
+        updated_count = 0
+
+        for entity in self._batch_entities:
+            entity_type = entity["type"]
+            entity_props = entity["properties"]
+            entity_id = entity["id"]
+            source = entity.get("source", "sentinel-learner")
+            authority = entity.get("authority", "observation")
+
+            matching_id = self._find_matching_entity(entity, existing_entities)
+            if matching_id:
+                updated_entity_ids[entity_id] = matching_id
+                url_info = entity_props.get('url', entity_props.get('name', ''))
+                print(f"  │ Adapter 去重命中: {entity_type}:{entity_id[:16]} → 更新已有实体 {matching_id[:16]} ({url_info[:40]})")
+                result = self._skill_entity_manager.update_entity(
+                    entity_id=matching_id,
+                    properties=entity_props,
+                    graph_path=graph_path_str,
+                    confidence=0.8,
+                    source=source,
+                    authority_level=authority
+                )
+                if result:
+                    updated_count += 1
+                else:
+                    print(f"  │ ⚠️ update_entity 返回 None: {matching_id[:16]}")
+            else:
+                created = self._skill_entity_manager.create_entity(
+                    type_name=entity_type,
+                    properties=entity_props,
+                    graph_path=graph_path_str,
+                    entity_id=entity_id,
+                    confidence=0.8,
+                    source=source,
+                    authority_level=authority
+                )
+                existing_entities[entity_id] = created
+                created_count += 1
+
+        print(f"  │ 结果: {created_count} 新建, {updated_count} 更新 (Skill治理)")
+
+        relation_count = 0
+        for relation in self._batch_relations:
+            from_id = updated_entity_ids.get(relation["from"], relation["from"])
+            to_id = updated_entity_ids.get(relation["to"], relation["to"])
+            if relation.get("from") != from_id:
+                print(f"  │ Relation from_id 重映射: {relation['from'][:16]} → {from_id[:16]}")
+            self._skill_relation_manager.create_relation(
+                from_id=from_id,
+                rel_type=relation["type"],
+                to_id=to_id,
+                properties=relation.get("properties", {}),
+                graph_path=graph_path_str,
+                confidence=0.8,
+                source="sentinel-learner",
+                authority_level="observation"
+            )
+            relation_count += 1
+
+        if relation_count:
+            logger.debug(f"_flush_via_skill: {relation_count} relations written (idempotent)")
+            print(f"  │ 关系写入: {relation_count} 条 (幂等)")
+        logger.info(f"_flush_via_skill: done — {created_count} created, {updated_count} updated, {relation_count} relations")
+        print(f"  └─ _flush_via_skill 完成")
+
     def _flush_batch(self) -> bool:
-        """
-        将内存中的所有实体和关系一次性写入graph.jsonl
-        
-        Returns:
-            是否成功
-        """
         if not self._batch_entities and not self._batch_relations:
             return True
-        
-        try:
-            # 确保目录存在
-            self.graph_path.parent.mkdir(parents=True, exist_ok=True)
-            
-            # 追加写入graph.jsonl
-            with open(self.graph_path, 'a', encoding='utf-8') as f:
-                # 写入实体
-                for entity in self._batch_entities:
-                    f.write(json.dumps(entity, ensure_ascii=False) + '\n')
-                
-                # 写入关系（也作为实体存储，带from/to）
-                for relation in self._batch_relations:
-                    rel_entity = {
-                        "id": self._generate_id("relation"),
-                        "type": "Relation",
-                        "properties": relation,
-                        "source": "sentinel-learner",
-                        "authority": "system",
-                        "created_at": relation.get("created_at", datetime.now().isoformat()),
-                        "updated_at": datetime.now().isoformat()
-                    }
-                    f.write(json.dumps(rel_entity, ensure_ascii=False) + '\n')
-            
-            print(f"  ✅ 批量写入完成: {len(self._batch_entities)} 实体, {len(self._batch_relations)} 关系")
-            
-            # 清空批量缓存
-            self._batch_entities.clear()
-            self._batch_relations.clear()
-            
-            return True
-        except Exception as e:
-            print(f"  ❌ 批量写入失败: {e}")
-            return False
+
+        self.graph_path.parent.mkdir(parents=True, exist_ok=True)
+
+        self._flush_via_skill()
+
+        print(f"  ✅ 批量写入完成: {len(self._batch_entities)} 实体, {len(self._batch_relations)} 关系")
+
+        self._batch_entities.clear()
+        self._batch_relations.clear()
+
+        return True
     
     def store_task_knowledge(self, task_result: TaskUnderstanding, 
                             metadata_manager: TaskMetadataManager):
@@ -225,25 +372,25 @@ class UnifiedMemoryAdapter:
         for page in task_result.pages:
             page_entity = self._store_page_knowledge_batch(page, task_entity["id"], system_entity["id"])
             
+            # 4.1 存储页面详细结构（组件、布局、样式等）
             if page_entity:
-                page_entity_id = page_entity["id"]
-                task_path = metadata_manager.task_path
-                
-                # 4.1 存储页面详细结构（组件、布局、样式等）
                 self._store_page_structure_detailed_batch(
                     page, 
-                    page_entity_id, 
-                    task_path
+                    page_entity["id"], 
+                    metadata_manager.task_path
                 )
                 
-                # === P0 新增：DOM快照存储 ===
-                self._store_dom_snapshots_batch(page, page_entity_id, task_path)
+                # 4.2 存储DOM快照
+                self._store_dom_snapshots_batch(
+                    page_entity["id"],
+                    metadata_manager.task_path
+                )
                 
-                # === P0 新增：组件聚合存储 ===
-                self._store_components_batch(page, page_entity_id, task_path)
-                
-                # === P0 新增：CSS系统存储 ===
-                self._store_css_system_batch(page, page_entity_id, task_path)
+                # 4.3 存储CSS系统和设计令牌
+                self._store_css_system_batch(
+                    page_entity["id"],
+                    metadata_manager.task_path
+                )
         
         # 5. 存储业务实体
         print(f"  准备存储 {len(task_result.entities)} 个业务实体...")
@@ -251,50 +398,70 @@ class UnifiedMemoryAdapter:
             try:
                 # 类型检查
                 if isinstance(entity, str):
+                    self._fail_counts["unknown"] = self._fail_counts.get("unknown", 0) + 1
                     print(f"    ⚠️ 实体 #{i} 是字符串而非对象: {entity[:50]}...")
                     continue
                 if not hasattr(entity, 'name'):
+                    self._fail_counts["unknown"] = self._fail_counts.get("unknown", 0) + 1
                     print(f"    ⚠️ 实体 #{i} 缺少 name 属性: {type(entity)}")
                     continue
                 self._store_business_entity_batch(entity, system_entity["id"])
             except Exception as e:
+                self._fail_counts["business_entity"] = self._fail_counts.get("business_entity", 0) + 1
                 print(f"    ⚠️ 存储业务实体 #{i} 失败: {e}")
                 continue
         
-        # 6. 存储API层数据（P0新增）
-        self._store_api_layer_batch(system_entity["id"], metadata_manager.task_path)
+        # 6. 存储API层（Endpoint + Request + Response + DataFlow）
+        self._store_api_layer_batch(
+            system_entity["id"],
+            metadata_manager.task_path
+        )
         
-        # 7. 存储静态资源（P1新增）
-        self._store_resources_batch(system_entity["id"], metadata_manager.task_path)
+        # 7. 存储用户意图
+        self._store_user_intents_batch(
+            task_entity["id"],
+            metadata_manager.task_path
+        )
         
-        # 8. 存储浏览器状态（P1新增）
-        self._store_browser_state_batch(system_entity["id"], metadata_manager.task_path)
+        # 8. 存储业务流程
+        self._store_business_flows_batch(
+            task_entity["id"],
+            system_entity["id"],
+            metadata_manager.task_path
+        )
         
-        # 9. 存储性能指标（P1新增）
-        self._store_performance_batch(system_entity["id"], metadata_manager.task_path)
+        # 9. 存储静态资源（聚合模式）
+        self._store_resources_batch(
+            system_entity["id"],
+            metadata_manager.task_path
+        )
         
-        # 10. 存储视觉资产（P2新增）
-        self._store_visual_assets_batch(task_entity["id"], system_entity["id"], metadata_manager.task_path)
+        # 10. 存储浏览器状态（Cookies）
+        self._store_browser_state_batch(
+            system_entity["id"],
+            metadata_manager.task_path
+        )
         
-        # 11. 存储用户意图（P0缺失功能）
-        self._store_user_intents_batch(task_entity["id"], metadata_manager.task_path)
+        # 11. 存储性能指标和错误
+        self._store_performance_batch(
+            system_entity["id"],
+            metadata_manager.task_path
+        )
+        self._store_errors_batch(
+            system_entity["id"],
+            metadata_manager.task_path
+        )
         
-        # 12. 存储业务流程和步骤（P0缺失功能）
-        self._store_business_flows_batch(task_entity["id"], system_entity["id"], metadata_manager.task_path)
+        # 12. 存储视觉资产
+        self._store_visual_assets_batch(
+            task_entity["id"],
+            metadata_manager.task_path
+        )
         
-        # 13. 存储JS错误（P0缺失功能）
-        self._store_errors_batch(system_entity["id"], metadata_manager.task_path)
-        
-        # 14. 存储锚点事件（P1缺失功能）
-        self._store_anchor_events_batch(task_entity["id"], metadata_manager.task_path)
-        
-        # 15. 存储rrweb事件（P1缺失功能）
-        self._store_rrweb_events_batch(task_entity["id"], metadata_manager.task_path)
-        
-        # 16. 解决冲突
+        # 13. 解决冲突
         self._resolve_system_conflicts(system_entity["id"])
         
-        # 17. 一次性批量写入所有数据
+        # 14. 一次性批量写入所有数据
         success = self._flush_batch()
         
         if success:
@@ -428,8 +595,7 @@ class UnifiedMemoryAdapter:
     
     def _store_page_knowledge_batch(self, page: PageUnderstanding,
                                      task_id: str, system_id: str) -> Optional[Dict]:
-        """批量模式：存储页面知识"""
-        # 处理不同类型的confidence
+        """批量模式：存储页面知识（含 URL 去重 + Skill 治理更新）"""
         if hasattr(page.overall_confidence, 'value'):
             confidence_value = page.overall_confidence.value
         elif hasattr(page.overall_confidence, 'overall_confidence'):
@@ -437,13 +603,23 @@ class UnifiedMemoryAdapter:
         else:
             confidence_value = str(page.overall_confidence)
 
+        page_url = page.page_info.url
         page_props = {
-            "url": page.page_info.url,
+            "url": page_url,
             "title": page.page_info.title,
             "page_type": page.page_info.page_type,
             "domain": page.page_info.business_domain,
             "confidence": confidence_value
         }
+
+        existing = self._query_existing_page(page_url)
+        if existing:
+            print(f"  📄 WebPage 已存在: {page_url} → 复用已有实体")
+            self._create_relation_batch(from_id=task_id, rel_type="recorded",
+                                        to_id=existing["id"])
+            self._create_relation_batch(from_id=system_id, rel_type="has_page",
+                                        to_id=existing["id"])
+            return existing
 
         page_entity = self._create_entity_batch(
             entity_type="WebPage",
@@ -451,19 +627,26 @@ class UnifiedMemoryAdapter:
             authority="observation"
         )
 
-        # 建立关系：Task --recorded--> Page
         self._create_relation_batch(
             from_id=task_id,
             rel_type="recorded",
             to_id=page_entity["id"]
         )
-        # 建立关系：System --has_page--> Page
         self._create_relation_batch(
             from_id=system_id,
             rel_type="has_page",
             to_id=page_entity["id"]
         )
         return page_entity
+
+    def _query_existing_page(self, page_url: str) -> Optional[Dict]:
+        if not self.graph_path.exists():
+            return None
+        for entity in self._load_entity_map_indexed().values():
+            if entity.get("type") == "WebPage" and \
+               entity.get("properties", {}).get("url") == page_url:
+                return entity
+        return None
 
     def _store_page_knowledge(self, page: PageUnderstanding,
                              task_id: str, system_id: str) -> Optional[Dict]:
@@ -507,8 +690,8 @@ class UnifiedMemoryAdapter:
                     to_id=page_entity["id"]
                 )
                 return page_entity
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f"        ⚠️ 操作失败: {e}")
         return None
 
     def _store_page_structure_detailed_batch(self, page: PageUnderstanding,
@@ -546,7 +729,7 @@ class UnifiedMemoryAdapter:
         }
         
         # 统计组件类型
-        for comp in components[:100]:  # 最多统计100个
+        for comp in components:  # 最多统计100个
             comp_type = comp.get('type', 'unknown')
             structure_summary["component_types"][comp_type] = \
                 structure_summary["component_types"].get(comp_type, 0) + 1
@@ -664,6 +847,7 @@ class UnifiedMemoryAdapter:
                         to_id=comp_entity["id"]
                     )
             except Exception as e:
+                self._fail_counts["component"] = self._fail_counts.get("component", 0) + 1
                 print(f"        ⚠️ 存储组件失败: {e}")
                 continue
 
@@ -677,15 +861,15 @@ class UnifiedMemoryAdapter:
         props['id'] = comp.get('id', '')
         props['tag'] = comp.get('tag', '')
         props['type'] = comp.get('type', 'unknown')
-        props['name'] = comp.get('name', '')[:200]
-        props['text_content'] = comp.get('text_content', '')[:500]
+        props['name'] = comp.get('name', '')
+        props['text_content'] = comp.get('text_content', '')
         props['is_interactive'] = comp.get('is_interactive', False)
         props['depth'] = comp.get('depth', 0)
 
         # 类名（保留完整列表）
         class_names = comp.get('class_names', [])
         if class_names:
-            props['class_names'] = json.dumps(class_names[:50])  # 最多50个类名
+            props['class_names'] = json.dumps(class_names)  # 最多50个类名
 
         # 属性（完整保留）
         attributes = comp.get('attributes', {})
@@ -694,9 +878,9 @@ class UnifiedMemoryAdapter:
             truncated_attrs = {}
             for k, v in attributes.items():
                 if isinstance(v, str):
-                    truncated_attrs[k] = v[:200] if len(v) > 200 else v
+                    truncated_attrs[k] = v
                 else:
-                    truncated_attrs[k] = str(v)[:200]
+                    truncated_attrs[k] = str(v)
             props['attributes'] = json.dumps(truncated_attrs, ensure_ascii=False)
 
         # 内联样式（完整保留）
@@ -721,7 +905,7 @@ class UnifiedMemoryAdapter:
         # 层级关系
         children_ids = comp.get('children_ids', [])
         if children_ids:
-            props['children_ids'] = json.dumps(children_ids[:100])  # 最多100个子组件
+            props['children_ids'] = json.dumps(children_ids)  # 最多100个子组件
 
         parent_id = comp.get('parent_id', '')
         if parent_id:
@@ -730,7 +914,7 @@ class UnifiedMemoryAdapter:
         # 事件处理器
         event_handlers = comp.get('event_handlers', [])
         if event_handlers:
-            props['event_handlers'] = json.dumps(event_handlers[:20])
+            props['event_handlers'] = json.dumps(event_handlers)
 
         return props
 
@@ -770,6 +954,7 @@ class UnifiedMemoryAdapter:
                         to_id=section_entity["id"]
                     )
             except Exception as e:
+                self._fail_counts["layout_section"] = self._fail_counts.get("layout_section", 0) + 1
                 print(f"        ⚠️ 存储布局区块失败: {e}")
                 continue
 
@@ -811,6 +996,7 @@ class UnifiedMemoryAdapter:
                         )
 
             except Exception as e:
+                self._fail_counts["layout_relation"] = self._fail_counts.get("layout_relation", 0) + 1
                 print(f"        ⚠️ 建立布局区块关系失败: {e}")
                 continue
 
@@ -821,12 +1007,12 @@ class UnifiedMemoryAdapter:
         # 基础属性
         props['id'] = section.get('id', '')
         props['type'] = section.get('type', 'unknown')
-        props['name'] = section.get('name', '')[:200]
+        props['name'] = section.get('name', '')
 
         # 组件ID列表
         component_ids = section.get('component_ids', [])
         if component_ids:
-            props['component_ids'] = json.dumps(component_ids[:100])
+            props['component_ids'] = json.dumps(component_ids)
 
         # 父子关系
         parent_id = section.get('parent_section_id', '')
@@ -835,7 +1021,7 @@ class UnifiedMemoryAdapter:
 
         child_sections = section.get('child_sections', [])
         if child_sections:
-            props['child_sections'] = json.dumps(child_sections[:50])
+            props['child_sections'] = json.dumps(child_sections)
 
         # 样式
         styles = section.get('styles', {})
@@ -861,7 +1047,7 @@ class UnifiedMemoryAdapter:
         try:
             # 1. 创建聚合摘要
             rule_count = len(css_rules)
-            selector_samples = list(css_rules.keys())[:20]
+            selector_samples = list(css_rules.keys())
 
             style_props = {
                 "rule_count": rule_count,
@@ -910,14 +1096,14 @@ class UnifiedMemoryAdapter:
             try:
                 # 序列化declarations
                 if isinstance(declarations, dict):
-                    decl_str = json.dumps(declarations, ensure_ascii=False)[:2000]
+                    decl_str = json.dumps(declarations, ensure_ascii=False)
                 elif isinstance(declarations, list):
-                    decl_str = json.dumps(declarations, ensure_ascii=False)[:2000]
+                    decl_str = json.dumps(declarations, ensure_ascii=False)
                 else:
-                    decl_str = str(declarations)[:2000]
+                    decl_str = str(declarations)
 
                 rule_props = {
-                    "selector": selector[:500],  # 限制选择器长度
+                    "selector": selector,  # 限制选择器长度
                     "declarations": decl_str,
                     "declaration_count": len(declarations) if isinstance(declarations, (dict, list)) else 0,
                     "source": "external_css"
@@ -952,6 +1138,7 @@ class UnifiedMemoryAdapter:
             except Exception as e:
                 failed_count += 1
                 if failed_count <= 5:  # 只显示前5个错误
+                    self._fail_counts["css_rule"] = self._fail_counts.get("css_rule", 0) + 1
                     print(f"          ⚠️ 存储CSS规则失败 [{selector[:50]}...]: {e}")
                 continue
 
@@ -965,7 +1152,7 @@ class UnifiedMemoryAdapter:
         """存储设计令牌实体（颜色/字号/字体）"""
         try:
             # 存储颜色
-            for color in color_palette[:50]:  # 限制数量
+            for color in color_palette:  # 限制数量
                 if color:
                     token_props = {
                         "token_type": "color",
@@ -990,7 +1177,7 @@ class UnifiedMemoryAdapter:
 
             # 存储字号
             font_sizes = typography.get('font_sizes', [])
-            for size in font_sizes[:20]:  # 限制数量
+            for size in font_sizes:  # 限制数量
                 if size:
                     token_props = {
                         "token_type": "font_size",
@@ -1015,12 +1202,12 @@ class UnifiedMemoryAdapter:
 
             # 存储字体
             font_families = typography.get('font_families', [])
-            for font in font_families[:10]:  # 限制数量
+            for font in font_families:  # 限制数量
                 if font:
                     token_props = {
                         "token_type": "font_family",
                         "value": font,
-                        "name": f"font_{font.replace(' ', '_')[:30]}"
+                        "name": f"font_{font.replace(' ', '_')}"
                     }
 
                     success, output = self._run_skill_command(
@@ -1065,8 +1252,8 @@ class UnifiedMemoryAdapter:
                 resource_props = self._parse_resource_filename(filename)
 
                 # 添加文件信息
-                resource_props['filename'] = filename[:200]
-                resource_props['file_path'] = str(resource_file.relative_to(task_path))[:300]
+                resource_props['filename'] = filename
+                resource_props['file_path'] = str(resource_file.relative_to(task_path))
 
                 # 尝试获取文件大小
                 try:
@@ -1094,6 +1281,7 @@ class UnifiedMemoryAdapter:
                     stored_count += 1
 
             except Exception as e:
+                self._fail_counts["resource"] = self._fail_counts.get("resource", 0) + 1
                 print(f"        ⚠️ 存储资源失败 [{filename[:50]}...]: {e}")
                 continue
 
@@ -1135,7 +1323,7 @@ class UnifiedMemoryAdapter:
         if len(parts) > 1:
             # 最后一部分通常是原始文件名
             original_name = '_'.join(parts[1:]) if len(parts) > 2 else parts[-1]
-            props['original_name'] = original_name[:200]
+            props['original_name'] = original_name
 
         return props
 
@@ -1163,8 +1351,8 @@ class UnifiedMemoryAdapter:
         for screenshot_file in screenshot_files:
             try:
                 keyframe_props = {
-                    'filename': screenshot_file.name[:200],
-                    'file_path': str(screenshot_file.relative_to(task_path))[:300],
+                    'filename': screenshot_file.name,
+                    'file_path': str(screenshot_file.relative_to(task_path)),
                     'type': 'screenshot'
                 }
 
@@ -1194,6 +1382,7 @@ class UnifiedMemoryAdapter:
                     stored_count += 1
 
             except Exception as e:
+                self._fail_counts["keyframe"] = self._fail_counts.get("keyframe", 0) + 1
                 print(f"        ⚠️ 存储关键帧失败: {e}")
                 continue
 
@@ -1241,6 +1430,7 @@ class UnifiedMemoryAdapter:
                     stored_count += 1
 
             except Exception as e:
+                self._fail_counts["dom_snapshot"] = self._fail_counts.get("dom_snapshot", 0) + 1
                 print(f"        ⚠️ 存储DOM快照失败: {e}")
                 continue
 
@@ -1249,7 +1439,7 @@ class UnifiedMemoryAdapter:
     def _extract_snapshot_info(self, snapshot_file: Path) -> Dict:
         """提取 snapshot 文件的基本信息"""
         info = {
-            'filename': snapshot_file.name[:200],
+            'filename': snapshot_file.name,
             'file_path': str(snapshot_file)[-300:],  # 只保留路径末尾
             'type': 'dom_snapshot'
         }
@@ -1273,8 +1463,8 @@ class UnifiedMemoryAdapter:
             nodes = data_node.get('nodes', [])
             info['node_count'] = len(nodes)
 
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"        ⚠️ 提取快照元数据失败: {e}")
 
         # 文件大小
         try:
@@ -1302,10 +1492,10 @@ class UnifiedMemoryAdapter:
         for bp in breakpoints:
             try:
                 bp_props = {
-                    'name': bp.get('name', 'unknown')[:100],
+                    'name': bp.get('name', 'unknown'),
                     'min_width': bp.get('min_width', 0),
                     'max_width': bp.get('max_width', 0),
-                    'media_query': bp.get('media_query', '')[:500]
+                    'media_query': bp.get('media_query', '')
                 }
 
                 success, output = self._run_skill_command(
@@ -1328,6 +1518,7 @@ class UnifiedMemoryAdapter:
                     stored_count += 1
 
             except Exception as e:
+                self._fail_counts["breakpoint"] = self._fail_counts.get("breakpoint", 0) + 1
                 print(f"        ⚠️ 存储断点失败: {e}")
                 continue
 
@@ -1383,8 +1574,8 @@ class UnifiedMemoryAdapter:
                     rel_type="has_entity",
                     to_id=entity_obj["id"]
                 )
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f"        ⚠️ 操作失败: {e}")
     
     def _create_relation(self, from_id: str, rel_type: str, 
                         to_id: str, properties: Dict = None):
@@ -1454,137 +1645,45 @@ class UnifiedMemoryAdapter:
         return []
     
     def _map_entity_type(self, entity_type: str) -> str:
-        """
-        映射实体类型到skill类型
-        
-        P0 - 核心实体类型（必须实现）
-        P1 - 支撑实体类型（建议实现）
-        P2 - 视觉资产类型（可选实现）
-        """
+        """映射实体类型到skill类型"""
         type_mapping = {
-            # === 基础业务实体 ===
             "announcement": "Document",
             "recruitment": "Task",
             "product": "Product",
             "service": "Service",
-            "generic": "Entity",
-            
-            # === P0 - DOM结构 ===
-            "dom_snapshot": "DOMSnapshot",
-            "component": "Component",
-            "component_group": "ComponentGroup",
-            
-            # === P0 - CSS系统 ===
-            "css_rule": "CSSRule",
-            "css_file": "CSSFile",
-            "design_token": "DesignToken",
-            
-            # === P0 - API层 ===
-            "api_endpoint": "APIEndpoint",
-            "api_request": "APIRequest",
-            "api_response": "APIResponse",
-            "data_flow": "DataFlow",
-            "api_schema": "APISchema",
-            
-            # === P0 - 业务逻辑 ===
-            "user_intent": "UserIntent",
-            "business_flow": "BusinessFlow",
-            "flow_step": "FlowStep",
-            
-            # === P1 - 静态资源 ===
-            "resource": "Resource",
-            "resource_group": "ResourceGroup",
-            
-            # === P1 - 浏览器状态 ===
-            "cookie": "Cookie",
-            "cookie_domain": "CookieDomain",
-            
-            # === P1 - 性能与错误 ===
-            "performance_metric": "PerformanceMetric",
-            "optimization_suggestion": "OptimizationSuggestion",
-            "js_error": "JSError",
-            "anchor_event": "AnchorEvent",
-            
-            # === P2 - 视觉资产 ===
-            "keyframe": "Keyframe",
-            "keyframe_collection": "KeyframeCollection",
-            "long_screenshot": "LongScreenshot",
-            "prototype_demo": "PrototypeDemo",
+            "generic": "Entity"
         }
         return type_mapping.get(entity_type, "Entity")
     
-    # ==================== P0 实现：DOM快照存储 ====================
+    # ==================== 新增批量存储方法 ====================
     
-    def _store_dom_snapshots_batch(self, page, page_entity_id: str, task_path: Path):
-        """
-        P0: 存储DOM快照
-        
-        从 dom/snapshot_*.json 文件读取并创建实体
-        目标：36个快照 → 36个 DOMSnapshot 实体
-        """
+    def _store_dom_snapshots_batch(self, page_entity_id: str, task_path: Path):
+        """批量模式：存储DOM快照实体"""
         dom_dir = task_path / "dom"
         if not dom_dir.exists():
             return
         
         snapshot_files = list(dom_dir.glob("snapshot_*.json"))
-        if not snapshot_files:
-            return
-        
-        print(f"    存储DOM快照: {len(snapshot_files)} 个")
-        stored_count = 0
+        print(f"    📄 发现 {len(snapshot_files)} 个DOM快照")
         
         for snapshot_file in snapshot_files:
             try:
-                with open(snapshot_file, 'r', encoding='utf-8') as f:
-                    snapshot_data = json.load(f)
-                
-                # 判断类型：有 rrwebEvent 的是完整快照
-                has_rrweb = bool(snapshot_data.get("rrwebEvent"))
-                snapshot_type = "full" if has_rrweb else "incremental"
-                
-                # 计算元素数量
-                components = snapshot_data.get("components", [])
-                element_count = len(components)
-                
-                props = {
-                    "timestamp": snapshot_data.get("timestamp", 0),
-                    "url": snapshot_data.get("url", ""),
-                    "title": snapshot_data.get("title", ""),
-                    "type": snapshot_type,
-                    "has_rrweb": has_rrweb,
-                    "element_count": element_count,
-                    "snapshot_file_path": f"dom/{snapshot_file.name}"
-                }
-                
+                info = self._extract_snapshot_info(snapshot_file)
                 snapshot_entity = self._create_entity_batch(
                     entity_type="DOMSnapshot",
-                    properties=props,
+                    properties=info,
                     authority="observation"
                 )
-                
-                # 建立关系：Page --has_dom_snapshot--> DOMSnapshot
                 self._create_relation_batch(
                     from_id=page_entity_id,
                     rel_type="has_dom_snapshot",
-                    to_id=snapshot_entity["id"],
-                    properties={"captured_at": props["timestamp"], "type": snapshot_type}
+                    to_id=snapshot_entity["id"]
                 )
-                
-                stored_count += 1
             except Exception as e:
-                print(f"      ⚠️ 存储快照失败 {snapshot_file.name}: {e}")
-        
-        print(f"      ✅ 成功存储 {stored_count} 个DOM快照")
+                print(f"      ⚠️ 存储DOM快照失败: {e}")
     
-    # ==================== P0 实现：组件聚合存储 ====================
-    
-    def _store_components_batch(self, page, page_entity_id: str, task_path: Path):
-        """
-        P0: 存储组件（聚合模式）
-        
-        621个组件 → 每页1个 ComponentGroup 聚合实体
-        避免图谱爆炸，同时保留关键信息
-        """
+    def _store_css_system_batch(self, page_entity_id: str, task_path: Path):
+        """批量模式：存储CSS系统和设计令牌"""
         structure_file = task_path / "analysis" / "page_structure.json"
         if not structure_file.exists():
             return
@@ -1592,1239 +1691,623 @@ class UnifiedMemoryAdapter:
         try:
             with open(structure_file, 'r', encoding='utf-8') as f:
                 structure_data = json.load(f)
-            
-            components = structure_data.get("components", [])
-            if not components:
-                return
-            
-            print(f"    存储组件: {len(components)} 个 → 聚合为 ComponentGroup")
-            
-            # 统计信息
-            tag_distribution = {}
-            interactive_count = 0
-            with_styles_count = 0
-            with_computed_styles_count = 0
-            with_text_count = 0
-            
-            # 提取关键交互组件（限制数量避免过大）
-            key_components = []
-            interactive_components = [c for c in components if c.get("is_interactive")]
-            
-            for comp in interactive_components[:20]:  # 最多20个交互组件
-                key_components.append({
-                    "id": comp.get("id", ""),
-                    "tag": comp.get("tag", ""),
-                    "class_names": comp.get("class_names", [])[:3],
-                    "text_content": (comp.get("text_content", "") or "")[:50],
-                    "is_interactive": True
-                })
-            
-            # 统计所有组件
-            for comp in components:
-                tag = comp.get("tag", "unknown")
-                tag_distribution[tag] = tag_distribution.get(tag, 0) + 1
-                
-                if comp.get("is_interactive"):
-                    interactive_count += 1
-                if comp.get("styles"):
-                    with_styles_count += 1
-                if comp.get("computed_styles"):
-                    with_computed_styles_count += 1
-                if comp.get("text_content"):
-                    with_text_count += 1
-            
-            # 创建聚合实体
-            props = {
-                "page_url": page.url if hasattr(page, 'url') else "",
-                "total_components": len(components),
-                "tag_distribution": tag_distribution,
-                "interactive_count": interactive_count,
-                "with_styles_count": with_styles_count,
-                "with_computed_styles_count": with_computed_styles_count,
-                "with_text_count": with_text_count,
-                "key_interactive_components": key_components,
-                "structure_file_path": "analysis/page_structure.json"
-            }
-            
-            group_entity = self._create_entity_batch(
-                entity_type="ComponentGroup",
-                properties=props,
+        except Exception:
+            return
+        
+        # 存储CSS规则（按文件聚合）
+        css_rules = structure_data.get('external_css_rules', {})
+        if css_rules:
+            css_file_entity = self._create_entity_batch(
+                entity_type="CSSFile",
+                properties={
+                    "rule_count": len(css_rules),
+                    "selector_samples": json.dumps(list(css_rules.keys())[:20]),
+                    "source": "external_css"
+                },
                 authority="observation"
             )
-            
-            # 建立关系：Page --has_component--> ComponentGroup
             self._create_relation_batch(
                 from_id=page_entity_id,
-                rel_type="has_component",
-                to_id=group_entity["id"]
+                rel_type="has_css",
+                to_id=css_file_entity["id"]
             )
-            
-            print(f"      ✅ 聚合完成: {len(components)} 个组件")
-            
-        except Exception as e:
-            print(f"      ⚠️ 存储组件失败: {e}")
-    
-    # ==================== P0 实现：CSS系统存储 ====================
-    
-    def _store_css_system_batch(self, page, page_entity_id: str, task_path: Path):
-        """
-        P0: 存储CSS系统和设计令牌
         
-        - CSS规则按文件聚合（8215条 → 每文件1个CSSFile实体）
-        - 设计令牌单独存储（颜色、字体、字号）
-        """
-        structure_file = task_path / "analysis" / "page_structure.json"
-        if not structure_file.exists():
-            return
+        # 存储设计令牌
+        color_palette = structure_data.get('color_palette', [])
+        typography = structure_data.get('typography', {})
         
-        try:
-            with open(structure_file, 'r', encoding='utf-8') as f:
-                structure_data = json.load(f)
-            
-            # 1. 存储CSS文件（聚合模式）
-            css_rules = structure_data.get("external_css_rules", [])
-            if css_rules:
-                print(f"    存储CSS规则: {len(css_rules)} 条")
-                
-                # 按文件分组聚合
-                files_map = {}
-                for rule in css_rules[:1000]:  # 限制处理数量避免过大
-                    source_file = rule.get("source_file", "unknown.css")
-                    if source_file not in files_map:
-                        files_map[source_file] = []
-                    files_map[source_file].append(rule)
-                
-                # 每个CSS文件创建一个聚合实体
-                for file_name, rules in files_map.items():
-                    # 提取选择器样本（前10个）
-                    selectors_sample = [r.get("selector", "") for r in rules[:10]]
-                    
-                    # 汇总属性统计
-                    properties_summary = self._summarize_css_properties(rules)
-                    
-                    props = {
-                        "file_name": file_name,
-                        "rule_count": len(rules),
-                        "selectors_sample": selectors_sample,
-                        "properties_summary": properties_summary
-                    }
-                    
-                    css_file_entity = self._create_entity_batch(
-                        entity_type="CSSFile",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：Page --has_css--> CSSFile
-                    self._create_relation_batch(
-                        from_id=page_entity_id,
-                        rel_type="has_css",
-                        to_id=css_file_entity["id"]
-                    )
-                
-                print(f"      ✅ 存储 {len(files_map)} 个CSS文件聚合")
-            
-            # 2. 存储设计令牌
-            color_palette = structure_data.get("color_palette", [])
-            typography = structure_data.get("typography", {})
-            
-            if color_palette or typography:
-                print(f"    存储设计令牌: {len(color_palette)} 颜色")
-                
-                # 颜色令牌
-                for color in color_palette[:50]:  # 限制数量
-                    props = {
+        # 颜色令牌 - 存储所有颜色
+        color_count = 0
+        for color in color_palette:
+            if color:
+                token_entity = self._create_entity_batch(
+                    entity_type="DesignToken",
+                    properties={
                         "token_type": "color",
-                        "name": color.get("name", ""),
-                        "value": color.get("value", ""),
-                        "usage_count": color.get("usage_count", 0)
-                    }
-                    
-                    token_entity = self._create_entity_batch(
-                        entity_type="DesignToken",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：Page --has_design_token--> DesignToken
-                    self._create_relation_batch(
-                        from_id=page_entity_id,
-                        rel_type="has_design_token",
-                        to_id=token_entity["id"]
-                    )
-                
-                # 字体令牌
-                for font in typography.get("font_families", [])[:10]:
-                    props = {
-                        "token_type": "font_family",
-                        "name": font,
-                        "value": font
-                    }
-                    self._create_entity_batch(
-                        entity_type="DesignToken",
-                        properties=props,
-                        authority="observation"
-                    )
-                
-                # 字号令牌
-                for size in typography.get("font_sizes", [])[:10]:
-                    props = {
-                        "token_type": "font_size",
-                        "name": str(size),
-                        "value": str(size)
-                    }
-                    self._create_entity_batch(
-                        entity_type="DesignToken",
-                        properties=props,
-                        authority="observation"
-                    )
-                
-                print(f"      ✅ 存储设计令牌完成")
-                
-        except Exception as e:
-            print(f"      ⚠️ 存储CSS系统失败: {e}")
-    
-    def _summarize_css_properties(self, rules: List[Dict]) -> Dict:
-        """汇总CSS属性统计（取最常见的10个）"""
-        properties_count = {}
-        for rule in rules:
-            for prop in rule.get("properties", {}).keys():
-                properties_count[prop] = properties_count.get(prop, 0) + 1
-        
-        # 返回最常见的10个属性
-        sorted_props = sorted(properties_count.items(), key=lambda x: x[1], reverse=True)
-        return {k: v for k, v in sorted_props[:10]}
-    
-    # ==================== P0 实现：API层存储 ====================
-    
-    def _store_api_layer_batch(self, system_entity_id: str, task_path: Path):
-        """
-        P0: 存储API层数据
-        
-        包括：
-        - APIEndpoint (23个唯一端点)
-        - APIRequest (35个请求)
-        - APIResponse (26个响应)
-        - DataFlow (10个数据流)
-        - APISchema (22个Schema)
-        """
-        # 1. 读取 API 流量数据
-        api_traffic_file = task_path / "analysis" / "api_traffic.json"
-        if not api_traffic_file.exists():
-            print(f"    ⚠️ 未找到 API 流量数据: {api_traffic_file}")
-            return
-        
-        try:
-            with open(api_traffic_file, 'r', encoding='utf-8') as f:
-                api_data = json.load(f)
-            
-            print(f"    存储API层数据...")
-            
-            # 2. 存储 API Endpoint（按URL去重）
-            endpoints = api_data.get("endpoints", [])
-            endpoint_entities = {}  # URL -> entity_id 映射
-            
-            if endpoints:
-                print(f"      存储 API Endpoint: {len(endpoints)} 个")
-                for endpoint in endpoints[:30]:  # 限制数量
-                    url = endpoint.get("url", "")
-                    if not url:
-                        continue
-                    
-                    props = {
-                        "url": url,
-                        "method": endpoint.get("method", "GET"),
-                        "domain": endpoint.get("domain", ""),
-                        "path": endpoint.get("path", ""),
-                        "parameter_names": endpoint.get("parameter_names", []),
-                        "response_schema_summary": json.dumps(endpoint.get("response_schema", {}))[:500]
-                    }
-                    
-                    endpoint_entity = self._create_entity_batch(
-                        entity_type="APIEndpoint",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    endpoint_entities[url] = endpoint_entity["id"]
-                    
-                    # 建立关系：System --has_api--> APIEndpoint
-                    self._create_relation_batch(
-                        from_id=system_entity_id,
-                        rel_type="has_api",
-                        to_id=endpoint_entity["id"]
-                    )
-                
-                print(f"        ✅ 存储 {len(endpoint_entities)} 个 Endpoint")
-            
-            # 3. 存储 API Request
-            requests = api_data.get("requests", [])
-            if requests:
-                print(f"      存储 API Request: {len(requests)} 个")
-                stored_count = 0
-                
-                for req in requests[:40]:  # 限制数量
-                    url = req.get("url", "")
-                    endpoint_id = endpoint_entities.get(url)
-                    
-                    props = {
-                        "timestamp": req.get("timestamp", 0),
-                        "url": url,
-                        "method": req.get("method", "GET"),
-                        "status": req.get("status", 0),
-                        "resource_type": req.get("resourceType", ""),
-                        "response_body_summary": (req.get("response_body", "") or "")[:200]
-                    }
-                    
-                    request_entity = self._create_entity_batch(
-                        entity_type="APIRequest",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：Endpoint --has_request--> APIRequest
-                    if endpoint_id:
-                        self._create_relation_batch(
-                            from_id=endpoint_id,
-                            rel_type="has_request",
-                            to_id=request_entity["id"]
-                        )
-                    
-                    stored_count += 1
-                
-                print(f"        ✅ 存储 {stored_count} 个 Request")
-            
-            # 4. 存储 API Response（从 responses 或 requests 中提取）
-            responses = api_data.get("responses", [])
-            if responses:
-                print(f"      存储 API Response: {len(responses)} 个")
-                stored_count = 0
-                
-                for resp in responses[:30]:  # 限制数量
-                    url = resp.get("url", "")
-                    endpoint_id = endpoint_entities.get(url)
-                    
-                    props = {
-                        "url": url,
-                        "status": resp.get("status", 0),
-                        "headers_summary": json.dumps(resp.get("headers", {}))[:200],
-                        "body_structure": resp.get("body_structure", {}),
-                        "body_file_path": resp.get("body_file_path", "")
-                    }
-                    
-                    response_entity = self._create_entity_batch(
-                        entity_type="APIResponse",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：Endpoint --has_response--> APIResponse
-                    if endpoint_id:
-                        self._create_relation_batch(
-                            from_id=endpoint_id,
-                            rel_type="has_response",
-                            to_id=response_entity["id"]
-                        )
-                    
-                    stored_count += 1
-                
-                print(f"        ✅ 存储 {stored_count} 个 Response")
-            
-            # 5. 存储 DataFlow
-            data_flows = api_data.get("data_flows", [])
-            if data_flows:
-                print(f"      存储 DataFlow: {len(data_flows)} 个")
-                
-                for flow in data_flows[:15]:  # 限制数量
-                    props = {
-                        "source": flow.get("source", ""),
-                        "target": flow.get("target", ""),
-                        "flow_type": flow.get("flow_type", ""),
-                        "endpoint_urls": flow.get("endpoint_urls", [])[:10]
-                    }
-                    
-                    flow_entity = self._create_entity_batch(
-                        entity_type="DataFlow",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：System --has_data_flow--> DataFlow
-                    self._create_relation_batch(
-                        from_id=system_entity_id,
-                        rel_type="has_data_flow",
-                        to_id=flow_entity["id"]
-                    )
-                
-                print(f"        ✅ 存储 {len(data_flows)} 个 DataFlow")
-            
-            # 6. 存储 API Schema
-            schemas = api_data.get("schemas", [])
-            if schemas:
-                print(f"      存储 API Schema: {len(schemas)} 个")
-                
-                for schema in schemas[:25]:  # 限制数量
-                    endpoint_url = schema.get("endpoint_url", "")
-                    endpoint_id = endpoint_entities.get(endpoint_url)
-                    
-                    props = {
-                        "endpoint_url": endpoint_url,
-                        "field_types": schema.get("field_types", {}),
-                        "constraints": schema.get("constraints", []),
-                        "dependencies": schema.get("dependencies", [])
-                    }
-                    
-                    schema_entity = self._create_entity_batch(
-                        entity_type="APISchema",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：Endpoint --has_schema--> APISchema
-                    if endpoint_id:
-                        self._create_relation_batch(
-                            from_id=endpoint_id,
-                            rel_type="has_schema",
-                            to_id=schema_entity["id"]
-                        )
-                
-                print(f"        ✅ 存储 {len(schemas)} 个 Schema")
-            
-            print(f"    ✅ API层数据存储完成")
-            
-        except Exception as e:
-            print(f"    ⚠️ 存储API层数据失败: {e}")
-            import traceback
-            traceback.print_exc()
-    
-    # ==================== P1 实现：静态资源存储（聚合模式）====================
-    
-    def _store_resources_batch(self, system_entity_id: str, task_path: Path):
-        """
-        P1: 存储静态资源（聚合模式）
-        
-        169个资源 → 按类型聚合为6个 ResourceGroup 实体
-        类型：html, css, js, img, font, other
-        """
-        resources_dir = task_path / "network" / "resources"
-        if not resources_dir.exists():
-            print(f"    ⚠️ 未找到资源目录: {resources_dir}")
-            return
-        
-        try:
-            # 读取资源清单
-            manifest_file = resources_dir / "manifest.json"
-            if not manifest_file.exists():
-                print(f"    ⚠️ 未找到资源清单: {manifest_file}")
-                return
-            
-            with open(manifest_file, 'r', encoding='utf-8') as f:
-                manifest = json.load(f)
-            
-            resources = manifest.get("resources", [])
-            if not resources:
-                print(f"    ⚠️ 资源清单为空")
-                return
-            
-            print(f"    存储静态资源: {len(resources)} 个 → 按类型聚合")
-            
-            # 按类型分组
-            type_groups = {
-                "html": [],
-                "css": [],
-                "js": [],
-                "img": [],
-                "font": [],
-                "other": []
-            }
-            
-            for res in resources:
-                res_type = res.get("type", "other")
-                if res_type not in type_groups:
-                    res_type = "other"
-                type_groups[res_type].append(res)
-            
-            # 为每种类型创建聚合实体
-            for res_type, items in type_groups.items():
-                if not items:
-                    continue
-                
-                # 计算统计信息
-                total_size = sum(r.get("size", 0) for r in items)
-                urls_sample = [r.get("url", "")[:100] for r in items[:5]]
-                
-                props = {
-                    "resource_type": res_type,
-                    "count": len(items),
-                    "total_size_bytes": total_size,
-                    "total_size_mb": round(total_size / 1024 / 1024, 2),
-                    "urls_sample": urls_sample,
-                    "cdn_domains": list(set(r.get("cdn_domain", "") for r in items if r.get("cdn_domain")))[:5]
-                }
-                
-                group_entity = self._create_entity_batch(
-                    entity_type="ResourceGroup",
-                    properties=props,
+                        "value": color,
+                        "name": f"color_{color.replace('#', '')}"
+                    },
                     authority="observation"
                 )
-                
-                # 建立关系：System --has_resource--> ResourceGroup
                 self._create_relation_batch(
-                    from_id=system_entity_id,
-                    rel_type="has_resource",
-                    to_id=group_entity["id"]
+                    from_id=page_entity_id,
+                    rel_type="has_design_token",
+                    to_id=token_entity["id"]
                 )
-            
-            print(f"      ✅ 存储 {sum(1 for v in type_groups.values() if v)} 个资源组")
-            
-        except Exception as e:
-            print(f"      ⚠️ 存储静态资源失败: {e}")
-    
-    # ==================== P1 实现：浏览器状态存储 ====================
-    
-    def _store_browser_state_batch(self, system_entity_id: str, task_path: Path):
-        """
-        P1: 存储浏览器状态
+                color_count += 1
+        if color_count > 0:
+            print(f"      ✅ 存储 {color_count} 个颜色令牌")
         
-        - Cookie (6个)
-        - CookieDomain (3个)
-        - LocalStorage
-        - SessionStorage
-        """
-        browser_state_file = task_path / "sandbox" / "browser_state.json"
-        if not browser_state_file.exists():
-            print(f"    ⚠️ 未找到浏览器状态: {browser_state_file}")
+        # 字号令牌 - 存储所有字号
+        font_size_count = 0
+        for size in typography.get('font_sizes', []):
+            if size:
+                token_entity = self._create_entity_batch(
+                    entity_type="DesignToken",
+                    properties={
+                        "token_type": "font_size",
+                        "value": str(size),
+                        "name": f"font_size_{size}"
+                    },
+                    authority="observation"
+                )
+                self._create_relation_batch(
+                    from_id=page_entity_id,
+                    rel_type="has_design_token",
+                    to_id=token_entity["id"]
+                )
+                font_size_count += 1
+        if font_size_count > 0:
+            print(f"      ✅ 存储 {font_size_count} 个字号令牌")
+        
+        # 字体令牌 - 存储所有字体
+        font_family_count = 0
+        for font in typography.get('font_families', []):
+            if font:
+                token_entity = self._create_entity_batch(
+                    entity_type="DesignToken",
+                    properties={
+                        "token_type": "font_family",
+                        "value": font,
+                        "name": f"font_{font.replace(' ', '_')}"
+                    },
+                    authority="observation"
+                )
+                self._create_relation_batch(
+                    from_id=page_entity_id,
+                    rel_type="has_design_token",
+                    to_id=token_entity["id"]
+                )
+                font_family_count += 1
+        if font_family_count > 0:
+            print(f"      ✅ 存储 {font_family_count} 个字体令牌")
+    
+    def _store_api_layer_batch(self, system_entity_id: str, task_path: Path):
+        """批量模式：存储API层（Endpoint + Request + Response + DataFlow）"""
+        # 读取API流量日志
+        api_traffic_file = task_path / "network" / "api_traffic.jsonl"
+        api_responses_file = task_path / "network" / "api_responses.json"
+        
+        if not api_traffic_file.exists() and not api_responses_file.exists():
             return
         
-        try:
-            with open(browser_state_file, 'r', encoding='utf-8') as f:
-                state_data = json.load(f)
-            
-            print(f"    存储浏览器状态...")
-            
-            # 1. 存储 Cookies
-            cookies = state_data.get("cookies", [])
-            if cookies:
-                print(f"      存储 Cookies: {len(cookies)} 个")
-                
-                for cookie in cookies[:20]:  # 限制数量
-                    props = {
-                        "name": cookie.get("name", ""),
-                        "value": (cookie.get("value", "") or "")[:50],  # 截断
-                        "domain": cookie.get("domain", ""),
-                        "path": cookie.get("path", "/"),
-                        "secure": cookie.get("secure", False),
-                        "httpOnly": cookie.get("httpOnly", False),
-                        "session": cookie.get("session", True),
-                        "sameSite": cookie.get("sameSite", "")
-                    }
-                    
-                    cookie_entity = self._create_entity_batch(
-                        entity_type="Cookie",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：System --has_cookie--> Cookie
-                    self._create_relation_batch(
-                        from_id=system_entity_id,
-                        rel_type="has_cookie",
-                        to_id=cookie_entity["id"]
-                    )
-                
-                print(f"        ✅ 存储 {len(cookies)} 个 Cookies")
-            
-            # 2. 存储 CookieDomain（按域名聚合）
-            domain_map = {}
-            for cookie in cookies:
-                domain = cookie.get("domain", "unknown")
-                if domain not in domain_map:
-                    domain_map[domain] = []
-                domain_map[domain].append(cookie)
-            
-            if domain_map:
-                print(f"      存储 CookieDomain: {len(domain_map)} 个")
-                
-                for domain, domain_cookies in domain_map.items():
-                    # 评估安全级别
-                    secure_count = sum(1 for c in domain_cookies if c.get("secure"))
-                    http_only_count = sum(1 for c in domain_cookies if c.get("httpOnly"))
-                    
-                    props = {
-                        "domain": domain,
-                        "cookie_count": len(domain_cookies),
-                        "secure_count": secure_count,
-                        "http_only_count": http_only_count,
-                        "security_level": "high" if secure_count == len(domain_cookies) else "medium" if secure_count > 0 else "low"
-                    }
-                    
-                    domain_entity = self._create_entity_batch(
-                        entity_type="CookieDomain",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：System --has_domain--> CookieDomain
-                    self._create_relation_batch(
-                        from_id=system_entity_id,
-                        rel_type="has_domain",
-                        to_id=domain_entity["id"]
-                    )
-                
-                print(f"        ✅ 存储 {len(domain_map)} 个 CookieDomain")
-            
-            # 3. LocalStorage
-            local_storage = state_data.get("localStorage", {})
-            if local_storage:
-                print(f"      存储 LocalStorage: {len(local_storage)} 个键")
-                # 可以创建聚合实体，但通常数据量不大，暂不单独存储
-            
-            # 4. SessionStorage
-            session_storage = state_data.get("sessionStorage", {})
-            if session_storage:
-                print(f"      存储 SessionStorage: {len(session_storage)} 个键")
-            
-            print(f"    ✅ 浏览器状态存储完成")
-            
-        except Exception as e:
-            print(f"    ⚠️ 存储浏览器状态失败: {e}")
-    
-    # ==================== P1 实现：性能指标存储 ====================
-    
-    def _store_performance_batch(self, system_entity_id: str, task_path: Path):
-        """
-        P1: 存储性能指标和优化建议
+        print(f"    🌐 存储API层知识...")
         
-        - PerformanceMetric (~20个)
-        - OptimizationSuggestion (4个)
-        """
-        # 1. 从 video analysis 读取性能数据
-        video_analysis_file = task_path / "analysis" / "video_analysis.json"
-        performance_metrics = []
+        # 收集端点信息
+        endpoints = {}
+        requests = []
         
-        if video_analysis_file.exists():
-            try:
-                with open(video_analysis_file, 'r', encoding='utf-8') as f:
-                    video_data = json.load(f)
-                
-                # 提取视频性能指标
-                if "performance" in video_data:
-                    perf = video_data["performance"]
-                    performance_metrics.extend([
-                        {"metric_type": "video_duration", "value": perf.get("duration", 0), "unit": "seconds"},
-                        {"metric_type": "total_frames", "value": perf.get("total_frames", 0), "unit": "frames"},
-                        {"metric_type": "fps", "value": perf.get("fps", 0), "unit": "fps"},
-                        {"metric_type": "event_density", "value": perf.get("event_density", 0), "unit": "events/sec"}
-                    ])
-            except Exception as e:
-                print(f"      ⚠️ 读取视频分析失败: {e}")
-        
-        # 2. 从 api_traffic 读取时序数据
-        api_traffic_file = task_path / "analysis" / "api_traffic.json"
         if api_traffic_file.exists():
             try:
                 with open(api_traffic_file, 'r', encoding='utf-8') as f:
-                    api_data = json.load(f)
-                
-                timing = api_data.get("timing_analysis", {})
-                if timing:
-                    performance_metrics.extend([
-                        {"metric_type": "avg_response_time", "value": timing.get("avg_response_time", 0), "unit": "ms"},
-                        {"metric_type": "max_response_time", "value": timing.get("max_response_time", 0), "unit": "ms"},
-                        {"metric_type": "min_response_time", "value": timing.get("min_response_time", 0), "unit": "ms"}
-                    ])
+                    for line in f:
+                        if line.strip():
+                            req = json.loads(line)
+                            requests.append(req)
+                            url = req.get('url', '')
+                            if url:
+                                parsed = url.split('?')[0]
+                                if parsed not in endpoints:
+                                    endpoints[parsed] = {
+                                        "url": parsed,
+                                        "method": req.get('method', 'GET'),
+                                        "domain": parsed.split('/')[2] if len(parsed.split('/')) > 2 else '',
+                                        "count": 0
+                                    }
+                                endpoints[parsed]["count"] += 1
             except Exception as e:
-                print(f"      ⚠️ 读取API时序失败: {e}")
+                print(f"      ⚠️ 读取API流量失败: {e}")
         
-        # 存储性能指标
-        if performance_metrics:
-            print(f"    存储性能指标: {len(performance_metrics)} 个")
-            
-            for metric in performance_metrics:
-                props = {
-                    "metric_type": metric.get("metric_type", ""),
-                    "value": metric.get("value", 0),
-                    "unit": metric.get("unit", ""),
-                    "source": metric.get("source", "auto")
-                }
-                
-                metric_entity = self._create_entity_batch(
-                    entity_type="PerformanceMetric",
-                    properties=props,
-                    authority="observation"
-                )
-                
-                # 建立关系：System --has_performance--> PerformanceMetric
+        # 存储端点
+        endpoint_entities = {}
+        for url, ep_data in endpoints.items():
+            ep_entity = self._create_entity_batch(
+                entity_type="APIEndpoint",
+                properties=ep_data,
+                authority="observation"
+            )
+            endpoint_entities[url] = ep_entity["id"]
+            self._create_relation_batch(
+                from_id=system_entity_id,
+                rel_type="has_api",
+                to_id=ep_entity["id"]
+            )
+        
+        # 存储所有请求
+        request_count = 0
+        for req in requests:
+            url = req.get('url', '').split('?')[0]
+            req_entity = self._create_entity_batch(
+                entity_type="APIRequest",
+                properties={
+                    "timestamp": req.get('timestamp', 0),
+                    "endpoint_url": url,
+                    "method": req.get('method', 'GET'),
+                    "status": req.get('status', 0),
+                    "resource_type": req.get('resourceType', 'xhr')
+                },
+                authority="observation"
+            )
+            if url in endpoint_entities:
                 self._create_relation_batch(
-                    from_id=system_entity_id,
-                    rel_type="has_performance",
-                    to_id=metric_entity["id"]
+                    from_id=endpoint_entities[url],
+                    rel_type="has_request",
+                    to_id=req_entity["id"]
                 )
-            
-            print(f"      ✅ 存储 {len(performance_metrics)} 个性能指标")
+            request_count += 1
+        if request_count > 0:
+            print(f"      ✅ 存储 {request_count} 个API请求")
         
-        # 3. 存储优化建议
-        optimization_file = task_path / "analysis" / "optimization.json"
-        if optimization_file.exists():
+        # 存储响应
+        if api_responses_file.exists():
             try:
-                with open(optimization_file, 'r', encoding='utf-8') as f:
-                    opt_data = json.load(f)
+                with open(api_responses_file, 'r', encoding='utf-8') as f:
+                    responses = json.load(f)
                 
-                suggestions = opt_data.get("suggestions", [])
-                if suggestions:
-                    print(f"    存储优化建议: {len(suggestions)} 个")
-                    
-                    for suggestion in suggestions[:10]:  # 限制数量
-                        props = {
-                            "category": suggestion.get("category", ""),
-                            "description": suggestion.get("description", "")[:200],
-                            "severity": suggestion.get("severity", "medium"),
-                            "affected_resources": suggestion.get("affected_resources", [])[:5]
-                        }
-                        
-                        opt_entity = self._create_entity_batch(
-                            entity_type="OptimizationSuggestion",
-                            properties=props,
-                            authority="observation"
-                        )
-                        
-                        # 建立关系：System --has_suggestion--> OptimizationSuggestion
+                for url, resp in responses.items():
+                    base_url = url.split('?')[0]
+                    resp_entity = self._create_entity_batch(
+                        entity_type="APIResponse",
+                        properties={
+                            "endpoint_url": base_url,
+                            "status": resp.get('status', 0),
+                            "headers_summary": json.dumps(list(resp.get('headers', {}).keys())[:10]),
+                            "body_structure": type(resp.get('body')).__name__ if resp.get('body') else 'empty',
+                            "timestamp": resp.get('timestamp', 0)
+                        },
+                        authority="observation"
+                    )
+                    if base_url in endpoint_entities:
                         self._create_relation_batch(
-                            from_id=system_entity_id,
-                            rel_type="has_suggestion",
-                            to_id=opt_entity["id"]
+                            from_id=endpoint_entities[base_url],
+                            rel_type="has_response",
+                            to_id=resp_entity["id"]
                         )
-                    
-                    print(f"      ✅ 存储 {len(suggestions)} 个优化建议")
             except Exception as e:
-                print(f"      ⚠️ 读取优化建议失败: {e}")
-    
-    # ==================== P2 实现：视觉资产存储 ====================
-    
-    def _store_visual_assets_batch(self, task_entity_id: str, system_entity_id: str, task_path: Path):
-        """
-        P2: 存储视觉资产
-        
-        - KeyframeCollection (53个关键帧聚合)
-        - LongScreenshot (2个)
-        - PrototypeDemo (1个)
-        """
-        print(f"    存储视觉资产...")
-        
-        # 1. 存储关键帧集合
-        keyframes_dir = task_path / "analysis" / "enhanced_final" / "keyframes"
-        if keyframes_dir.exists():
-            try:
-                keyframe_files = list(keyframes_dir.glob("frame_*.jpg"))
-                if keyframe_files:
-                    print(f"      存储关键帧: {len(keyframe_files)} 个")
-                    
-                    # 提取关键帧信息
-                    keyframes_info = []
-                    for kf_file in keyframe_files[:60]:  # 限制数量
-                        # 从文件名解析信息: frame_0000_page-load_0.000.jpg
-                        parts = kf_file.stem.split('_')
-                        if len(parts) >= 4:
-                            keyframes_info.append({
-                                "index": parts[1],
-                                "event_type": parts[2],
-                                "timestamp": parts[3],
-                                "file_path": f"analysis/enhanced_final/keyframes/{kf_file.name}"
-                            })
-                    
-                    props = {
-                        "total_keyframes": len(keyframe_files),
-                        "keyframes_sample": keyframes_info[:20],
-                        "directory": "analysis/enhanced_final/keyframes"
-                    }
-                    
-                    kf_collection_entity = self._create_entity_batch(
-                        entity_type="KeyframeCollection",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：Task --has_keyframe--> KeyframeCollection
-                    self._create_relation_batch(
-                        from_id=task_entity_id,
-                        rel_type="has_keyframe",
-                        to_id=kf_collection_entity["id"]
-                    )
-                    
-                    print(f"        ✅ 存储关键帧集合")
-            except Exception as e:
-                print(f"        ⚠️ 存储关键帧失败: {e}")
-        
-        # 2. 存储长截图
-        try:
-            long_screenshots = []
-            enhanced_dir = task_path / "analysis" / "enhanced_final"
-            
-            if enhanced_dir.exists():
-                # 查找长截图文件（通常包含 long_screenshot 或 full_page 在文件名中）
-                for ss_file in enhanced_dir.glob("*.png"):
-                    if "long" in ss_file.name.lower() or "full" in ss_file.name.lower() or "stitched" in ss_file.name.lower():
-                        long_screenshots.append(ss_file)
-                
-                # 如果没找到，尝试查找任何大尺寸截图
-                if not long_screenshots:
-                    for ss_file in enhanced_dir.glob("*.png"):
-                        long_screenshots.append(ss_file)
-                        if len(long_screenshots) >= 2:
-                            break
-            
-            if long_screenshots:
-                print(f"      存储长截图: {len(long_screenshots)} 个")
-                
-                for ss_file in long_screenshots[:5]:  # 限制数量
-                    props = {
-                        "file_name": ss_file.name,
-                        "file_path": f"analysis/enhanced_final/{ss_file.name}",
-                        "page_url": "",  # 可以从文件名或关联数据推断
-                        "scroll_count": 0  # 可以从分析数据获取
-                    }
-                    
-                    ss_entity = self._create_entity_batch(
-                        entity_type="LongScreenshot",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：Task --has_screenshot--> LongScreenshot
-                    self._create_relation_batch(
-                        from_id=task_entity_id,
-                        rel_type="has_screenshot",
-                        to_id=ss_entity["id"]
-                    )
-                
-                print(f"        ✅ 存储 {len(long_screenshots)} 个长截图")
-        except Exception as e:
-            print(f"        ⚠️ 存储长截图失败: {e}")
-        
-        # 3. 存储原型Demo
-        try:
-            prototype_files = list((task_path / "analysis").glob("prototype_*.html"))
-            if prototype_files:
-                print(f"      存储原型Demo: {len(prototype_files)} 个")
-                
-                for proto_file in prototype_files[:3]:  # 限制数量
-                    # 获取文件大小
-                    file_size = proto_file.stat().st_size if proto_file.exists() else 0
-                    
-                    props = {
-                        "file_name": proto_file.name,
-                        "file_path": f"analysis/{proto_file.name}",
-                        "html_size_bytes": file_size,
-                        "html_size_kb": round(file_size / 1024, 2),
-                        "generated_at": proto_file.stat().st_mtime if proto_file.exists() else 0
-                    }
-                    
-                    proto_entity = self._create_entity_batch(
-                        entity_type="PrototypeDemo",
-                        properties=props,
-                        authority="observation"
-                    )
-                    
-                    # 建立关系：Task --has_prototype--> PrototypeDemo
-                    self._create_relation_batch(
-                        from_id=task_entity_id,
-                        rel_type="has_prototype",
-                        to_id=proto_entity["id"]
-                    )
-                
-                print(f"        ✅ 存储 {len(prototype_files)} 个原型Demo")
-        except Exception as e:
-            print(f"        ⚠️ 存储原型Demo失败: {e}")
-        
-        print(f"    ✅ 视觉资产存储完成")
-    
-    # ==================== P0 缺失功能：用户意图存储 ====================
+                print(f"      ⚠️ 读取API响应失败: {e}")
     
     def _store_user_intents_batch(self, task_entity_id: str, task_path: Path):
-        """
-        P0: 存储用户意图
-        
-        从 analysis/final_comprehensive_analysis.json 或 manifest 分析结果读取
-        目标：40个用户意图实体
-        """
-        # 尝试多个可能的来源文件
-        possible_files = [
-            task_path / "analysis" / "final_comprehensive_analysis.json",
-            task_path / "analysis" / "user_intents.json",
-            task_path / "analysis" / "manifest_analysis.json"
-        ]
-        
-        intents_data = None
-        for file_path in possible_files:
-            if file_path.exists():
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        if "user_intents" in data or "intents" in data:
-                            intents_data = data
-                            break
-                except Exception:
-                    continue
-        
-        if not intents_data:
-            print(f"    ⚠️ 未找到用户意图数据")
+        """批量模式：存储用户意图"""
+        manifest_file = task_path / "training_manifest.jsonl"
+        if not manifest_file.exists():
             return
         
+        print(f"    🎯 存储用户意图...")
+        intent_count = 0
+        
         try:
-            intents = intents_data.get("user_intents", intents_data.get("intents", []))
-            if not intents:
-                print(f"    ⚠️ 用户意图数据为空")
-                return
-            
-            print(f"    存储用户意图: {len(intents)} 个")
-            
-            for intent in intents[:50]:  # 限制数量
-                props = {
-                    "timestamp": intent.get("timestamp", 0),
-                    "action_type": intent.get("action_type", ""),
-                    "target_element": intent.get("target_element", ""),
-                    "intent_description": intent.get("description", intent.get("intent_description", ""))[:200],
-                    "confidence": intent.get("confidence", 0.0),
-                    "page_url": intent.get("url", "")
-                }
-                
-                intent_entity = self._create_entity_batch(
-                    entity_type="UserIntent",
-                    properties=props,
-                    authority="observation"
-                )
-                
-                # 建立关系：Task --has_intent--> UserIntent
-                self._create_relation_batch(
-                    from_id=task_entity_id,
-                    rel_type="has_intent",
-                    to_id=intent_entity["id"]
-                )
-            
-            print(f"      ✅ 存储 {len(intents)} 个用户意图")
-            
+            with open(manifest_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line.strip():
+                        event = json.loads(line)
+                        intents = event.get('_metadata', {}).get('user_intents', [])
+                        action = event.get('event_details', {}).get('action', 'unknown')
+                        
+                        # 存储该事件的所有意图
+                        for intent in intents:
+                            intent_entity = self._create_entity_batch(
+                                entity_type="UserIntent",
+                                properties={
+                                    "timestamp": event.get('timestamp', 0),
+                                    "action_type": action,
+                                    "intent_description": intent,
+                                    "target_element": event.get('event_details', {}).get('semantic_label', ''),
+                                    "confidence": 0.8
+                                },
+                                authority="inference"
+                            )
+                            self._create_relation_batch(
+                                from_id=task_entity_id,
+                                rel_type="has_intent",
+                                to_id=intent_entity["id"]
+                            )
+                            intent_count += 1
         except Exception as e:
-            print(f"      ⚠️ 存储用户意图失败: {e}")
-    
-    # ==================== P0 缺失功能：业务流程和步骤存储 ====================
+            print(f"      ⚠️ 读取用户意图失败: {e}")
     
     def _store_business_flows_batch(self, task_entity_id: str, system_entity_id: str, task_path: Path):
-        """
-        P0: 存储业务流程和步骤
-        
-        目标：5个业务流程 + ~20个流程步骤
-        """
-        # 尝试多个可能的来源文件
-        possible_files = [
-            task_path / "analysis" / "final_comprehensive_analysis.json",
-            task_path / "analysis" / "business_flows.json",
-            task_path / "analysis" / "manifest_analysis.json"
-        ]
-        
-        flows_data = None
-        for file_path in possible_files:
-            if file_path.exists():
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        if "business_flows" in data or "flows" in data:
-                            flows_data = data
-                            break
-                except Exception:
-                    continue
-        
-        if not flows_data:
-            print(f"    ⚠️ 未找到业务流程数据")
+        """批量模式：存储业务流程"""
+        # 尝试从analysis_results读取
+        analysis_file = task_path / "analysis" / "analysis_results.json"
+        if not analysis_file.exists():
             return
         
+        print(f"    🔄 存储业务流程...")
+        
         try:
-            flows = flows_data.get("business_flows", flows_data.get("flows", []))
-            if not flows:
-                print(f"    ⚠️ 业务流程数据为空")
-                return
+            with open(analysis_file, 'r', encoding='utf-8') as f:
+                analysis = json.load(f)
             
-            print(f"    存储业务流程: {len(flows)} 个")
+            flows = analysis.get('manifest', {}).get('business_flows', [])
             
-            for flow in flows[:10]:  # 限制数量
-                # 创建业务流程实体
-                flow_props = {
-                    "name": flow.get("name", ""),
-                    "description": flow.get("description", "")[:200],
-                    "start_url": flow.get("start_url", ""),
-                    "end_url": flow.get("end_url", ""),
-                    "steps_count": len(flow.get("steps", [])),
-                    "total_duration_ms": flow.get("duration", 0)
-                }
-                
+            flow_count = 0
+            step_count = 0
+            for flow in flows:
                 flow_entity = self._create_entity_batch(
                     entity_type="BusinessFlow",
-                    properties=flow_props,
+                    properties={
+                        "name": flow.get('name', 'Unknown'),
+                        "description": flow.get('description', ''),
+                        "start_url": flow.get('start_url', ''),
+                        "end_url": flow.get('end_url', ''),
+                        "steps_count": len(flow.get('steps', [])),
+                        "total_duration_ms": flow.get('total_duration_ms', 0)
+                    },
                     authority="observation"
                 )
-                
-                # 建立关系：Task --has_flow--> BusinessFlow
                 self._create_relation_batch(
                     from_id=task_entity_id,
                     rel_type="has_flow",
                     to_id=flow_entity["id"]
                 )
+                self._create_relation_batch(
+                    from_id=system_entity_id,
+                    rel_type="has_flow",
+                    to_id=flow_entity["id"]
+                )
+                flow_count += 1
                 
-                # 存储流程步骤
-                steps = flow.get("steps", [])
-                if steps:
-                    print(f"      存储流程步骤: {len(steps)} 个")
-                    
-                    for step in steps[:15]:  # 限制数量
-                        step_props = {
+                # 存储所有流程步骤
+                for i, step in enumerate(flow.get('steps', [])):
+                    step_entity = self._create_entity_batch(
+                        entity_type="FlowStep",
+                        properties={
                             "flow_id": flow_entity["id"],
-                            "step_index": step.get("index", step.get("step_index", 0)),
-                            "action": step.get("action", ""),
-                            "timestamp": step.get("timestamp", 0),
-                            "url": step.get("url", ""),
-                            "description": step.get("description", "")[:100]
-                        }
-                        
-                        step_entity = self._create_entity_batch(
-                            entity_type="FlowStep",
-                            properties=step_props,
-                            authority="observation"
-                        )
-                        
-                        # 建立关系：BusinessFlow --has_step--> FlowStep
-                        self._create_relation_batch(
-                            from_id=flow_entity["id"],
-                            rel_type="has_step",
-                            to_id=step_entity["id"]
-                        )
-            
-            print(f"      ✅ 存储 {len(flows)} 个业务流程")
-            
+                            "step_index": i,
+                            "action": step.get('action', 'unknown'),
+                            "timestamp": step.get('timestamp', 0),
+                            "url": step.get('url', '')
+                        },
+                        authority="observation"
+                    )
+                    self._create_relation_batch(
+                        from_id=flow_entity["id"],
+                        rel_type="has_step",
+                        to_id=step_entity["id"]
+                    )
+                    step_count += 1
+            if flow_count > 0:
+                print(f"      ✅ 存储 {flow_count} 个业务流程, {step_count} 个步骤")
         except Exception as e:
-            print(f"      ⚠️ 存储业务流程失败: {e}")
+            print(f"      ⚠️ 读取业务流程失败: {e}")
     
-    # ==================== P0 缺失功能：JS错误存储 ====================
-    
-    def _store_errors_batch(self, system_entity_id: str, task_path: Path):
-        """
-        P0: 存储JS错误和日志错误
-        
-        从 logs/errors.json 或 analysis/error_analysis.json 读取
-        目标：3个错误实体
-        """
-        # 尝试多个可能的来源文件
-        possible_files = [
-            task_path / "logs" / "errors.json",
-            task_path / "analysis" / "error_analysis.json",
-            task_path / "analysis" / "console_errors.json"
-        ]
-        
-        errors_data = None
-        for file_path in possible_files:
-            if file_path.exists():
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        if "errors" in data or "js_errors" in data or "console_errors" in data:
-                            errors_data = data
-                            break
-                except Exception:
-                    continue
-        
-        if not errors_data:
-            print(f"    ⚠️ 未找到错误数据")
+    def _store_resources_batch(self, system_entity_id: str, task_path: Path):
+        """批量模式：存储静态资源（按类型聚合）"""
+        resources_dir = task_path / "network" / "resources"
+        if not resources_dir.exists():
             return
         
+        print(f"    📦 存储静态资源...")
+        
+        # 按类型统计
+        type_stats = {}
+        type_mapping = {
+            'css': 'stylesheet', 'js': 'script', 'png': 'image', 'jpg': 'image',
+            'jpeg': 'image', 'gif': 'image', 'svg': 'image', 'woff': 'font',
+            'woff2': 'font', 'ttf': 'font', 'html': 'document', 'json': 'data'
+        }
+        
+        for resource_file in resources_dir.iterdir():
+            ext = resource_file.suffix.lower().lstrip('.')
+            res_type = type_mapping.get(ext, 'other')
+            
+            if res_type not in type_stats:
+                type_stats[res_type] = {"count": 0, "total_size": 0, "files": []}
+            
+            type_stats[res_type]["count"] += 1
+            try:
+                type_stats[res_type]["total_size"] += resource_file.stat().st_size
+            except Exception as e:
+                logger.warning(f"        ⚠️ 操作失败: {e}")
+            type_stats[res_type]["files"].append(resource_file.name)
+        
+        # 创建聚合实体
+        for res_type, stats in type_stats.items():
+            resource_entity = self._create_entity_batch(
+                entity_type="ResourceGroup",
+                properties={
+                    "resource_type": res_type,
+                    "count": stats["count"],
+                    "total_size": stats["total_size"],
+                    "sample_files": json.dumps(stats["files"])
+                },
+                authority="observation"
+            )
+            self._create_relation_batch(
+                from_id=system_entity_id,
+                rel_type="has_resource",
+                to_id=resource_entity["id"]
+            )
+    
+    def _store_browser_state_batch(self, system_entity_id: str, task_path: Path):
+        """批量模式：存储浏览器状态（Cookies）"""
+        browser_state_file = task_path / "sandbox" / "browser_state.json"
+        if not browser_state_file.exists():
+            return
+        
+        print(f"    🍪 存储浏览器状态...")
+        
         try:
-            # 合并多种错误类型
-            errors = []
-            errors.extend(errors_data.get("errors", []))
-            errors.extend(errors_data.get("js_errors", []))
-            errors.extend(errors_data.get("console_errors", []))
+            with open(browser_state_file, 'r', encoding='utf-8') as f:
+                state = json.load(f)
             
-            if not errors:
-                print(f"    ⚠️ 错误数据为空")
-                return
+            cookies = state.get('cookies', [])
             
-            print(f"    存储错误: {len(errors)} 个")
+            # 按domain聚合
+            domain_cookies = {}
+            for cookie in cookies:
+                domain = cookie.get('domain', 'unknown')
+                if domain not in domain_cookies:
+                    domain_cookies[domain] = []
+                domain_cookies[domain].append(cookie)
             
-            for error in errors[:20]:  # 限制数量
-                props = {
-                    "type": error.get("type", error.get("error_type", "unknown")),
-                    "message": error.get("message", error.get("error_message", ""))[:200],
-                    "timestamp": error.get("timestamp", 0),
-                    "url": error.get("url", ""),
-                    "severity": error.get("severity", "error"),
-                    "stack_trace": (error.get("stack", "") or "")[:500]
-                }
-                
-                error_entity = self._create_entity_batch(
-                    entity_type="JSError",
-                    properties=props,
+            # 存储domain
+            for domain, domain_cookies_list in domain_cookies.items():
+                domain_entity = self._create_entity_batch(
+                    entity_type="CookieDomain",
+                    properties={
+                        "domain": domain,
+                        "cookie_count": len(domain_cookies_list),
+                        "security_level": "standard"
+                    },
                     authority="observation"
                 )
+                self._create_relation_batch(
+                    from_id=system_entity_id,
+                    rel_type="has_cookie_domain",
+                    to_id=domain_entity["id"]
+                )
                 
-                # 建立关系：System --has_error--> JSError
+                # 存储该domain的所有cookie
+                cookie_count = 0
+                for cookie in domain_cookies_list:
+                    cookie_entity = self._create_entity_batch(
+                        entity_type="Cookie",
+                        properties={
+                            "name": cookie.get('name', ''),
+                            "value": cookie.get('value', ''),
+                            "domain": domain,
+                            "path": cookie.get('path', '/'),
+                            "secure": cookie.get('secure', False),
+                            "httpOnly": cookie.get('httpOnly', False),
+                            "session": cookie.get('session', False),
+                            "sameSite": cookie.get('sameSite', 'unspecified')
+                        },
+                        authority="observation"
+                    )
+                    self._create_relation_batch(
+                        from_id=domain_entity["id"],
+                        rel_type="has_cookie",
+                        to_id=cookie_entity["id"]
+                    )
+                    cookie_count += 1
+                if cookie_count > 0:
+                    print(f"      ✅ Domain {domain}: {cookie_count} 个Cookie")
+        except Exception as e:
+            print(f"      ⚠️ 读取浏览器状态失败: {e}")
+    
+    def _store_performance_batch(self, system_entity_id: str, task_path: Path):
+        """批量模式：存储性能指标"""
+        analysis_file = task_path / "analysis" / "analysis_results.json"
+        if not analysis_file.exists():
+            return
+        
+        print(f"    ⚡ 存储性能指标...")
+        
+        try:
+            with open(analysis_file, 'r', encoding='utf-8') as f:
+                analysis = json.load(f)
+            
+            # 视频性能
+            video_metrics = analysis.get('video', {}).get('performance_metrics', {})
+            if video_metrics:
+                for metric_type, value in video_metrics.items():
+                    perf_entity = self._create_entity_batch(
+                        entity_type="PerformanceMetric",
+                        properties={
+                            "metric_type": f"video_{metric_type}",
+                            "value": str(value),
+                            "unit": self._get_metric_unit(metric_type),
+                            "source": "video_analysis"
+                        },
+                        authority="observation"
+                    )
+                    self._create_relation_batch(
+                        from_id=system_entity_id,
+                        rel_type="has_performance_metric",
+                        to_id=perf_entity["id"]
+                    )
+            
+            # 资源性能
+            resource_metrics = analysis.get('resources', {})
+            if resource_metrics:
+                perf_entity = self._create_entity_batch(
+                    entity_type="PerformanceMetric",
+                    properties={
+                        "metric_type": "resource_total",
+                        "value": str(resource_metrics.get('total_count', 0)),
+                        "unit": "count",
+                        "source": "resource_analysis"
+                    },
+                    authority="observation"
+                )
+                self._create_relation_batch(
+                    from_id=system_entity_id,
+                    rel_type="has_performance_metric",
+                    to_id=perf_entity["id"]
+                )
+            
+            # 优化建议 - 存储所有建议
+            suggestions = resource_metrics.get('optimization_suggestions', [])
+            suggestion_count = 0
+            for suggestion in suggestions:
+                opt_entity = self._create_entity_batch(
+                    entity_type="OptimizationSuggestion",
+                    properties={
+                        "category": suggestion.get('category', 'general'),
+                        "description": suggestion.get('description', ''),
+                        "severity": suggestion.get('severity', 'info'),
+                        "affected_resources": json.dumps(suggestion.get('affected_resources', []))
+                    },
+                    authority="observation"
+                )
+                self._create_relation_batch(
+                    from_id=system_entity_id,
+                    rel_type="has_optimization",
+                    to_id=opt_entity["id"]
+                )
+                suggestion_count += 1
+            if suggestion_count > 0:
+                print(f"      ✅ 存储 {suggestion_count} 个优化建议")
+        except Exception as e:
+            print(f"      ⚠️ 读取性能指标失败: {e}")
+    
+    def _get_metric_unit(self, metric_type: str) -> str:
+        """获取指标单位"""
+        unit_map = {
+            'duration': 'seconds',
+            'fps': 'fps',
+            'frame_count': 'frames',
+            'event_count': 'events',
+            'event_density': 'events/second',
+            'scroll_count': 'times',
+            'avg_scroll_duration': 'ms',
+            'interaction_latency_avg': 'ms',
+            'interaction_latency_max': 'ms'
+        }
+        return unit_map.get(metric_type, 'unknown')
+    
+    def _store_errors_batch(self, system_entity_id: str, task_path: Path):
+        """批量模式：存储JS错误"""
+        errors_file = task_path / "logs" / "errors.json"
+        if not errors_file.exists():
+            return
+        
+        print(f"    ❌ 存储错误信息...")
+        
+        try:
+            with open(errors_file, 'r', encoding='utf-8') as f:
+                errors_data = json.load(f)
+            
+            errors = errors_data.get('errors', [])
+            error_count = 0
+            for error in errors:
+                error_entity = self._create_entity_batch(
+                    entity_type="JSError",
+                    properties={
+                        "type": error.get('type', 'unknown'),
+                        "message": error.get('message', ''),
+                        "timestamp": error.get('timestamp', 0),
+                        "url": error.get('url', ''),
+                        "severity": error.get('severity', 'error')
+                    },
+                    authority="observation"
+                )
                 self._create_relation_batch(
                     from_id=system_entity_id,
                     rel_type="has_error",
                     to_id=error_entity["id"]
                 )
-            
-            print(f"      ✅ 存储 {len(errors)} 个错误")
-            
+                error_count += 1
+            if error_count > 0:
+                print(f"      ✅ 存储 {error_count} 个错误")
         except Exception as e:
-            print(f"      ⚠️ 存储错误失败: {e}")
+            print(f"      ⚠️ 读取错误信息失败: {e}")
     
-    # ==================== P1 缺失功能：锚点事件存储 ====================
-    
-    def _store_anchor_events_batch(self, task_entity_id: str, task_path: Path):
-        """
-        P1: 存储时间对齐锚点事件
+    def _store_visual_assets_batch(self, task_entity_id: str, task_path: Path):
+        """批量模式：存储视觉资产（关键帧、长截图、原型）"""
+        print(f"    🖼️ 存储视觉资产...")
         
-        从 analysis/alignment.json 或 final_comprehensive_analysis.json 读取
-        目标：10个锚点事件
-        """
-        possible_files = [
-            task_path / "analysis" / "alignment.json",
-            task_path / "analysis" / "final_comprehensive_analysis.json",
-            task_path / "analysis" / "time_alignment.json"
-        ]
+        # 关键帧 - 存储所有关键帧文件路径
+        keyframes_dir = task_path / "analysis" / "enhanced_final"
+        if keyframes_dir.exists():
+            keyframe_files = list(keyframes_dir.glob("*.png")) + list(keyframes_dir.glob("*.jpg"))
+            if keyframe_files:
+                # 分批存储文件路径（避免单个实体过大）
+                batch_size = 50
+                for i in range(0, len(keyframe_files), batch_size):
+                    batch = keyframe_files[i:i+batch_size]
+                    keyframe_collection = self._create_entity_batch(
+                        entity_type="KeyframeCollection",
+                        properties={
+                            "batch_index": i // batch_size,
+                            "count": len(batch),
+                            "total_count": len(keyframe_files),
+                            "file_paths": json.dumps([str(f.relative_to(task_path)) for f in batch]),
+                            "directory": "analysis/enhanced_final"
+                        },
+                        authority="observation"
+                    )
+                    self._create_relation_batch(
+                        from_id=task_entity_id,
+                        rel_type="has_keyframe_collection",
+                        to_id=keyframe_collection["id"]
+                    )
+                print(f"      ✅ 存储 {len(keyframe_files)} 个关键帧（分 {(len(keyframe_files) + batch_size - 1) // batch_size} 批）")
         
-        anchor_data = None
-        for file_path in possible_files:
-            if file_path.exists():
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        if "anchor_points" in data or "anchors" in data or "alignment" in data:
-                            anchor_data = data
-                            break
-                except Exception:
-                    continue
-        
-        if not anchor_data:
-            print(f"    ⚠️ 未找到锚点事件数据")
-            return
-        
-        try:
-            # 尝试多种可能的键名
-            anchors = []
-            anchors.extend(anchor_data.get("anchor_points", []))
-            anchors.extend(anchor_data.get("anchors", []))
-            if "alignment" in anchor_data:
-                anchors.extend(anchor_data["alignment"].get("anchor_points", []))
-            
-            if not anchors:
-                print(f"    ⚠️ 锚点事件数据为空")
-                return
-            
-            print(f"    存储锚点事件: {len(anchors)} 个")
-            
-            for anchor in anchors[:15]:  # 限制数量
-                props = {
-                    "timestamp": anchor.get("timestamp", 0),
-                    "event_type": anchor.get("event_type", anchor.get("type", "")),
-                    "source": anchor.get("source", ""),
-                    "confidence": anchor.get("confidence", 1.0),
-                    "description": anchor.get("description", "")[:100]
-                }
-                
-                anchor_entity = self._create_entity_batch(
-                    entity_type="AnchorEvent",
-                    properties=props,
+        # 长截图 - 存储所有
+        long_screenshots = list(task_path.glob("analysis/*_long_screenshot*.png"))
+        if long_screenshots:
+            screenshot_count = 0
+            for screenshot in long_screenshots:
+                ss_entity = self._create_entity_batch(
+                    entity_type="LongScreenshot",
+                    properties={
+                        "file_path": str(screenshot.relative_to(task_path)),
+                        "type": "long_screenshot"
+                    },
                     authority="observation"
                 )
-                
-                # 建立关系：Task --has_anchor--> AnchorEvent
                 self._create_relation_batch(
                     from_id=task_entity_id,
-                    rel_type="has_anchor",
-                    to_id=anchor_entity["id"]
+                    rel_type="has_screenshot",
+                    to_id=ss_entity["id"]
                 )
-            
-            print(f"      ✅ 存储 {len(anchors)} 个锚点事件")
-            
-        except Exception as e:
-            print(f"      ⚠️ 存储锚点事件失败: {e}")
-    
-    # ==================== P1 缺失功能：rrweb事件聚合存储 ====================
-    
-    def _store_rrweb_events_batch(self, task_entity_id: str, task_path: Path):
-        """
-        P1: 存储rrweb事件（聚合模式）
+                screenshot_count += 1
+            if screenshot_count > 0:
+                print(f"      ✅ 存储 {screenshot_count} 个长截图")
         
-        66个事件 → 聚合为2个 RrwebEventGroup（full / incremental）
-        """
-        rrweb_file = task_path / "dom" / "rrweb_events.json"
-        if not rrweb_file.exists():
-            print(f"    ⚠️ 未找到rrweb事件: {rrweb_file}")
-            return
-        
-        try:
-            with open(rrweb_file, 'r', encoding='utf-8') as f:
-                rrweb_data = json.load(f)
-            
-            events = rrweb_data.get("events", [])
-            if not events:
-                print(f"    ⚠️ rrweb事件为空")
-                return
-            
-            print(f"    存储rrweb事件: {len(events)} 个 → 聚合为2组")
-            
-            # 按类型分组
-            full_snapshots = [e for e in events if e.get("type") == 2]
-            incremental_snapshots = [e for e in events if e.get("type") == 3]
-            
-            # 存储 full snapshot 聚合
-            if full_snapshots:
-                props = {
-                    "event_type": "full_snapshot",
-                    "event_type_code": 2,
-                    "count": len(full_snapshots),
-                    "first_timestamp": full_snapshots[0].get("timestamp", 0) if full_snapshots else 0,
-                    "last_timestamp": full_snapshots[-1].get("timestamp", 0) if full_snapshots else 0,
-                    "file_path": "dom/rrweb_events.json"
-                }
-                
-                full_entity = self._create_entity_batch(
-                    entity_type="RrwebEventGroup",
-                    properties=props,
+        # 原型Demo - 存储所有
+        prototype_files = list(task_path.glob("analysis/prototype_*.html"))
+        if prototype_files:
+            proto_count = 0
+            for proto in prototype_files:
+                proto_entity = self._create_entity_batch(
+                    entity_type="PrototypeDemo",
+                    properties={
+                        "file_path": str(proto.relative_to(task_path)),
+                        "generated_at": proto.stat().st_mtime if proto.exists() else 0
+                    },
                     authority="observation"
                 )
-                
                 self._create_relation_batch(
                     from_id=task_entity_id,
-                    rel_type="has_rrweb_event",
-                    to_id=full_entity["id"]
+                    rel_type="has_prototype",
+                    to_id=proto_entity["id"]
                 )
-            
-            # 存储 incremental snapshot 聚合
-            if incremental_snapshots:
-                props = {
-                    "event_type": "incremental_snapshot",
-                    "event_type_code": 3,
-                    "count": len(incremental_snapshots),
-                    "first_timestamp": incremental_snapshots[0].get("timestamp", 0) if incremental_snapshots else 0,
-                    "last_timestamp": incremental_snapshots[-1].get("timestamp", 0) if incremental_snapshots else 0,
-                    "file_path": "dom/rrweb_events.json"
-                }
-                
-                inc_entity = self._create_entity_batch(
-                    entity_type="RrwebEventGroup",
-                    properties=props,
-                    authority="observation"
-                )
-                
-                self._create_relation_batch(
-                    from_id=task_entity_id,
-                    rel_type="has_rrweb_event",
-                    to_id=inc_entity["id"]
-                )
-            
-            print(f"      ✅ 存储 {len(full_snapshots)} full + {len(incremental_snapshots)} incremental 事件")
-            
-        except Exception as e:
-            print(f"      ⚠️ 存储rrweb事件失败: {e}")
+                proto_count += 1
+            if proto_count > 0:
+                print(f"      ✅ 存储 {proto_count} 个原型Demo")
     
     def get_system_knowledge_summary(self, system_name: str) -> Dict:
         """获取系统知识摘要"""
@@ -2848,5 +2331,373 @@ class UnifiedMemoryAdapter:
             "pages_count": len(pages),
             "entities_count": len(entities),
             "recordings": [r.get("properties", {}).get("task_id", "") for r in recordings],
-            "pages": [p.get("properties", {}).get("url", "") for p in pages[:5]]
+            "pages": [p.get("properties", {}).get("url", "") for p in pages]
         }
+
+    # ==================== Layer3 系统分析存储 ====================
+
+    def store_layer3_analysis(self, task_id: str, system_id: str,
+                              analysis_file: str):
+        """将 Layer 3 LLM 分析结果写入知识图谱"""
+        t0 = time.time()
+        analysis_path = Path(analysis_file)
+        if not analysis_path.exists():
+            print(f"  ⚠️ Layer 3 分析文件不存在: {analysis_file}")
+            return
+
+        try:
+            with open(analysis_path, 'r', encoding='utf-8') as f:
+                analysis = json.load(f)
+        except Exception as e:
+            print(f"  ⚠️ 读取 Layer 3 分析失败: {e}")
+            return
+
+        system_name = analysis.get("system_name", "")
+        entity_count = 0
+
+        # 存储功能模块
+        for module in analysis.get("functional_modules", []):
+            module_entity = self._create_entity_batch(
+                entity_type="FunctionalModule",
+                properties={
+                    "name": module.get("name", ""),
+                    "purpose": module.get("purpose", ""),
+                    "system": system_name,
+                    "pages": module.get("pages", []),
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+            self._create_relation_batch(from_id=system_id, rel_type="has_module",
+                                        to_id=module_entity["id"])
+
+        # 存储数据流
+        for flow in analysis.get("data_flows", []):
+            flow_entity = self._create_entity_batch(
+                entity_type="DataFlow",
+                properties={
+                    "api": flow.get("api", ""),
+                    "purpose": flow.get("purpose", ""),
+                    "system": system_name,
+                    "renders_to": flow.get("renders_to", ""),
+                    "data_fields": flow.get("data_fields", []),
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+            self._create_relation_batch(from_id=system_id, rel_type="has_data_flow",
+                                        to_id=flow_entity["id"])
+
+        # 存储用户路径
+        for path in analysis.get("user_paths", []):
+            self._create_entity_batch(
+                entity_type="UserPath",
+                properties={
+                    "name": path.get("name", ""),
+                    "steps": path.get("steps", []),
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+
+        # 存储导航关系图
+        for nav in analysis.get("navigation_graph", []):
+            nav_entity = self._create_entity_batch(
+                entity_type="Navigation",
+                properties={
+                    "from_page": nav.get("from", ""),
+                    "to_page": nav.get("to", ""),
+                    "trigger": nav.get("trigger", ""),
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+            self._create_relation_batch(from_id=system_id, rel_type="has_navigation",
+                                        to_id=nav_entity["id"])
+
+        # 存储数据实体
+        for entity_data in analysis.get("data_entities", []):
+            entity = self._create_entity_batch(
+                entity_type="DataEntity",
+                properties={
+                    "name": entity_data.get("name", ""),
+                    "fields": entity_data.get("fields", []),
+                    "related_apis": entity_data.get("related_apis", []),
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+            self._create_relation_batch(from_id=system_id, rel_type="has_data_entity",
+                                        to_id=entity["id"])
+
+        # 存储设计系统
+        design = analysis.get("design_system", {})
+        if design:
+            design_entity = self._create_entity_batch(
+                entity_type="DesignSystem",
+                properties={
+                    "colors": design.get("colors", []),
+                    "fonts": design.get("fonts", []),
+                    "component_framework": design.get("component_framework", ""),
+                    "icon_style": design.get("icon_style", ""),
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+            self._create_relation_batch(from_id=system_id, rel_type="has_design_system",
+                                        to_id=design_entity["id"])
+
+        # 存储交互模式
+        for pattern in analysis.get("interaction_patterns", []):
+            self._create_entity_batch(
+                entity_type="InteractionPattern",
+                properties={
+                    "name": pattern.get("name", ""),
+                    "description": pattern.get("description", ""),
+                    "occurs_in": pattern.get("occurs_in", []),
+                    "states": pattern.get("states", []),
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+
+        # 存储 API contracts
+        for contract in analysis.get("api_contracts", []):
+            self._create_entity_batch(
+                entity_type="APIContract",
+                properties={
+                    "endpoint": contract.get("endpoint", ""),
+                    "method": contract.get("method", "GET"),
+                    "auth_required": contract.get("authentication_required", False),
+                    "request_schema": contract.get("request_schema", {}),
+                    "response_schema": contract.get("response_schema", {}),
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+
+        # 存储 tech_stack
+        tech_stack = analysis.get("tech_stack", [])
+        if tech_stack:
+            self._create_entity_batch(
+                entity_type="TechStack",
+                properties={
+                    "technologies": tech_stack if isinstance(tech_stack, list) else [tech_stack],
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+
+        # 存储 user_roles
+        for role in analysis.get("user_roles", []):
+            self._create_entity_batch(
+                entity_type="UserRole",
+                properties={
+                    "name": role.get("name", ""),
+                    "permissions": role.get("permissions", []),
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+
+        # 存储优化建议
+        for opt in analysis.get("optimization_opportunities", []):
+            self._create_entity_batch(
+                entity_type="OptimizationOpportunity",
+                properties={
+                    "description": opt.get("description", ""),
+                    "priority": opt.get("priority", "medium"),
+                    "category": opt.get("category", ""),
+                    "system": system_name,
+                    "source_task": task_id
+                },
+                authority="observation"
+            )
+
+        print(f"  ✅ Layer 3 分析已存储:")
+        print(f"     模块: {len(analysis.get('functional_modules', []))}")
+        print(f"     数据流: {len(analysis.get('data_flows', []))}")
+        print(f"     用户路径: {len(analysis.get('user_paths', []))}")
+        print(f"     导航: {len(analysis.get('navigation_graph', []))}")
+        print(f"     数据实体: {len(analysis.get('data_entities', []))}")
+
+        t_total = time.time() - t0
+        print(f"  ✅ Layer 3 分析已存储 (耗时:{t_total:.2f}s):")
+    def generate_site_model(self, system_name: str) -> Dict:
+        """从知识图谱中聚合生成 site_model.json（LLM 消费格式）"""
+        model = {
+            "system_name": system_name,
+            "generated_at": datetime.now().isoformat(),
+            "pages": 0,
+            "functional_modules": [],
+            "data_flows": [],
+            "navigation_graph": [],
+            "data_entities": [],
+            "design_system": {},
+            "interaction_patterns": [],
+            "user_paths": [],
+            "api_contracts": [],
+            "tech_stack": [],
+            "user_roles": [],
+            "optimization_opportunities": []
+        }
+
+        entities = self._load_entity_map_indexed()
+        if not entities:
+            return model
+
+        modules = [e for e in entities.values() if e.get("type") == "FunctionalModule"]
+        model["functional_modules"] = [
+            {"name": m["properties"].get("name", ""),
+             "purpose": m["properties"].get("purpose", ""),
+             "pages": m["properties"].get("pages", [])} for m in modules
+        ]
+
+        data_flows = [e for e in entities.values() if e.get("type") == "DataFlow"]
+        model["data_flows"] = [
+            {"api": df["properties"].get("api", ""),
+             "purpose": df["properties"].get("purpose", ""),
+             "renders_to": df["properties"].get("renders_to", ""),
+             "data_fields": df["properties"].get("data_fields", [])} for df in data_flows
+        ]
+
+        pages = [e for e in entities.values() if e.get("type") == "WebPage"]
+        model["pages"] = len(pages)
+
+        navigations = [e for e in entities.values() if e.get("type") == "Navigation"]
+        model["navigation_graph"] = [
+            {"from": n["properties"].get("from_page", ""),
+             "to": n["properties"].get("to_page", ""),
+             "trigger": n["properties"].get("trigger", "")} for n in navigations
+        ]
+
+        data_entities = [e for e in entities.values() if e.get("type") == "DataEntity"]
+        model["data_entities"] = [
+            {"name": de["properties"].get("name", ""),
+             "fields": de["properties"].get("fields", [])} for de in data_entities
+        ]
+
+        design_systems = [e for e in entities.values() if e.get("type") == "DesignSystem"]
+        if design_systems:
+            model["design_system"] = design_systems[0].get("properties", {})
+
+        interaction_patterns = [e for e in entities.values() if e.get("type") == "InteractionPattern"]
+        model["interaction_patterns"] = [
+            {"name": ip["properties"].get("name", ""),
+             "description": ip["properties"].get("description", ""),
+             "occurs_in": ip["properties"].get("occurs_in", []),
+             "states": ip["properties"].get("states", [])} for ip in interaction_patterns
+        ]
+
+        user_paths = [e for e in entities.values() if e.get("type") == "UserPath"]
+        model["user_paths"] = [
+            {"name": up["properties"].get("name", ""),
+             "steps": up["properties"].get("steps", [])} for up in user_paths
+        ]
+
+        api_contracts = [e for e in entities.values() if e.get("type") == "APIContract"]
+        model["api_contracts"] = [
+            {"endpoint": ac["properties"].get("endpoint", ""),
+             "method": ac["properties"].get("method", "GET"),
+             "auth_required": ac["properties"].get("auth_required", False),
+             "request_schema": ac["properties"].get("request_schema", {}),
+             "response_schema": ac["properties"].get("response_schema", {})} for ac in api_contracts
+        ]
+
+        tech_stacks = [e for e in entities.values() if e.get("type") == "TechStack"]
+        model["tech_stack"] = tech_stacks[0]["properties"].get("technologies", []) if tech_stacks else []
+
+        user_roles = [e for e in entities.values() if e.get("type") == "UserRole"]
+        model["user_roles"] = [
+            {"name": ur["properties"].get("name", ""),
+             "permissions": ur["properties"].get("permissions", [])} for ur in user_roles
+        ]
+
+        optimization_opps = [e for e in entities.values() if e.get("type") == "OptimizationOpportunity"]
+        model["optimization_opportunities"] = [
+            {"description": oo["properties"].get("description", ""),
+             "priority": oo["properties"].get("priority", "medium"),
+             "category": oo["properties"].get("category", "")} for oo in optimization_opps
+        ]
+
+        return model
+
+    def save_site_model(self, system_name: str):
+        """保存 site_model.json 到 memory/ontology 目录"""
+        t0 = time.time()
+        model = self.generate_site_model(system_name)
+        site_model_dir = self.memory_base_path / "memory" / "ontology"
+        site_model_dir.mkdir(parents=True, exist_ok=True)
+        site_model_path = site_model_dir / "site_model.json"
+        with open(site_model_path, 'w', encoding='utf-8') as f:
+            json.dump(model, f, ensure_ascii=False, indent=2)
+        print(f"  ✅ site_model.json 已保存 ({site_model_path})")
+        print(f"    ⏱  site_model 聚合耗时: {time.time() - t0:.3f}s")
+
+    def _log_page_version(self, page_url: str, task_id: str, node_count: int,
+                          title: str, system_id: str):
+        """记录页面版本到 version_log.jsonl"""
+        version_dir = self.memory_base_path / "memory" / "ontology"
+        version_dir.mkdir(parents=True, exist_ok=True)
+        version_path = version_dir / "version_log.jsonl"
+        record = {
+            "page_url": page_url,
+            "task_id": task_id,
+            "node_count": node_count,
+            "title": title,
+            "system_id": system_id,
+            "timestamp": datetime.now().isoformat()
+        }
+        with open(version_path, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(record, ensure_ascii=False) + '\n')
+
+    def _record_contribution(self, system_id: str, task_id: str,
+                             system_name: str = None):
+        """记录贡献溯源到 contribution_map.jsonl"""
+        contrib_dir = self.memory_base_path / "memory" / "ontology"
+        contrib_dir.mkdir(parents=True, exist_ok=True)
+        contrib_path = contrib_dir / "contribution_map.jsonl"
+        record = {
+            "system_id": system_id,
+            "system_name": system_name or "unknown",
+            "task_id": task_id,
+            "level": "system",
+            "timestamp": datetime.now().isoformat()
+        }
+        with open(contrib_path, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(record, ensure_ascii=False) + '\n')
+
+    def _record_page_contribution(self, page_url: str, page_entity_id: str,
+                                   task_id: str, system_id: str):
+        """记录页面级别贡献溯源"""
+        contrib_dir = self.memory_base_path / "memory" / "ontology"
+        contrib_dir.mkdir(parents=True, exist_ok=True)
+        contrib_path = contrib_dir / "contribution_map.jsonl"
+        record = {
+            "page_url": page_url,
+            "page_entity_id": page_entity_id,
+            "task_id": task_id,
+            "system_id": system_id,
+            "level": "page",
+            "timestamp": datetime.now().isoformat()
+        }
+        with open(contrib_path, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(record, ensure_ascii=False) + '\n')
+
+    def _query_existing_system(self, system_name: str) -> Optional[Dict]:
+        """从已有 graph.jsonl 中查询 System 实体"""
+        if not self.graph_path.exists():
+            return None
+        for entity in self._load_entity_map_indexed().values():
+            if entity.get("type") == "System" and \
+               entity.get("properties", {}).get("name") == system_name:
+                return entity
+        return None

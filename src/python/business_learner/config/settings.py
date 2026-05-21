@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 
 # 项目根目录（向上追溯到 sentinel-learner 根目录）
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
 
 # 数据路径配置（可通过环境变量覆盖）
 DEFAULT_TASK_PATH = os.environ.get(
