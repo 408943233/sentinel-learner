@@ -151,8 +151,38 @@ def _events_ts_from_filename(stem: str) -> int:
     return 0
 
 
+_STATIC_RESOURCE_EXTENSIONS = frozenset({
+    '.css', '.js', '.json', '.xml', '.map', '.txt', '.md',
+    '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.webp',
+    '.woff', '.woff2', '.ttf', '.eot', '.otf',
+    '.mp4', '.webm', '.mp3', '.wav',
+})
+
+
+def _is_static_resource(url: str) -> bool:
+    """判断 URL 是否为静态资源（不应作为页面重建）"""
+    from urllib.parse import urlparse
+    path = urlparse(url).path
+    if not path or path == '/':
+        return False
+    _, ext = os.path.splitext(path)
+    return ext.lower() in _STATIC_RESOURCE_EXTENSIONS
+
+
+def _is_page_navigation(event_type: str) -> bool:
+    """判断事件类型是否为页面导航（页面边界）"""
+    return event_type in ('page-load-start', 'page-load-complete')
+
+
 def run_layer1(task_path: Path, output_dir: Path) -> dict:
-    """Layer 1: 工程化页面重建"""
+    """Layer 1: 工程化页面重建
+
+    原则:
+    - 一个页面 = 一次 page-load 导航事件，只有用户真正导航到的 URL 才重建
+    - 静态资源（.css/.js/.png 等）不是页面，仅作为页面内资源引用
+    - 每个页面必须有自己独立的 type=2 DOM 快照，绝不复用其他页面的快照
+    - 缺少 type=2 快照的页面标记为 unreconstructed，不伪造内容
+    """
     print_section("Layer 1: 工程化页面重建")
 
     manifest_path = task_path / 'training_manifest.jsonl'
@@ -165,6 +195,7 @@ def run_layer1(task_path: Path, output_dir: Path) -> dict:
 
     pages_output = {}
     page_nodes = {}
+    unreconstructed = []
     assembler = PageAssembler(task_path)
 
     dom_dir = task_path / 'dom'
@@ -172,126 +203,85 @@ def run_layer1(task_path: Path, output_dir: Path) -> dict:
         print("  ❌ dom/ 目录不存在")
         return {'pages': {}}
 
-    # 步骤1: 从 manifest 提取 URL→快照 的精确对应关系，按快照文件去重
-    snap_to_best = {}  # dom_file → (url, ts, nc)
+    dom_to_best = {}
     for e in events:
         meta = e.get('metadata') or {}
-        dom_file = meta.get('domSnapshotFileName')
-        if not dom_file:
+        df = meta.get('domSnapshotFileName')
+        if not df:
             continue
-        dom_path = dom_dir / dom_file
-        if not dom_path.exists():
-            _log_skip("DOM快照文件缺失", str(dom_file))
+        dp = dom_dir / df
+        if not dp.exists():
             continue
-        raw_url = (e.get('url') or e.get('to') or '').strip()
         try:
-            with open(dom_path, 'r') as f:
-                snap = json.load(f)
+            with open(dp, 'r') as fh:
+                snap = json.load(fh)
         except Exception:
-            _log_skip("DOM快照JSON解析异常", f"{dom_file} ({raw_url[:60]})")
             continue
         if not isinstance(snap, dict):
             continue
         rrweb = snap.get('rrwebEvent', {})
         if rrweb.get('type') != 2:
-            _log_skip("非完整快照", f"type={rrweb.get('type')}, {raw_url[:60]}")
             continue
-        node_count = len(rrweb.get('data', {}).get('nodes', []))
-        if node_count < 5:
-            _log_skip("SPA空壳页面", f"nodes={node_count}, {raw_url[:60]}")
+        nc = len(rrweb.get('data', {}).get('nodes', []))
+        if nc < 5:
             continue
-        url = raw_url
-        if not url or url.startswith('chrome-error://') or url.startswith('about:'):
-            _log_skip("无效URL", str(url)[:60])
-            continue
-        # 按快照文件去重：同一 dom_file 只保留基底 URL（无 hash 的优先）
-        if dom_file not in snap_to_best or ('#' not in url and '#' in snap_to_best[dom_file][0]):
-            snap_to_best[dom_file] = (url, e.get('timestamp', 0), node_count)
+        dom_to_best[df] = (rrweb, nc)
 
-    built = 0
-    for dom_file, (url, evt_ts, nc) in snap_to_best.items():
-        page_name = _make_page_name(url)
-        if not page_name or page_name == '/':
-            continue
-        if page_name in pages_output:
-            continue
-
-        dom_path = dom_dir / dom_file
-        print(f"  Building: {page_name} ({url[:80]})")
-        page_dir = output_dir / 'pages' / page_name
-        html_path = assembler.build_page(dom_file, page_dir)
-
-        if html_path and html_path.stat().st_size > 0:
-            pages_output[page_name] = str(html_path)
-            page_nodes[page_name] = nc
-            built += 1
-            print(f"    ✅ {html_path.name} ({html_path.stat().st_size/1024:.0f}KB, {nc} nodes)")
-        else:
-            _log_skip("页面重建失败", f"{page_name} ({url[:60]})")
-
-    # 步骤2: SPA hash 路由补充。只创建那些有独立快照的页面，不复用骨架快照
-    remaining_urls = []
-    step1_urls = set(u for u, _, _ in snap_to_best.values())
-    step1_names = {_make_page_name(u) for u, _, _ in snap_to_best.values()}
-    seen_urls = step1_urls | step1_names
-    for e in events:
+    page_events = [e for e in events if _is_page_navigation(e.get('type', ''))]
+    page_urls = []
+    for e in page_events:
         url = (e.get('url') or e.get('to') or '').strip()
-        if not url or url.startswith('chrome-error://') or url.startswith('about:'):
+        if not url or url.startswith(('chrome-error://', 'about:')):
+            continue
+        if _is_static_resource(url):
             continue
         pn = _make_page_name(url)
-        if not pn or pn == '/':
+        if not pn:
             continue
-        if url in seen_urls or pn in pages_output:
+        if any(p[0] == url for p in page_urls):
             continue
-        seen_urls.add(url)
-        remaining_urls.append((e.get('timestamp', 0), url))
+        meta = e.get('metadata') or {}
+        df = meta.get('domSnapshotFileName', '')
+        page_urls.append((url, pn, df, e.get('timestamp', 0)))
 
-    if remaining_urls:
-        base_to_snap = {_url_base(url): dom_file for url, dom_file, _nc in snap_to_best.values()}
-        print(f"  步骤2: {len(remaining_urls)} 个 URL 无精确快照")
+    print(f"  识别到 {len(page_urls)} 个页面导航 (从 {len(page_events)} 个 page-load 事件)")
 
-        for url_ts, url in remaining_urls:
-            page_name = _make_page_name(url)
-            if page_name in pages_output:
-                continue
-            # SPA hash 路由：基底相同，复用快照无意义（内容是骨架），跳过
-            url_base = _url_base(url)
-            if url_base in base_to_snap:
-                continue
-            # MPA 页面：无独立快照，拿域内最接近的替用
-            best_fn = None
-            best_diff = float('inf')
-            url_domain = _url_domain(url)
-            for dom_file, (surl, sts, snc) in snap_to_best.items():
-                if url_domain and _url_domain(surl) != url_domain:
-                    continue
-                diff = abs(sts - url_ts)
-                if diff < best_diff and diff < 60000:
-                    best_diff = diff
-                    best_fn = dom_file
-            if not best_fn:
-                _log_skip("MPA页面无可用替用快照", f"{page_name} ({url[:60]})")
-                continue
-            print(f"  Building: {page_name} ({url[:80]}) [fallback]")
-            page_dir = output_dir / 'pages' / page_name
-            html_path = assembler.build_page(best_fn, page_dir)
+    built = 0
+    for url, pn, dom_file, evt_ts in page_urls:
+        if pn in pages_output:
+            continue
+
+        if dom_file and dom_file in dom_to_best:
+            rrweb, nc = dom_to_best[dom_file]
+            print(f"  Building: {pn} ({url[:80]})")
+            page_dir = output_dir / 'pages' / pn
+            html_path = assembler.build_page(dom_file, page_dir)
             if html_path and html_path.stat().st_size > 0:
-                pages_output[page_name] = str(html_path)
-                page_nodes[page_name] = 0
-                print(f"    ✅ {html_path.name} ({html_path.stat().st_size/1024:.0f}KB)")
+                pages_output[pn] = str(html_path)
+                page_nodes[pn] = nc
+                built += 1
+                print(f"    ✅ {html_path.name} ({html_path.stat().st_size/1024:.0f}KB, {nc} nodes)")
             else:
-                _log_skip("页面重建失败(fallback)", f"{page_name} ({url[:60]})")
+                unreconstructed.append((pn, url, "PageAssembler 重建失败"))
+        else:
+            unreconstructed.append((pn, url, f"无 type=2 完整快照 (dom_file={dom_file or '未关联'})"))
+
+    if unreconstructed:
+        print(f"\n  ⚠️ {len(unreconstructed)} 个页面无法重建 (缺少 type=2 DOM 快照):")
+        for pn, url, reason in unreconstructed:
+            print(f"    - {pn:30s} {reason[:60]}")
 
     summary = {
         'total_pages': len(pages_output),
         'pages': pages_output,
-        'page_nodes': page_nodes
+        'page_nodes': page_nodes,
+        'unreconstructed': [{'page_name': pn, 'url': url, 'reason': r} for pn, url, r in unreconstructed],
     }
     summary_path = output_dir / 'layer1_summary.json'
     with open(summary_path, 'w', encoding='utf-8') as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
-    print(f"\n  ✅ Layer 1 完成: {len(pages_output)} 个页面")
+    print(f"\n  ✅ Layer 1 完成: {built} 个页面")
     return summary
 
 
