@@ -577,7 +577,7 @@ def store_to_knowledge_pipeline(task_path: Path, output_dir: Path,
     # 生成 site model（不依赖 Layer3 成功）
     system_name = (layer3_result or {}).get('system_name', '')
     if not system_name:
-        system_name = metadata.target_system.get('name', '') if metadata and hasattr(metadata, 'target_system') else ''
+        system_name = getattr(metadata.target_system, 'name', '') if metadata and hasattr(metadata, 'target_system') else ''
     if not system_name:
         try:
             sys_entity = adapter._query_existing_system('')

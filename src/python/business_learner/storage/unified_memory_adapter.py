@@ -233,6 +233,10 @@ class UnifiedMemoryAdapter:
 
         return entity_map
 
+    def _load_all_entities(self) -> list:
+        """返回实体列表（供 _run_memory_decay / _run_knowledge_compression 使用）"""
+        return list(self._load_entity_map_indexed().values())
+
     def _find_matching_entity(self, new_entity: Dict, existing: Dict[str, Dict]) -> Optional[str]:
         etype = new_entity.get("type", "")
         props = new_entity.get("properties", {})
