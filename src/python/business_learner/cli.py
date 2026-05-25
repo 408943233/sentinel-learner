@@ -101,7 +101,7 @@ def main():
     
     # 运行学习引擎
     try:
-        engine = BusinessLearningEngine(str(task_path))
+        engine = FinalBusinessLearningEngine(str(task_path))
         result = engine.run()
         
         # 打印摘要

@@ -280,7 +280,10 @@ class ServerBusinessLearningEngine:
                     events.append(event)
                 except:
                     continue
-        
+
+        from ..extractors.manifest_analyzer import ManifestAnalyzer
+        events = ManifestAnalyzer._normalize_event_format(events)
+
         current_process = None
         
         for event in events:

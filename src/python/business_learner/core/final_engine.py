@@ -247,7 +247,8 @@ class FinalBusinessLearningEngine:
             
             # 13. 存储到知识图谱
             print("\n🗄️ 存储到知识图谱...")
-            self._store_to_memory(task)
+            self._store_to_memory(task,
+                layer3_analysis_path=str(self.output_dir / 'system_analysis.json'))
             
             # 更新成功状态
             duration = time.time() - start_time
@@ -1027,14 +1028,31 @@ class FinalBusinessLearningEngine:
         except Exception as e:
             print(f"  ⚠️ 生成原型Demo时出错: {e}")
 
-    def _store_to_memory(self, task: TaskUnderstanding):
-        """存储到知识图谱"""
+    def _store_to_memory(self, task: TaskUnderstanding,
+                         layer3_analysis_path: str = None):
+        """存储到知识图谱 + Layer3 分析 + Site Model 聚合"""
         try:
             self.memory_adapter.store_task_knowledge(
                 task_result=task,
                 metadata_manager=self.metadata_manager
             )
+
+            if layer3_analysis_path:
+                task_entity_id = getattr(task, 'task_id', '') or \
+                    self.metadata.task_id
+                system_name = self.metadata.target_system.name
+                system_entity = self.memory_adapter._query_existing_system(system_name)
+                if system_entity:
+                    self.memory_adapter.store_layer3_analysis(
+                        task_id=task_entity_id,
+                        system_id=system_entity["id"],
+                        analysis_file=layer3_analysis_path
+                    )
+                    self.memory_adapter.save_site_model(system_name)
+
             print("  ✅ 已存储到知识图谱")
         except Exception as e:
             print(f"  ⚠️ 存储到知识图谱失败: {e}")
+            import traceback
+            traceback.print_exc()
 

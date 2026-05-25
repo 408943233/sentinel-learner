@@ -1,67 +1,40 @@
 # Dependencies
 node_modules/
+
+# Python
 __pycache__/
 *.pyc
-.Python
-env/
-venv/
-ENV/
-
-# Build outputs
+*.pyo
+*.egg-info/
 dist/
 build/
-*.egg-info/
+*.egg
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Testing
-coverage/
-.nyc_output/
-
-# Output directories
-output/
-.temp/
-temp/
-
-# Config files with secrets
-config/config.json
+# Environment & Config (contains API keys)
 .env
 .env.local
+config/config.json
+config/*.json
 
-# Playwright
-playwright-report/
-test-results/
+# Logs
+*.log
+logs/
 
-# Large files and binaries
-*.pt
-*.pth
-*.onnx
-*.bin
-chromedriver*
-*.exe
-*.dll
-*.so
-*.dylib
+# Output data
+*.analysis/
+output/
 
-# Sub-projects (these are separate repositories)
-.trae/skills/sentinel-browser/
-page-screenshot-to-html/scripts/chromedriver*
-page-screenshot-to-html/scripts/*.pt
-page-screenshot-to-html/scripts/*.pth
-page-screenshot-to-html/output/*.html
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/

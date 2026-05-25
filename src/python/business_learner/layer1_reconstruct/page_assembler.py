@@ -5,6 +5,8 @@ Layer 1: 页面组装器
 不需要 LLM，纯程序化处理。
 """
 
+import json
+import logging
 import re
 import shutil
 from pathlib import Path
@@ -13,6 +15,15 @@ from urllib.parse import urlparse
 
 from .rrweb_deserializer import RrwebDeserializer
 from .behavior_extractor import BehaviorExtractor
+
+logger = logging.getLogger(__name__)
+
+# 确保日志可见（learn.py 未配置全局 logging，此处兜底）
+if not logger.handlers and not logging.root.handlers:
+    _handler = logging.StreamHandler()
+    _handler.setFormatter(logging.Formatter('[%(name)s] %(levelname)s: %(message)s'))
+    logger.addHandler(_handler)
+    logger.setLevel(logging.DEBUG)
 
 
 class PageAssembler:
@@ -85,6 +96,9 @@ class PageAssembler:
             html_body = behavior_html + '\n' + html_body
 
         full_html = self._assemble_full_html(html_body, css_content)
+
+        # 内嵌 iframe 内容（CDP 捕获的跨域 iframe DOM）
+        full_html = self._embed_iframe_content(snapshot_path, full_html)
 
         output_path = output_dir / 'index.html'
         if output_path.is_dir():
@@ -338,7 +352,7 @@ class PageAssembler:
         title_match = re.search(r'<title[^>]*>(.*?)</title>', body, re.DOTALL)
         title = title_match.group(1).strip() if title_match else 'Page'
 
-        # 提取原始 <html> 标签上的属性（特别是 style，lang 由模板统一控制）
+        # 提取原始 <html> 标签上的属性
         html_tag_match = re.search(r'<html\b([^>]*)>', body, re.IGNORECASE)
         html_attrs = ''
         if html_tag_match:
@@ -353,10 +367,22 @@ class PageAssembler:
             if preserved:
                 html_attrs = ' ' + ' '.join(preserved)
 
+        # 提取原始 <body> 标签上的属性（class, style 等布局关键属性）
+        body_attrs = ''
+        body_tag_match = re.search(r'<body\b([^>]*)>', body, re.IGNORECASE)
+        if body_tag_match:
+            raw_body_attrs = body_tag_match.group(1).strip()
+            body_attr_parts = re.findall(r'(\S+)\s*=\s*["\']([^"\']*)["\']', raw_body_attrs)
+            body_preserved = []
+            for attr_name, attr_val in body_attr_parts:
+                lower = attr_name.lower()
+                body_preserved.append(f'{attr_name}="{attr_val}"')
+            if body_preserved:
+                body_attrs = ' ' + ' '.join(body_preserved)
+
         inline_styles = []
         def _extract_style(match):
             tag = match.group(0)
-            # 提取 style 标签的内容（去掉 <style ...> 和 </style>）
             content = re.sub(r'^<style[^>]*>', '', tag)
             content = re.sub(r'</style>$', '', content, flags=re.IGNORECASE)
             inline_styles.append(content.strip())
@@ -367,7 +393,6 @@ class PageAssembler:
 
         if inline_styles:
             extracted = '\n'.join(s.strip() for s in inline_styles)
-            # 避免 CSS 内容中的 </style> 提前关闭 <style> 标签
             extracted = extracted.replace('</style>', '<\\/style>')
             if css:
                 css = extracted + '\n' + css
@@ -381,9 +406,7 @@ class PageAssembler:
         else:
             body_content = body
 
-        # 修复 SPA 反闪屏：移除 body{display:none}。
-        # Vue.js/React SPA 在 body 上设 display:none 防止渲染闪屏，
-        # 挂载后由 JS 移除。重建页面不含 JS 运行时，body 会永久隐藏。
+        # 修复 SPA 反闪屏：移除 body{display:none}
         css = re.sub(
             r'body\s*\{[^}]*display\s*:\s*none[^}]*\}',
             'body{display:block}',
@@ -401,7 +424,281 @@ class PageAssembler:
 {css}
 </style>
 </head>
-<body>
+<body{body_attrs}>
 {body_content}
 </body>
 </html>'''
+
+    def _embed_iframe_content(self, snapshot_path: Path, html: str) -> str:
+        """将录制时通过 CDP 捕获的跨域 iframe 内容内嵌到 HTML 中。
+
+        录制阶段（sentinel-browser）通过 CDP Page.getFrameTree + Runtime.evaluate
+        突破了同源策略限制，捕获了跨域 iframe 内部的完整 outerHTML，
+        保存在快照文件的 iframeCaptures 字段中。
+        此方法读取这些捕获内容，用静态 HTML 替换 <iframe> 标签，
+        避免重建页面时依赖临时令牌导致 iframe 无法加载。
+        """
+        try:
+            with open(snapshot_path, 'r', encoding='utf-8') as f:
+                snapshot = json.load(f)
+
+            iframe_captures = snapshot.get('iframeCaptures', [])
+            if not iframe_captures:
+                logger.info(f"[iframe-embed] No iframeCaptures in {snapshot_path.name}, skipping")
+                return html
+
+            logger.info(f"[iframe-embed] Found {len(iframe_captures)} iframe capture(s) in {snapshot_path.name}")
+            _before_count = len(re.findall(r'<iframe\b', html))
+            logger.info(f"[iframe-embed] Original HTML size: {len(html)} chars, "
+                        f"iframe tags before: {_before_count}")
+
+            for i, capture in enumerate(iframe_captures):
+                src = capture.get('src', '')
+                outer_html = capture.get('outerHTML', '')
+                title = capture.get('title', '')
+                name = capture.get('name', '')
+
+                # 原始捕获内容统计
+                outer_size = len(outer_html)
+                outer_lines = outer_html.count('\n') + 1 if outer_html else 0
+                logger.info(
+                    f"[iframe-embed] ===== Capture #{i} ===== "
+                    f"src={src[:120]}, name={name}, title={title[:60]}, "
+                    f"raw_size={outer_size} chars, raw_lines={outer_lines}"
+                )
+
+                if outer_html:
+                    # 打印 outerHTML 的开头和结尾片段用于验证
+                    head_snippet = outer_html[:300].replace('\n', '\\n')
+                    tail_snippet = outer_html[-200:].replace('\n', '\\n') if outer_size > 200 else ''
+                    logger.debug(f"[iframe-embed]   head_snippet (first 300 chars): {head_snippet}")
+                    if tail_snippet:
+                        logger.debug(f"[iframe-embed]   tail_snippet (last 200 chars): {tail_snippet}")
+
+                    # 检查常见 HTML 元素
+                    tag_counts = {}
+                    for tag in ['html', 'head', 'body', 'form', 'input', 'button', 'div', 'script', 'style', 'img']:
+                        cnt = len(re.findall(rf'<\s*{tag}\b', outer_html, re.IGNORECASE))
+                        if cnt:
+                            tag_counts[tag] = cnt
+                    if tag_counts:
+                        logger.debug(f"[iframe-embed]   tag_counts: {tag_counts}")
+
+                if not outer_html:
+                    logger.warning(f"[iframe-embed] Capture #{i} has empty outerHTML, skipping src={src[:100]}")
+                    continue
+
+                # 跳过 about:blank（无实际内容）
+                if src == 'about:blank' and outer_size < 100:
+                    logger.info(f"[iframe-embed] Skipping about:blank (size={outer_size})")
+                    continue
+
+                # 在重建 HTML 中查找所有 iframe 标签，使用 re.finditer 获取位置
+                # 1. name 属性匹配（iframe name 通常是唯一的）
+                # 2. src 后缀匹配（CDP 捕获绝对 URL，HTML 中可能是相对路径）
+                # 3. src 精确匹配（回退）
+                #
+                # 使用带位置信息的匹配，后续需要定位 </iframe> 闭合标签
+                all_iframes = list(re.finditer(r'<iframe\b[^>]*>', html, re.IGNORECASE))
+                matched_pos = None
+                matched_tag = None
+                matched_reason = None
+
+                if name:
+                    escaped_name = re.escape(name)
+                    for m in all_iframes:
+                        if re.search(r'\bname\s*=\s*["\']' + escaped_name + r'["\']', m.group()):
+                            matched_pos = m.start()
+                            matched_tag = m.group()
+                            matched_reason = f"name={name}"
+                            break
+
+                if not matched_tag and src:
+                    url_basename = src.split('?')[0].rsplit('/', 1)[-1] if '/' in src else src
+                    if url_basename:
+                        escaped_bn = re.escape(url_basename)
+                        for m in all_iframes:
+                            if re.search(r'src\s*=\s*["\'][^"\']*' + escaped_bn + r'[^"\']*["\']', m.group()):
+                                matched_pos = m.start()
+                                matched_tag = m.group()
+                                matched_reason = f"src_basename={url_basename}"
+                                break
+
+                if not matched_tag and src:
+                    escaped_src = re.escape(src)
+                    for m in all_iframes:
+                        if re.search(r'src\s*=\s*["\']' + escaped_src + r'["\']', m.group()):
+                            matched_pos = m.start()
+                            matched_tag = m.group()
+                            matched_reason = f"src_exact={src[:60]}"
+                            break
+
+                if not matched_tag:
+                    logger.warning(
+                        f"[iframe-embed] No matching <iframe> for capture #{i} "
+                        f"src={src[:100]} name={name}"
+                    )
+                    for m in all_iframes:
+                        sm = re.search(r'src="([^"]*)"', m.group())
+                        nm = re.search(r'name="([^"]*)"', m.group())
+                        logger.warning(
+                            f"[iframe-embed]   src={sm.group(1)[:80] if sm else '?'} "
+                            f"name={nm.group(1) if nm else '?'}"
+                        )
+                    continue
+
+                logger.info(
+                    f"[iframe-embed] Matched by {matched_reason} at pos {matched_pos}: "
+                    f"{matched_tag[:200]}"
+                )
+
+                # 定位 </iframe> 闭合标签，替换完整的 <iframe>...</iframe> 块
+                close_tag_pos = html.find('</iframe>', matched_pos)
+                if close_tag_pos < 0:
+                    logger.warning(
+                        f"[iframe-embed] No </iframe> found after matched tag at pos {matched_pos}"
+                    )
+                    continue
+                close_end = close_tag_pos + len('</iframe>')
+                logger.debug(
+                    f"[iframe-embed]   </iframe> at pos {close_tag_pos}, "
+                    f"block length={close_end - matched_pos}"
+                )
+
+                # 从 outerHTML 中提取 <body> 内容
+                # outerHTML 是完整 HTML 文档，内嵌时需要去除外层结构避免嵌套 <html><head><body>
+                body_match = re.search(r'<body[^>]*>(.*)</body>', outer_html, re.DOTALL | re.IGNORECASE)
+                embed_content = body_match.group(1).strip() if body_match else outer_html
+
+                # 计算 iframe 的基 URL，用于将相对路径转换为绝对路径
+                # src 形如 https://iam.chinastock.com.cn/authn/login.html?...
+                from urllib.parse import urlparse, urljoin
+                iframe_base = src.split('?')[0] if src else ''
+                # 确保 base 以 / 结尾（目录级）
+                if '/' in iframe_base:
+                    dir_part = iframe_base.rsplit('/', 1)[0]
+                    iframe_base = dir_part + '/'
+                logger.debug(f"[iframe-embed]   iframe base URL: {iframe_base}")
+
+                def _make_absolute(url):
+                    """将相对路径转为基于 iframe base 的绝对 URL"""
+                    if not url or url.startswith(('http://', 'https://', 'data:', '//')):
+                        return url
+                    return urljoin(iframe_base, url)
+
+                # 提取 <head> 中的资源用于内联
+                head_resources = ''
+                head_match = re.search(r'<head[^>]*>(.*)</head>', outer_html, re.DOTALL | re.IGNORECASE)
+                if head_match:
+                    head_content = head_match.group(1)
+                    parts = []
+
+                    # <style> 标签
+                    for m in re.finditer(r'<style\b[^>]*>.*?</style>', head_content, re.DOTALL | re.IGNORECASE):
+                        parts.append(m.group())
+
+                    # <link> 标签，重写 href 为绝对路径
+                    for m in re.finditer(r'<link\b[^>]*?>', head_content, re.IGNORECASE):
+                        tag = m.group()
+                        href_m = re.search(r'href="([^"]*)"', tag)
+                        if href_m:
+                            abs_href = _make_absolute(href_m.group(1))
+                            tag = tag[:href_m.start(1)] + abs_href + tag[href_m.end(1):]
+                        parts.append(tag)
+
+                    # <script> 标签，重写 src 为绝对路径
+                    for m in re.finditer(r'<script\b[^>]*>.*?</script>|<script\b[^>]*/>', head_content, re.DOTALL | re.IGNORECASE):
+                        tag = m.group()
+                        src_m = re.search(r'src="([^"]*)"', tag)
+                        if src_m:
+                            abs_src = _make_absolute(src_m.group(1))
+                            tag = tag[:src_m.start(1)] + abs_src + tag[src_m.end(1):]
+                        parts.append(tag)
+
+                    head_resources = '\n'.join(parts) if parts else ''
+                    if head_resources:
+                        style_count = len(re.findall(r'<style|<link', head_resources))
+                        script_count = len(re.findall(r'<script', head_resources))
+                        logger.debug(
+                            f"[iframe-embed]   extracted from <head>: "
+                            f"{style_count} style/link, {script_count} script tag(s)"
+                        )
+
+                # 重写 embed_content 中的资源路径为绝对路径
+                # 包括: <img src>, <script src>, <link href>
+                def _rewrite_attr(tag, attr):
+                    m = re.search(rf'{attr}="([^"]*)"', tag)
+                    if m:
+                        abs_val = _make_absolute(m.group(1))
+                        return tag[:m.start(1)] + abs_val + tag[m.end(1):]
+                    return tag
+
+                embed_content = re.sub(
+                    r'<img\b[^>]*>',
+                    lambda m: _rewrite_attr(m.group(), 'src'),
+                    embed_content,
+                    flags=re.IGNORECASE
+                )
+                embed_content = re.sub(
+                    r'<source\b[^>]*>',
+                    lambda m: _rewrite_attr(m.group(), 'src'),
+                    embed_content,
+                    flags=re.IGNORECASE
+                )
+                # body 中的 <script src="..."> 也需要重写
+                embed_content = re.sub(
+                    r'<script\b[^>]*src="[^"]*"[^>]*>.*?</script>|<script\b[^>]*src="[^"]*"[^>]*/>',
+                    lambda m: _rewrite_attr(m.group(), 'src'),
+                    embed_content,
+                    flags=re.DOTALL | re.IGNORECASE
+                )
+                # <link> 标签（如 favicon）
+                embed_content = re.sub(
+                    r'<link\b[^>]*>',
+                    lambda m: _rewrite_attr(m.group(), 'href'),
+                    embed_content,
+                    flags=re.IGNORECASE
+                )
+
+                replacement = (
+                    f'<!-- [EMBEDDED IFRAME] src={src} title={title} -->\n'
+                    f'{head_resources}\n'
+                    f'{embed_content}\n'
+                    f'<!-- [/EMBEDDED IFRAME] -->'
+                )
+
+                # 替换整个 <iframe ...> ... </iframe> 块
+                old_block = html[matched_pos:close_end]
+                new_html = html[:matched_pos] + replacement + html[close_end:]
+                if new_html != html:
+                    delta = len(new_html) - len(html)
+                    logger.info(f"[iframe-embed] SUCCESS: replaced by {matched_reason}")
+                    logger.info(
+                        f"[iframe-embed]   HTML size change: {len(html)} -> {len(new_html)} "
+                        f"chars (delta={delta:+d})"
+                    )
+                    logger.info(
+                        f"[iframe-embed]   Embedded: body={len(embed_content)} chars, "
+                        f"head_resources={len(head_resources)} chars"
+                    )
+                    html = new_html
+                else:
+                    logger.warning(f"[iframe-embed] Replace by {matched_reason} had no effect")
+
+            total_iframe_tags = len(re.findall(r'<iframe\b', html))
+            logger.info(
+                f"[iframe-embed] ===== Done: {len(iframe_captures)} captures processed, "
+                f"{total_iframe_tags} <iframe> tags remain, "
+                f"final HTML size: {len(html)} chars ====="
+            )
+            return html
+
+        except FileNotFoundError:
+            logger.error(f"[iframe-embed] Snapshot file not found: {snapshot_path}")
+            return html
+        except json.JSONDecodeError as e:
+            logger.error(f"[iframe-embed] Invalid JSON in snapshot {snapshot_path}: {e}")
+            return html
+        except Exception as e:
+            logger.error(f"[iframe-embed] Failed to embed iframe content: {e}", exc_info=True)
+            return html

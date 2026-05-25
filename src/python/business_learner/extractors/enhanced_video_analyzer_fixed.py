@@ -66,6 +66,28 @@ class EnhancedVideoAnalyzerFixed:
                     continue
                 try:
                     event = json.loads(line)
+                    # 格式兼容层
+                    if 'event_details' not in event and 'type' in event:
+                        evt_type = event.get('type', '')
+                        action = 'page-load' if evt_type in ('page-load-start', 'page-load-complete') else evt_type
+                        meta = event.get('metadata') or {}
+                        ua = event.get('userAction') or {}
+                        event['event_details'] = {'action': action, 'semantic_label': meta.get('description') or ''}
+                        event['_metadata'] = {'title': event.get('title') or '', 'user_intents': [],
+                            'scrollSequenceId': ua.get('scrollSequenceId'),
+                            'direction': ua.get('direction'),
+                            'scrollStartX': ua.get('scrollStartX', 0),
+                            'scrollStartY': ua.get('scrollStartY', 0),
+                            'scrollDeltaX': ua.get('scrollDeltaX', 0),
+                            'scrollDeltaY': ua.get('scrollDeltaY', 0),
+                            'scrollDuration': ua.get('scrollDuration', 0),
+                            'triggerSource': ua.get('triggerSource'),
+                            **meta}
+                        if 'window_context' not in event:
+                            event['window_context'] = {'url': event.get('url') or ''}
+                        elif not event['window_context'].get('url'):
+                            event['window_context']['url'] = event.get('url') or ''
+
                     action = event.get('event_details', {}).get('action')
                     metadata = event.get('_metadata', {})
                     

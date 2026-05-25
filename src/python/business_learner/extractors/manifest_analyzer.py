@@ -92,7 +92,7 @@ class ManifestAnalyzer:
         events = []
         if not self.manifest_path.exists():
             return events
-            
+
         with open(self.manifest_path, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
@@ -103,8 +103,84 @@ class ManifestAnalyzer:
                     events.append(event)
                 except:
                     continue
-        
-        self.events = events
+
+        self.events = ManifestAnalyzer._normalize_event_format(events)
+        return self.events
+
+    @staticmethod
+    def _normalize_event_format(events: List[Dict]) -> List[Dict]:
+        """格式兼容层：UnifiedEventManager 新格式 → 旧 DataSchemaManager 格式"""
+        for event in events:
+            if 'event_details' not in event and 'type' in event:
+                evt_type = event.get('type', '')
+                # 映射新 type → 旧 action:
+                # page-load-start/page-load-complete → page-load
+                action = evt_type
+                if evt_type in ('page-load-start', 'page-load-complete'):
+                    action = 'page-load'
+
+                meta = event.get('metadata') or {}
+                ua = event.get('userAction') or {}
+                wc = event.get('window_context') or {}
+
+                event['event_details'] = {
+                    'action': action,
+                    'semantic_label': meta.get('description') or '',
+                    'dom_path': ua.get('xpath') or '',
+                    'shadow_dom_path': ua.get('shadowPath') or '',
+                    'coordinates': ua.get('coordinates') or None,
+                    'scroll_data': {
+                        'scrollX': ua.get('scrollX', 0),
+                        'scrollY': ua.get('scrollY', 0),
+                    } if ua.get('direction') else {},
+                }
+
+            if '_metadata' not in event and 'metadata' in event:
+                meta = event.get('metadata') or {}
+                event['_metadata'] = {
+                    'title': event.get('title') or '',
+                    'user_intents': [],
+                    **meta,
+                }
+
+            if 'window_context' not in event:
+                event['window_context'] = {
+                    'url': event.get('url') or '',
+                    'window_id': None,
+                    'parent_window_id': None,
+                }
+            else:
+                # 修复：window_context.url 可能为 None/null
+                wc = event['window_context']
+                if not wc.get('url'):
+                    wc['url'] = event.get('url') or ''
+
+            if 'network_correlation' not in event:
+                event['network_correlation'] = event.get('network_correlation') or {
+                    'api_requests': [],
+                    'resources': [],
+                    'response_status': None,
+                }
+
+            if 'page_state' not in event:
+                event['page_state'] = {
+                    'fingerprint': None,
+                    'has_errors': False,
+                    'is_loading': False,
+                    'mutations': [],
+                }
+            else:
+                ps = event['page_state']
+                if 'mutations' not in ps:
+                    ps['mutations'] = []
+                if 'errors' not in ps and event.get('message'):
+                    ps['errors'] = [{
+                        'type': event.get('error_type', ''),
+                        'message': event.get('message', '')
+                    }]
+                if 'has_errors' not in ps:
+                    ps['has_errors'] = bool(event.get('message'))
+
         return events
     
     def analyze(self) -> ManifestAnalysisResult:

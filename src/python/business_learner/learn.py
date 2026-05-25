@@ -17,6 +17,8 @@ Layer 3: LLM 系统理解 (pages + causal → PM 认知)
 import os
 import sys
 import json
+import re
+import hashlib
 import logging
 import subprocess
 import shutil
@@ -271,6 +273,9 @@ def run_layer1(task_path: Path, output_dir: Path) -> dict:
         for pn, url, reason in unreconstructed:
             print(f"    - {pn:30s} {reason[:60]}")
 
+    # CSS 去重：提取跨页面公共样式，减少冗余
+    common_css = _deduplicate_page_css(pages_output, output_dir)
+
     summary = {
         'total_pages': len(pages_output),
         'pages': pages_output,
@@ -283,6 +288,94 @@ def run_layer1(task_path: Path, output_dir: Path) -> dict:
 
     print(f"\n  ✅ Layer 1 完成: {built} 个页面")
     return summary
+
+
+def _css_content_hash(css_text: str) -> str:
+    return hashlib.md5(css_text.encode('utf-8', errors='ignore')).hexdigest()
+
+
+def _deduplicate_page_css(pages_output: dict, output_dir: Path) -> str:
+    """跨页面 CSS 去重：提取公共样式到共享文件，页面引用之"""
+    if len(pages_output) < 2:
+        return ''
+
+    page_css_map = {}
+    for page_name, html_path_str in pages_output.items():
+        html_path = Path(html_path_str)
+        if not html_path.exists():
+            continue
+        content = html_path.read_text(encoding='utf-8')
+        style_match = re.search(r'<style>(.*?)</style>', content, re.DOTALL)
+        if style_match:
+            page_css_map[page_name] = {
+                'path': html_path,
+                'css': style_match.group(1),
+                'hash': _css_content_hash(style_match.group(1))
+            }
+
+    if not page_css_map:
+        return ''
+
+    css_blocks = {}
+    for pn in page_css_map:
+        css_text = page_css_map[pn]['css']
+        blocks = re.split(r'\n/\*.*?\*/\n', css_text)
+        if len(blocks) <= 1:
+            blocks = [css_text]
+        for b in blocks:
+            b = b.strip()
+            if not b:
+                continue
+            bh = _css_content_hash(b)
+            if bh not in css_blocks:
+                css_blocks[bh] = {'css': b, 'size': len(b), 'pages': []}
+            css_blocks[bh]['pages'].append(pn)
+
+    common_css = []
+    page_specific = {}
+    for pn in page_css_map:
+        page_specific[pn] = []
+
+    for bh, info in css_blocks.items():
+        if len(info['pages']) >= 2:
+            common_css.append(f'/* shared css block (used by {len(info["pages"])} pages, {info["size"]//1024}KB) */\n{info["css"]}')
+        else:
+            for pn in info['pages']:
+                page_specific[pn].append(info['css'])
+
+    if not common_css:
+        return ''
+
+    common_dir = output_dir / 'pages' / 'shared'
+    common_dir.mkdir(parents=True, exist_ok=True)
+    common_css_path = common_dir / 'common.css'
+    common_content = '\n\n'.join(common_css)
+
+    total_shared = sum(b['size'] for b in css_blocks.values() if len(b['pages']) >= 2)
+    shared_pages = set()
+    for b in css_blocks.values():
+        if len(b['pages']) >= 2:
+            shared_pages.update(b['pages'])
+    print(f"\n  🎨 CSS 去重: 提取 {len(common_css)} 个共享块 ({total_shared//1024}KB) → pages/shared/common.css")
+    print(f"     覆盖 {len(shared_pages)} 个页面")
+
+    with open(common_css_path, 'w', encoding='utf-8') as f:
+        f.write(common_content)
+
+    for pn, info in page_css_map.items():
+        full_css = common_content + '\n\n' + '\n\n'.join(page_specific.get(pn, []))
+        content = info['path'].read_text(encoding='utf-8')
+        start = content.find('<style>')
+        end = content.find('</style>', start)
+        if start >= 0 and end > start:
+            content = content[:start + 7] + '\n' + full_css + '\n' + content[end:]
+        else:
+            content = content.replace('<style></style>', f'<style>\n{full_css}\n</style>')
+        info['path'].write_text(content, encoding='utf-8')
+        new_size = info['path'].stat().st_size
+        print(f"     {pn}: {new_size//1024}KB")
+
+    return common_content
 
 
 def _url_base(url: str) -> str:
